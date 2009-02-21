@@ -8,9 +8,9 @@ eval 'case $# in 0) exec @PERL@ -S "$0";; *) exec @PERL@ -S "$0" "$@";; esac'
 # autoheader -- create `config.h.in' from `configure.ac'
 
 # Copyright (C) 1992, 1993, 1994, 1996, 1998, 1999, 2000, 2001, 2002,
-# 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+# 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
@@ -87,9 +87,10 @@ Report bugs to <bug-autoconf\@gnu.org>.
 # $VERSION
 # --------
 $version = "autoheader (@PACKAGE_NAME@) @VERSION@
-Copyright (C) 2006 Free Software Foundation, Inc.
-This is free software.  You may redistribute copies of it under the terms of
-the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.
+Copyright (C) @RELEASE_YEAR@ Free Software Foundation, Inc.
+License GPLv2+: GNU GPL version 2 or later
+<http://gnu.org/licenses/old-licenses/gpl-2.0.html>
+This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
 Written by Roland McGrath and Akim Demaille.
@@ -159,8 +160,8 @@ END
 
 # Set up autoconf.
 my $autoconf = "'$autom4te' --language=autoconf ";
-$autoconf .= join (' ', map { "--include='$_'" } @include);
-$autoconf .= join (' ', map { "--prepend-include='$_'" } @prepend_include);
+$autoconf .= join (' --include=', '', map { shell_quote ($_) } @include);
+$autoconf .= join (' --prepend-include=', '', map { shell_quote ($_) } @prepend_include);
 $autoconf .= ' --debug' if $debug;
 $autoconf .= ' --force' if $force;
 $autoconf .= ' --verbose' if $verbose;
@@ -171,16 +172,17 @@ $autoconf .= ' --verbose' if $verbose;
 
 # Source what the traces are trying to tell us.
 verb "$me: running $autoconf to trace from $ARGV[0]";
+my $quoted_tmp = shell_quote ($tmp);
 xsystem ("$autoconf"
 	 # If you change this list, update the
 	 # `Autoheader-preselections' section of autom4te.in.
 	 . ' --trace AC_CONFIG_HEADERS:\'$$config_h ||= \'"\'"\'$1\'"\'"\';\''
 	 . ' --trace AH_OUTPUT:\'$$verbatim{\'"\'"\'$1\'"\'"\'} = \'"\'"\'$2\'"\'"\';\''
 	 . ' --trace AC_DEFINE_TRACE_LITERAL:\'$$symbol{\'"\'"\'$1\'"\'"\'} = 1;\''
-	 . " $ARGV[0] >$tmp/traces.pl");
+	 . " " . shell_quote ($ARGV[0]) . " >$quoted_tmp/traces.pl");
 
 local (%verbatim, %symbol);
-debug "$me: \`do'ing $tmp/traces.pl:\n" . `sed 's/^/| /' $tmp/traces.pl`;
+debug "$me: \`do'ing $tmp/traces.pl:\n" . `sed 's/^/| /' $quoted_tmp/traces.pl`;
 do "$tmp/traces.pl";
 warn "couldn't parse $tmp/traces.pl: $@" if $@;
 unless ($config_h)
@@ -199,7 +201,7 @@ $config_h_in ||= "$config_h.in";
 # only the name of the macro.
 %symbol = map { s/\(.*//; $_ => 1 } keys %symbol;
 
-my $out = new Autom4te::XFile (">$tmp/config.hin");
+my $out = new Autom4te::XFile ("> " . open_quote ("$tmp/config.hin"));
 
 # Don't write "do not edit" -- it will get copied into the
 # config.h, which it's ok to edit.
@@ -208,7 +210,7 @@ print $out "/* $config_h_in.  Generated from $ARGV[0] by autoheader.  */\n";
 # Dump the top.
 if ($config_h_top)
   {
-    my $in = new Autom4te::XFile ($config_h_top);
+    my $in = new Autom4te::XFile ("< " . open_quote ($config_h_top));
     while ($_ = $in->getline)
       {
 	print $out $_;
@@ -218,7 +220,7 @@ if ($config_h_top)
 # Dump `acconfig.h', except for its bottom portion.
 if ($acconfig_h)
   {
-    my $in = new Autom4te::XFile ($acconfig_h);
+    my $in = new Autom4te::XFile ("< " . open_quote ($acconfig_h));
     while ($_ = $in->getline)
       {
 	last if /\@BOTTOM\@/;
@@ -236,7 +238,7 @@ foreach (sort keys %verbatim)
 # Dump bottom portion of `acconfig.h'.
 if ($acconfig_h)
   {
-    my $in = new Autom4te::XFile ($acconfig_h);
+    my $in = new Autom4te::XFile ("< " . open_quote ($acconfig_h));
     my $dump = 0;
     while ($_ = $in->getline)
       {
@@ -248,7 +250,7 @@ if ($acconfig_h)
 # Dump the bottom.
 if ($config_h_bot)
   {
-    my $in = new Autom4te::XFile ($config_h_bot);
+    my $in = new Autom4te::XFile ("< " . open_quote ($config_h_bot));
     while ($_ = $in->getline)
       {
 	print $out $_;
@@ -259,7 +261,7 @@ $out->close;
 
 # Check that all the symbols have a template.
 {
-  my $in = new Autom4te::XFile ("$tmp/config.hin");
+  my $in = new Autom4te::XFile ("< " . open_quote ("$tmp/config.hin"));
   my $suggest_ac_define = 1;
   while ($_ = $in->getline)
     {

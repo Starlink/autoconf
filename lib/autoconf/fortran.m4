@@ -1,9 +1,9 @@
 # This file is part of Autoconf.                       -*- Autoconf -*-
 # Fortran languages support.
-# Copyright (C) 2001, 2003, 2004, 2005, 2006
+# Copyright (C) 2001, 2003, 2004, 2005, 2006, 2007, 2008
 # Free Software Foundation, Inc.
 #
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
@@ -49,6 +49,29 @@
 # Franc,ois Pinard, Karl Berry, Richard Pixley, Ian Lance Taylor,
 # Roland McGrath, Noah Friedman, david d zuhn, and many others.
 
+
+# Table of Contents:
+#
+# Preamble
+#
+# 0. Utility macros
+#
+# 1. Language selection
+#    and routines to produce programs in a given language.
+#
+# 2. Producing programs in a given language.
+#
+# 3. Looking for a compiler
+#    And possibly the associated preprocessor.
+#
+# 4. Compilers' characteristics.
+
+
+
+## ---------- ##
+## Preamble.  ##
+## ---------- ##
+
 # Fortran vs. Fortran 77:
 #   This file contains macros for both "Fortran 77" and "Fortran", where
 # the former is the "classic" autoconf Fortran interface and is intended
@@ -59,6 +82,12 @@
 # share the same _AC_*_FC_* backend.  This backend macro requires that
 # the appropriate language be AC_LANG_PUSH'ed, and uses _AC_LANG_ABBREV and
 # _AC_LANG_PREFIX in order to name cache and environment variables, etc.
+
+
+
+## ------------------- ##
+## 0. Utility macros.  ##
+## ------------------- ##
 
 
 # _AC_LIST_MEMBER_IF(ELEMENT, LIST, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
@@ -131,11 +160,6 @@ fi[]dnl
 ## ----------------------- ##
 
 
-# -------------------------- #
-# 1d. The Fortran language.  #
-# -------------------------- #
-
-
 # AC_LANG(Fortran 77)
 # -------------------
 m4_define([AC_LANG(Fortran 77)],
@@ -196,14 +220,11 @@ AC_LANG_CASE([Fortran 77], [F77],
              [Fortran],    [FC])])
 
 
-## ---------------------- ##
-## 2.Producing programs.  ##
-## ---------------------- ##
 
+## ----------------------- ##
+## 2. Producing programs.  ##
+## ----------------------- ##
 
-# --------------------- #
-# 2d. Fortran sources.  #
-# --------------------- #
 
 # AC_LANG_SOURCE(Fortran 77)(BODY)
 # AC_LANG_SOURCE(Fortran)(BODY)
@@ -259,11 +280,6 @@ m4_define([AC_LANG_CALL(Fortran)],
 ## -------------------------------------------- ##
 ## 3. Looking for Compilers and Preprocessors.  ##
 ## -------------------------------------------- ##
-
-
-# -------------------------- #
-# 3d. The Fortran compiler.  #
-# -------------------------- #
 
 
 # AC_LANG_PREPROC(Fortran 77)
@@ -365,7 +381,8 @@ AC_CHECK_TOOLS([]_AC_FC[],
 
 # Provide some information about the compiler.
 _AS_ECHO_LOG([checking for _AC_LANG compiler version])
-ac_compiler=`set X $ac_compile; echo $[2]`
+set X $ac_compile
+ac_compiler=$[2]
 _AC_DO([$ac_compiler --version >&AS_MESSAGE_LOG_FD])
 _AC_DO([$ac_compiler -v >&AS_MESSAGE_LOG_FD])
 _AC_DO([$ac_compiler -V >&AS_MESSAGE_LOG_FD])
@@ -394,7 +411,11 @@ AC_ARG_VAR([FFLAGS], [Fortran 77 compiler flags])dnl
 _AC_ARG_VAR_LDFLAGS()dnl
 _AC_ARG_VAR_LIBS()dnl
 _AC_PROG_FC([Fortran 77], [$1])
-G77=`test $ac_compiler_gnu = yes && echo yes`
+if test $ac_compiler_gnu = yes; then
+  G77=yes
+else
+  G77=
+fi
 AC_LANG_POP(Fortran 77)dnl
 ])# AC_PROG_F77
 
@@ -503,14 +524,10 @@ AC_LANG_POP(Fortran)dnl
 ])# AC_PROG_FC_C_O
 
 
+
 ## ------------------------------- ##
 ## 4. Compilers' characteristics.  ##
 ## ------------------------------- ##
-
-
-# ---------------------------------------- #
-# 4d. Fortran 77 compiler characteristics. #
-# ---------------------------------------- #
 
 
 # _AC_PROG_FC_V_OUTPUT([FLAG = $ac_cv_prog_{f77/fc}_v])
@@ -534,18 +551,21 @@ _AC_LANG_PREFIX[]FLAGS="$[]_AC_LANG_PREFIX[]FLAGS m4_default([$1], [$ac_cv_prog_
 eval "set x $ac_link"
 shift
 _AS_ECHO_LOG([$[*]])
-ac_[]_AC_LANG_ABBREV[]_v_output=`eval $ac_link AS_MESSAGE_LOG_FD>&1 2>&1 | grep -v 'Driving:'`
-echo "$ac_[]_AC_LANG_ABBREV[]_v_output" >&AS_MESSAGE_LOG_FD
+# gfortran 4.3 outputs lines setting COLLECT_GCC_OPTIONS, COMPILER_PATH,
+# LIBRARY_PATH; skip all such settings.
+ac_[]_AC_LANG_ABBREV[]_v_output=`eval $ac_link AS_MESSAGE_LOG_FD>&1 2>&1 |
+  grep -v 'Driving:' | grep -v "^[[_$as_cr_Letters]][[_$as_cr_alnum]]*="`
+AS_ECHO(["$ac_[]_AC_LANG_ABBREV[]_v_output"]) >&AS_MESSAGE_LOG_FD
 _AC_LANG_PREFIX[]FLAGS=$ac_save_FFLAGS
 
-rm -f conftest*
+rm -rf conftest*
 
 # On HP/UX there is a line like: "LPATH is: /foo:/bar:/baz" where
 # /foo, /bar, and /baz are search directories for the Fortran linker.
 # Here, we change these into -L/foo -L/bar -L/baz (and put it first):
 ac_[]_AC_LANG_ABBREV[]_v_output="`echo $ac_[]_AC_LANG_ABBREV[]_v_output |
 	grep 'LPATH is:' |
-	sed 's,.*LPATH is\(: *[[^ ]]*\).*,\1,;s,: */, -L/,g'` $ac_[]_AC_LANG_ABBREV[]_v_output"
+	sed 's|.*LPATH is\(: *[[^ ]]*\).*|\1|;s|: */| -L/|g'` $ac_[]_AC_LANG_ABBREV[]_v_output"
 
 # FIXME: we keep getting bitten by quoted arguments; a more general fix
 #        that detects unbalanced quotes in FLIBS should be implemented
@@ -685,7 +705,7 @@ while test $[@%:@] != 1; do
 	  esac
           ;;
         -YP,*)
-          for ac_j in `echo $ac_arg | sed -e 's/-YP,/-L/;s/:/ -L/g'`; do
+          for ac_j in `AS_ECHO(["$ac_arg"]) | sed -e 's/-YP,/-L/;s/:/ -L/g'`; do
             _AC_LIST_MEMBER_IF($ac_j, $ac_cv_[]_AC_LANG_ABBREV[]_libs, ,
                                [ac_arg="$ac_arg $ac_j"
                                ac_cv_[]_AC_LANG_ABBREV[]_libs="$ac_cv_[]_AC_LANG_ABBREV[]_libs $ac_j"])
@@ -709,7 +729,7 @@ set X $ac_save_positional; shift
 # must begin with a "/").
 case `(uname -sr) 2>/dev/null` in
    "SunOS 5"*)
-      ac_ld_run_path=`echo $ac_[]_AC_LANG_ABBREV[]_v_output |
+      ac_ld_run_path=`AS_ECHO(["$ac_[]_AC_LANG_ABBREV[]_v_output"]) |
                         sed -n 's,^.*LD_RUN_PATH *= *\(/[[^ ]]*\).*$,-R\1,p'`
       test "x$ac_ld_run_path" != x &&
         _AC_LINKER_OPTION([$ac_ld_run_path], ac_cv_[]_AC_LANG_ABBREV[]_libs)
@@ -808,7 +828,7 @@ AC_CACHE_CHECK([for dummy main to link with _AC_LANG libraries],
  fi
  AC_LANG_POP(C)dnl
  ac_cv_[]_AC_LANG_ABBREV[]_dummy_main=$ac_cv_fortran_dummy_main
- rm -f conftest*
+ rm -rf conftest*
  LIBS=$ac_[]_AC_LANG_ABBREV[]_dm_save_LIBS
 ])
 []_AC_FC[]_DUMMY_MAIN=$ac_cv_[]_AC_LANG_ABBREV[]_dummy_main
@@ -877,7 +897,7 @@ AC_CACHE_CHECK([for alternate main to link with _AC_LANG libraries],
  done
  AC_LANG_POP(C)dnl
  ac_cv_[]_AC_LANG_ABBREV[]_main=$ac_cv_fortran_main
- rm -f conftest*
+ rm -rf conftest*
  LIBS=$ac_[]_AC_LANG_ABBREV[]_m_save_LIBS
 ])
 AC_DEFINE_UNQUOTED([]_AC_FC[]_MAIN, $ac_cv_[]_AC_LANG_ABBREV[]_main,
@@ -989,7 +1009,8 @@ AC_CACHE_CHECK([for _AC_LANG name-mangling scheme],
   fi
 
   LIBS=$ac_save_LIBS
-  rm -f cfortran_test* conftest*],
+  rm -rf conftest*
+  rm -f cfortran_test*],
   [AC_MSG_FAILURE([cannot compile a simple Fortran program])])
 ])
 ])# __AC_FC_NAME_MANGLING

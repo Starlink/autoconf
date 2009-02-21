@@ -1,10 +1,12 @@
 AS_INIT[]dnl                                            -*- shell-script -*-
+m4_divert_push([HEADER-COPYRIGHT])dnl
+# @configure_input@
 # autoconf -- create `configure' using m4 macros
 
 # Copyright (C) 1992, 1993, 1994, 1996, 1999, 2000, 2001, 2002, 2003,
-# 2004, 2005, 2006 Free Software Foundation, Inc.
+# 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
@@ -18,6 +20,8 @@ AS_INIT[]dnl                                            -*- shell-script -*-
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 # 02110-1301, USA.
+
+m4_divert_pop([HEADER-COPYRIGHT])dnl back to BODY
 
 usage=["\
 Usage: $0 [OPTION] ... [TEMPLATE-FILE]
@@ -52,18 +56,20 @@ Library directories:
   -I, --include=DIR          append directory DIR to search path
 
 Tracing:
-  -t, --trace=MACRO     report the list of calls to MACRO
-  -i, --initialization  also trace Autoconf's initialization process
+  -t, --trace=MACRO[:FORMAT]  report the list of calls to MACRO
+  -i, --initialization        also trace Autoconf's initialization process
 
-In tracing mode, no configuration script is created.
+In tracing mode, no configuration script is created.  FORMAT defaults
+to \`\$f:\$l:\$n:\$%'; see \`autom4te --help' for information about FORMAT.
 
 Report bugs to <bug-autoconf@gnu.org>."]
 
 version=["\
 autoconf (@PACKAGE_NAME@) @VERSION@
-Copyright (C) 2006 Free Software Foundation, Inc.
-This is free software.  You may redistribute copies of it under the terms of
-the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.
+Copyright (C) @RELEASE_YEAR@ Free Software Foundation, Inc.
+License GPLv2+: GNU GPL version 2 or later
+<http://gnu.org/licenses/old-licenses/gpl-2.0.html>
+This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
 Written by David J. MacKenzie and Akim Demaille."]
@@ -71,16 +77,17 @@ Written by David J. MacKenzie and Akim Demaille."]
 help="\
 Try \`$as_me --help' for more information."
 
-exit_missing_arg="\
-echo \"$as_me: option \\\`\$1' requires an argument\" >&2
-echo \"\$help\" >&2
-exit 1"
+exit_missing_arg='
+  AS_ECHO(["$as_me: option \`$[1]'\'' requires an argument"]) >&2
+  AS_ECHO(["$help"]) >&2
+  exit 1
+' # restore font-lock: "
 
 # Variables.
 : ${AUTOM4TE='@bindir@/@autom4te-name@'}
 autom4te_options=
 outfile=
-verbose=:
+verbose=false
 
 # Parse command line.
 while test $# -gt 0 ; do
@@ -92,10 +99,10 @@ while test $# -gt 0 ; do
     --version | -V )
        echo "$version" ; exit ;;
     --help | -h )
-       echo "$usage"; exit ;;
+       AS_ECHO(["$usage"]); exit ;;
 
     --verbose | -v )
-       verbose=echo
+       verbose=:
        autom4te_options="$autom4te_options $1"; shift ;;
 
     # Arguments passed as is to autom4te.
@@ -104,22 +111,29 @@ while test $# -gt 0 ; do
     --include=*  | -I?* | \
     --prepend-include=* | -B?* | \
     --warnings=* | -W?* )
-       autom4te_options="$autom4te_options '$1'"; shift ;;
-
+       case $1 in
+         *\'*) arg=`AS_ECHO(["$1"]) | sed "s/'/'\\\\\\\\''/g"` ;;
+	 *) arg=$1 ;;
+       esac
+       autom4te_options="$autom4te_options '$arg'"; shift ;;
     # Options with separated arg passed as is to autom4te.
     --include  | -I | \
     --prepend-include  | -B | \
     --warnings | -W )
        test $# = 1 && eval "$exit_missing_arg"
-       autom4te_options="$autom4te_options $option '$2'"
+       case $2 in
+         *\'*) arg=`AS_ECHO(["$2"]) | sed "s/'/'\\\\\\\\''/g"` ;;
+	 *) arg=$2 ;;
+       esac
+       autom4te_options="$autom4te_options $option '$arg'"
        shift; shift ;;
 
     --trace=* | -t?* )
-       traces="$traces --trace='"`echo "$optarg" | sed "s/'/'\\\\\\\\''/g"`"'"
+       traces="$traces --trace='"`AS_ECHO(["$optarg"]) | sed "s/'/'\\\\\\\\''/g"`"'"
        shift ;;
     --trace | -t )
        test $# = 1 && eval "$exit_missing_arg"
-       traces="$traces --trace='"`echo "$2" | sed "s/'/'\\\\\\\\''/g"`"'"
+       traces="$traces --trace='"`AS_ECHO(["$[2]"]) | sed "s/'/'\\\\\\\\''/g"`"'"
        shift; shift ;;
     --initialization | -i )
        autom4te_options="$autom4te_options --melt"
@@ -139,8 +153,8 @@ while test $# -gt 0 ; do
        break ;;
     -* )
        exec >&2
-       echo "$as_me: invalid option $1"
-       echo "$help"
+       AS_ECHO(["$as_me: invalid option $[1]"])
+       AS_ECHO(["$help"])
        exit 1 ;;
     * )
        break ;;
@@ -152,22 +166,22 @@ case $# in
   0)
     if test -f configure.ac; then
       if test -f configure.in; then
-	echo "$as_me: warning: both \`configure.ac' and \`configure.in' are present." >&2
-	echo "$as_me: warning: proceeding with \`configure.ac'." >&2
+	AS_ECHO(["$as_me: warning: both \`configure.ac' and \`configure.in' are present."]) >&2
+	AS_ECHO(["$as_me: warning: proceeding with \`configure.ac'."]) >&2
       fi
       infile=configure.ac
     elif test -f configure.in; then
       infile=configure.in
     else
-      echo "$as_me: no input file" >&2
+      AS_ECHO(["$as_me: no input file"]) >&2
       exit 1
     fi
     test -z "$traces" && test -z "$outfile" && outfile=configure;;
-  1) # autom4te doesn't like `-'.
-     test "x$1" != "x-" && infile=$1 ;;
+  1)
+    infile=$1 ;;
   *) exec >&2
-     echo "$as_me: invalid number of arguments."
-     echo "$help"
+     AS_ECHO(["$as_me: invalid number of arguments."])
+     AS_ECHO(["$help"])
      (exit 1); exit 1 ;;
 esac
 
@@ -175,8 +189,8 @@ esac
 test -z "$outfile" && outfile=-
 
 # Run autom4te with expansion.
-eval set x $autom4te_options \
-  --language=autoconf --output=\$outfile "$traces" \$infile
+eval set x "$autom4te_options" \
+  --language=autoconf --output=\"\$outfile\" "$traces" \"\$infile\"
 shift
-$verbose "$as_me: running $AUTOM4TE $*" >&2
+$verbose && AS_ECHO(["$as_me: running $AUTOM4TE $*"]) >&2
 exec "$AUTOM4TE" "$@"

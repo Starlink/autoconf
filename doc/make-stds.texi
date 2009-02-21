@@ -9,7 +9,7 @@
 @cindex standards for makefiles
 
 @c Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2000, 2001,
-@c 2004, 2005, 2006 Free Software Foundation, Inc.
+@c 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 @c Permission is granted to copy, distribute and/or modify this document
 @c under the terms of the GNU Free Documentation License, Version 1.2
@@ -33,7 +33,10 @@ chapter
 @end iftex
 describes conventions for writing the Makefiles for GNU programs.
 Using Automake will help you write a Makefile that follows these
-conventions.
+conventions.  For more information on portable Makefiles, see
+@sc{posix} and @ref{Portable Make, Portable Make Programming,, autoconf,
+Autoconf}.
+
 
 @menu
 * Makefile Basics::             General conventions for Makefiles.
@@ -144,8 +147,10 @@ subtargets) work correctly with a parallel @code{make}.
 @section Utilities in Makefiles
 
 Write the Makefile commands (and any shell scripts, such as
-@code{configure}) to run in @code{sh}, not in @code{csh}.  Don't use any
-special features of @code{ksh} or @code{bash}.
+@code{configure}) to run under @code{sh} (both the traditional Bourne
+shell and the @sc{posix} shell), not @code{csh}.  Don't use any
+special features of @code{ksh} or @code{bash}, or @sc{posix} features
+not widely supported in traditional Bourne @code{sh}.
 
 The @code{configure} script and the Makefile rules for building and
 installation should not use any utilities directly except these:
@@ -155,18 +160,23 @@ installation should not use any utilities directly except these:
 @c mkfifo mknod tee uname
 
 @example
-cat cmp cp diff echo egrep expr false grep install-info
+awk cat cmp cp diff echo egrep expr false grep install-info
 ln ls mkdir mv pwd rm rmdir sed sleep sort tar test touch true
 @end example
 
-The compression program @code{gzip} can be used in the @code{dist} rule.
+Compression programs such as @code{gzip} can be used in the
+@code{dist} rule.
 
-Stick to the generally supported options for these programs.  For
-example, don't use @samp{mkdir -p}, convenient as it may be, because
-most systems don't support it.
+Generally, stick to the widely-supported (usually
+@sc{posix}-specified) options and features of these programs.  For
+example, don't use @samp{mkdir -p}, convenient as it may be, because a
+few systems don't support it at all and with others, it is not safe
+for parallel execution.  For a list of known incompatibilities, see
+@ref{Portable Shell, Portable Shell Programming,, autoconf, Autoconf}.
+
 
 It is a good idea to avoid creating symbolic links in makefiles, since a
-few systems don't support them.
+few file systems don't support them.
 
 The Makefile rules for building and installation can also use compilers
 and related programs, but should do so via @code{make} variables so that the
@@ -275,10 +285,12 @@ $(INSTALL_DATA) libfoo.a $(libdir)/libfoo.a
 However, it is preferable to support a @code{DESTDIR} prefix on the
 target files, as explained in the next section.
 
-@noindent
-Always use a file name, not a directory name, as the second argument of
-the installation commands.  Use a separate command for each file to be
-installed.
+It is acceptable, but not required, to install multiple files in one
+command, with the final argument being a directory, as in:
+
+@example
+$(INSTALL_PROGRAM) foo bar baz $(bindir)
+@end example
 
 
 @node DESTDIR
@@ -297,7 +309,7 @@ $(INSTALL_DATA) libfoo.a $(DESTDIR)$(libdir)/libfoo.a
 @end example
 
 The @code{DESTDIR} variable is specified by the user on the @code{make}
-command line.  For example:
+command line as an absolute file name.  For example:
 
 @example
 make DESTDIR=/tmp/stage install

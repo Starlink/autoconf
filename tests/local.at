@@ -1,9 +1,9 @@
 # M4 macros used in building Autoconf test suites.        -*- Autotest -*-
 
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software
-# Foundation, Inc.
+# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+# Free Software Foundation, Inc.
 
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
@@ -24,6 +24,7 @@ m4_version_prereq([2.57])
 m4_pattern_allow([^AS_EXIT$])
 m4_pattern_allow([^m4_(define|shift)$])
 
+# Programs this package provides
 AT_TESTED([autom4te autoconf autoheader autoupdate autoreconf ifnames])
 
 
@@ -53,7 +54,7 @@ m4_define([AT_CHECK_SHELL_SYNTAX],
   [AT_CHECK([/bin/sh -n $1])])])
 
 m4_define([AT_CHECK_PERL_SYNTAX],
-[AT_CHECK([autom4te_perllibdir=$abs_top_srcdir/lib $PERL -c $abs_top_builddir/bin/$1],
+[AT_CHECK([autom4te_perllibdir=$abs_top_srcdir/lib $PERL -c "$abs_top_builddir"/bin/$1],
           0, [], [ignore])])
 
 ## ------------------ ##
@@ -64,9 +65,14 @@ m4_define([AT_CHECK_PERL_SYNTAX],
 # AT_CHECK_M4(COMMAND, [EXIT-STATUS = 0], STDOUT, STDERR)
 # -------------------------------------------------------
 # If stderr is specified, normalize the observed stderr.
-# This (using GNU M4 1.4.6 or later)
+# This (using GNU M4 1.4.6)
 #
 #  /usr/local/bin/m4:script.4s:1: cannot open `foo': No such file or directory
+#  autom4te: /usr/local/bin/m4 failed with exit status: 1
+#
+# or this (GNU M4 1.4.11)
+#
+#  /usr/local/bin/m4:script.4s:1: include: cannot open `foo': No such file or directory
 #  autom4te: /usr/local/bin/m4 failed with exit status: 1
 #
 # or this (GNU M4 1.4 installed as gm4)
@@ -87,6 +93,7 @@ m4_define([AT_CHECK_PERL_SYNTAX],
 #
 # and
 #     m4:(file):(line): Cannot open foo:
+# or  m4:(file):(line): include: cannot open `foo':
 # to  m4:(file):(line): cannot open `foo':
 #
 # and
@@ -98,15 +105,16 @@ m4_define([AT_CHECK_PERL_SYNTAX],
 # remove the error code during normalization.
 #
 m4_define([AT_CHECK_M4],
-[AT_CHECK([$1], [$2], [$3], m4_ifval([$4], [stderr]))
-m4_ifval([$4],
-[AT_CHECK([[sed 's/^[^:]*m4: *\([^:]*:\) *\([0-9][0-9]*: \)/m4:\1\2/
-	s/^\([^:]*:\) *\([0-9][0-9]*:\)[^:]*m4: /m4:\1\2 /
-	s/^\(m4:[^:]*:[0-9][0-9]*: \)C\(annot open \)\([^`:]*\):/\1c\2`\3'\'':/
-	s/^autom4te: [^ ]*m4 /autom4te: m4 /
-	s/^autom4te: [^ ]*m4\.exe /autom4te: m4 /
+[AT_CHECK([$1], [$2], [$3],
+          m4_case([$4], [], [], [ignore], [ignore], [stderr]))
+m4_case([$4], [], [], [ignore], [],
+[AT_CHECK([[sed 's/^[^:]*m4[.ex]*: *\([^:]*:\) *\([0-9][0-9]*: \)/m4:\1\2/
+	s/^\([^:]*:\) *\([0-9][0-9]*:\)[^:]*m4[.ex]*: /m4:\1\2 /
+	s/: C\(annot open \)\([^`:]*\):/: c\1`\2'\'':/
+	s/: include:\( cannot open\)/:\1/
+	s/^autom4te: [^ ]*m4[.ex]* /autom4te: m4 /
 	s/ (E[A-Z]*)$//
-    ' stderr]], [0],[$4])])
+    ' stderr >&2]], [0], [], [$4])])
 ])
 
 # AT_CHECK_AUTOM4TE(FLAGS, [EXIT-STATUS = 0], STDOUT, STDERR)
@@ -203,13 +211,15 @@ ls -1 | sed '/^at-/d;/^state-/d;/^config\./d' | sort >state-ls.$][1
 
 AT_DATA([configure.ac],
 [[AC_INIT
-AC_CONFIG_AUX_DIR($top_srcdir/build-aux)
-AC_CONFIG_HEADER(config.h:config.hin)
+AC_CONFIG_HEADERS(config.h:config.hin)
 AC_STATE_SAVE(before)]
 $1
 [AC_OUTPUT
 AC_STATE_SAVE(after)
 ]])
+cp "$abs_top_srcdir/build-aux/install-sh" \
+   "$abs_top_srcdir/build-aux/config.guess" \
+   "$abs_top_srcdir/build-aux/config.sub" .
 ])# AT_CONFIGURE_AC
 
 
@@ -240,7 +250,7 @@ m4_define([AT_CHECK_AUTOHEADER],
 # Using --srcdir is more expensive.
 m4_define([AT_CHECK_CONFIGURE],
 [AT_CAPTURE_FILE([config.log])[]dnl
- AT_CHECK([top_srcdir=$abs_top_srcdir ./configure $1],
+ AT_CHECK([./configure $1],
 	  [$2],
 	  m4_default([$3], [ignore]), [$4])])
 
@@ -297,6 +307,7 @@ if test -f state-env.before && test -f state-env.after; then
       [CC|CFLAGS|CPP|GCC|CXX|CXXFLAGS|CXXCPP|GXX|F77|FFLAGS|FLIBS|G77],
       [ERL|ERLC|ERLCFLAGS|ERLANG_PATH_ERL|ERLANG_ROOT_DIR|ERLANG_LIB_DIR],
       [ERLANG_INSTALL_LIB_DIR|OBJC|OBJCPP|OBJCFLAGS],
+      [OPENMP_CFLAGS],
       [LIBS|LIB@&t@OBJS|LTLIBOBJS|LDFLAGS],
       [INSTALL(_(DATA|PROGRAM|SCRIPT))?],
       [CYGWIN|ISC|MINGW32|MINIX|EMXOS2|XENIX|EXEEXT|OBJEXT],
@@ -438,7 +449,7 @@ AT_CONFIG_CMP([state-env.r1], [state-env.r2])
 
 $3
 
-AT_CLEANUP()dnl
+AT_CLEANUP[]dnl
 ])# AT_CHECK_MACRO
 
 
@@ -490,7 +501,7 @@ AT_CHECK_AUTOHEADER
 AT_CHECK_CONFIGURE
 AT_CHECK_ENV
 
-AT_CLEANUP()dnl
+AT_CLEANUP[]dnl
 ])# AT_CHECK_AU_MACRO
 
 
@@ -501,7 +512,7 @@ AT_CLEANUP()dnl
 
 AT_INIT
 AT_COPYRIGHT(
-[Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software
+[Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software
 Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.])

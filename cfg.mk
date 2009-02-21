@@ -1,10 +1,10 @@
-# Customize Makefile.maint for Autoconf.            -*- Makefile -*-
-# Copyright (C) 2003, 2004, 2006 Free Software Foundation, Inc.
+# Customize maint.mk for Autoconf.            -*- Makefile -*-
+# Copyright (C) 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
 
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2, or (at your option)
-# any later version.
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,23 +12,31 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA.
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-prev_version_file = $(srcdir)/config/prev-version.txt
-announce_gen   = $(srcdir)/config/announce-gen
-release_archive_dir = releases
+# This file is '-include'd into GNUmakefile.
+
+# Build with our own versions of these tools, when possible.
+export PATH = $(shell echo "`pwd`/tests:$$PATH")
+
+# Remove the autoreconf-provided INSTALL, so that we regenerate it.
+_autoreconf = autoreconf -i -v && rm -f INSTALL
+
+# Version management.
+announce_gen   = $(srcdir)/build-aux/announce-gen
 
 # Use alpha.gnu.org for alpha and beta releases.
 # Use ftp.gnu.org for major releases.
-gnu_ftp_host-alpha = alpha
-gnu_ftp_host-beta = alpha
-gnu_ftp_host-major = ftp
+gnu_ftp_host-alpha = alpha.gnu.org
+gnu_ftp_host-beta = alpha.gnu.org
+gnu_ftp_host-major = ftp.gnu.org
 gnu_rel_host = $(gnu_ftp_host-$(RELEASE_TYPE))
 
 url_dir_list = \
-  ftp://$(gnu_rel_host).gnu.org/gnu/autoconf
+  ftp://$(gnu_rel_host)/gnu/autoconf
+
+# The GnuPG ID of the key used to sign the tarballs.
+gpg_key_ID = F4850180
 
 # Files to update automatically.
 cvs_executable_files = \
@@ -55,4 +63,4 @@ executable-update: wget-update cvs-update autom4te-update
 
 # Tests not to run.
 local-checks-to-skip ?= \
-  sc_unmarked_diagnostics
+  changelog-check sc_unmarked_diagnostics

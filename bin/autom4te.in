@@ -6,9 +6,10 @@ eval 'case $# in 0) exec @PERL@ -S "$0";; *) exec @PERL@ -S "$0" "$@";; esac'
     if 0;
 
 # autom4te - Wrapper around M4 libraries.
-# Copyright (C) 2001, 2002, 2003, 2005, 2006 Free Software Foundation, Inc.
+# Copyright (C) 2001, 2002, 2003, 2005, 2006, 2007, 2008 Free Software
+# Foundation, Inc.
 
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
@@ -60,7 +61,7 @@ my $mode = "0666";
 my $melt = 0;
 
 # Names of the cache directory, cache directory index, trace cache
-# prefix, and output cache prefix.  And the IO objet for the index.
+# prefix, and output cache prefix.  And the IO object for the index.
 my $cache;
 my $icache;
 my $tcache;
@@ -134,7 +135,7 @@ map { s/:.*//;s/\W// } @m4_builtin;
 # | % m4 input.m4 -da -t m4_eval
 # | %
 #
-# So we will merge them, i.e.  tracing `BUILTIN' or tracing
+# So we will merge them, i.e., tracing `BUILTIN' or tracing
 # `m4_BUILTIN' will be the same: tracing both, but honoring the
 # *last* trace specification.
 #
@@ -198,11 +199,24 @@ Library directories:
   -I, --include=DIR          append directory DIR to search path
 
 Tracing:
-  -t, --trace=MACRO      report the MACRO invocations
-  -p, --preselect=MACRO  prepare to trace MACRO in a future run
+  -t, --trace=MACRO[:FORMAT]  report the MACRO invocations
+  -p, --preselect=MACRO       prepare to trace MACRO in a future run
 
 Freezing:
   -F, --freeze   produce an M4 frozen state file for FILES
+
+FORMAT defaults to \`\$f:\$l:\$n:\$%\', and can use the following escapes:
+  \$\$     literal \$
+  \$f     file where macro was called
+  \$l     line where macro was called
+  \$d     nesting depth of macro call
+  \$n     name of the macro
+  \$NUM   argument NUM, unquoted and with newlines
+  \$SEP\@  all arguments, with newlines, quoted, and separated by SEP
+  \$SEP*  all arguments, with newlines, unquoted, and separated by SEP
+  \$SEP%  all arguments, without newlines, unquoted, and separated by SEP
+SEP can be empty for the default (comma for \@ and *, colon for %),
+a single character for that character, or {STRING} to use a string.
 
 Report bugs to <bug-autoconf\@gnu.org>.
 ";
@@ -211,9 +225,10 @@ Report bugs to <bug-autoconf\@gnu.org>.
 # --------
 $version =  <<"EOF";
 autom4te (@PACKAGE_NAME@) @VERSION@
-Copyright (C) 2006 Free Software Foundation, Inc.
-This is free software.  You may redistribute copies of it under the terms of
-the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.
+Copyright (C) @RELEASE_YEAR@ Free Software Foundation, Inc.
+License GPLv2+: GNU GPL version 2 or later
+<http://gnu.org/licenses/old-licenses/gpl-2.0.html>
+This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
 Written by Akim Demaille.
@@ -236,14 +251,12 @@ sub files_to_options (@)
   my @res;
   foreach my $file (@file)
     {
+      my $arg = shell_quote ($file);
       if ($file =~ /\.m4f$/)
 	{
-	  push @res, "--reload-state=$file";
+	  $arg = "--reload-state=$arg";
 	}
-      else
-	{
-	  push @res, $file;
-	}
+      push @res, $arg;
     }
   return join ' ', @res;
 }
@@ -257,7 +270,7 @@ sub load_configuration ($)
   my ($file) = @_;
   use Text::ParseWords;
 
-  my $cfg = new Autom4te::XFile ($file);
+  my $cfg = new Autom4te::XFile ("< " . open_quote ($file));
   my $lang;
   while ($_ = $cfg->getline)
     {
@@ -417,7 +430,11 @@ Try `$me --help' for more information."
   my @argv;
   foreach (@ARGV)
     {
-      if (/\.m4f$/)
+      if ($_ eq '-')
+	{
+	  push @argv, $_;
+	}
+      elsif (/\.m4f$/)
 	{
 	  # Frozen files are optional => pass a `?' to `find_file'.
 	  my $file = find_file ("$_?", @include);
@@ -457,13 +474,13 @@ sub handle_m4 ($@)
   # We don't output directly to the cache files, to avoid problems
   # when we are interrupted (that leaves corrupted files).
   xsystem ("$m4"
-	   . join (' --include=', '', @include)
+	   . join (' --include=', '', map { shell_quote ($_) } @include)
 	   . ' --debug=aflq'
 	   . (!exists $ENV{'AUTOM4TE_NO_FATAL'} ? ' --fatal-warning' : '')
-	   . " @M4_DEBUGFILE@=$tcache" . $req->id . "t"
+	   . " @M4_DEBUGFILE@=" . shell_quote ("$tcache" . $req->id . "t")
 	   . join (' --trace=',   '', sort @macro)
 	   . " " . files_to_options (@ARGV)
-	   . " >$ocache" . $req->id . "t");
+	   . " > " . shell_quote ("$ocache" . $req->id . "t"));
 
   # Everything went ok: preserve the outputs.
   foreach my $file (map { $_ . $req->id } ($tcache, $ocache))
@@ -478,7 +495,7 @@ sub handle_m4 ($@)
 # warn_forbidden ($WHERE, $WORD, %FORBIDDEN)
 # ------------------------------------------
 # $WORD is forbidden.  Warn with a dedicated error message if in
-# %FORBIDDEN, otherwise, a simple `error: possibly undefined macro'
+# %FORBIDDEN, otherwise a simple `error: possibly undefined macro'
 # will do.
 my $first_warn_forbidden = 1;
 sub warn_forbidden ($$%)
@@ -521,7 +538,7 @@ sub handle_output ($$)
   handle_traces ($req, "$tmp/patterns",
 		 ('m4_pattern_forbid' => 'forbid:$1:$2',
 		  'm4_pattern_allow'  => 'allow:$1'));
-  my @patterns = new Autom4te::XFile ("$tmp/patterns")->getlines;
+  my @patterns = new Autom4te::XFile ("< " . open_quote ("$tmp/patterns"))->getlines;
   chomp @patterns;
   my %forbidden =
     map { /^forbid:([^:]+):.+$/ => /^forbid:[^:]+:(.+)$/ } @patterns;
@@ -548,7 +565,7 @@ sub handle_output ($$)
     }
   fatal "cannot create $output: $!"
     unless $out;
-  my $in = new Autom4te::XFile ($ocache . $req->id);
+  my $in = new Autom4te::XFile ("< " . open_quote ($ocache . $req->id));
 
   my %prohibited;
   my $res;
@@ -585,27 +602,30 @@ sub handle_output ($$)
 
   # Locate the forbidden words in the last input file.
   # This is unsatisfying but...
-  my $prohibited = '\b(' . join ('|', keys %prohibited) . ')\b';
-  my $file = new Autom4te::XFile ($ARGV[$#ARGV]);
   $exit_code = 1;
-
-  while ($_ = $file->getline)
+  if ($ARGV[$#ARGV] ne '-')
     {
-      # Don't complain in comments.  Well, until we have something
-      # better, don't consider `#include' etc. are comments.
-      s/\#.*//
-	unless /^\#(if|include|endif|ifdef|ifndef|define)\b/;
+      my $prohibited = '\b(' . join ('|', keys %prohibited) . ')\b';
+      my $file = new Autom4te::XFile ("< " . open_quote ($ARGV[$#ARGV]));
 
-      # Complain once per word, but possibly several times per line.
-      while (/$prohibited/)
+      while ($_ = $file->getline)
 	{
-	  my $word = $1;
-	  warn_forbidden ("$ARGV[$#ARGV]:$.", $word, %forbidden);
-	  delete $prohibited{$word};
-	  # If we're done, exit.
-	  return
-	    if ! %prohibited;
-	  $prohibited = '\b(' . join ('|', keys %prohibited) . ')\b';
+	  # Don't complain in comments.  Well, until we have something
+	  # better, don't consider `#include' etc. to be comments.
+	  s/\#.*//
+	    unless /^\#(if|include|endif|ifdef|ifndef|define)\b/;
+
+	  # Complain once per word, but possibly several times per line.
+	  while (/$prohibited/)
+	    {
+	      my $word = $1;
+	      warn_forbidden ("$ARGV[$#ARGV]:$.", $word, %forbidden);
+	      delete $prohibited{$word};
+	      # If we're done, exit.
+	      return
+		if ! %prohibited;
+	      $prohibited = '\b(' . join ('|', keys %prohibited) . ')\b';
+	    }
 	}
     }
   warn_forbidden ("$output:$prohibited{$_}", $_, %forbidden)
@@ -704,7 +724,7 @@ sub handle_traces ($$%)
   verb "formatting traces for `$output': " . join (', ', sort keys %trace);
 
   # Processing the traces.
-  my $trace_m4 = new Autom4te::XFile (">$tmp/traces.m4");
+  my $trace_m4 = new Autom4te::XFile ("> " . open_quote ("$tmp/traces.m4"));
 
   $_ = <<'EOF';
   divert(-1)
@@ -808,7 +828,7 @@ EOF
   #
   # Pay attention that the file name might include colons, if under DOS
   # for instance, so we don't use `[^:]+'.
-  my $traces = new Autom4te::XFile ($tcache . $req->id);
+  my $traces = new Autom4te::XFile ("< " . open_quote ($tcache . $req->id));
   while ($_ = $traces->getline)
     {
       # Trace with arguments, as the example above.  We don't try
@@ -823,8 +843,8 @@ EOF
     }
   $trace_m4->close;
 
-  my $in = new Autom4te::XFile ("$m4 $tmp/traces.m4 |");
-  my $out = new Autom4te::XFile (">$output");
+  my $in = new Autom4te::XFile ("$m4 " . shell_quote ("$tmp/traces.m4") . " |");
+  my $out = new Autom4te::XFile ("> " . open_quote ($output));
 
   # This is dubious: should we really transform the quadrigraphs in
   # traces?  It might break balanced [ ] etc. in the output.  The
@@ -875,19 +895,23 @@ sub up_to_date ($)
   # We depend at least upon the arguments.
   my @dep = @ARGV;
 
+  # stdin is always out of date.
+  if (grep { $_ eq '-' } @dep)
+    { return 0 }
+
   # Files may include others.  We can use traces since we just checked
   # if they are available.
   handle_traces ($req, "$tmp/dependencies",
 		 ('include'    => '$1',
 		  'm4_include' => '$1'));
-  my $deps = new Autom4te::XFile ("$tmp/dependencies");
+  my $deps = new Autom4te::XFile ("< " . open_quote ("$tmp/dependencies"));
   while ($_ = $deps->getline)
     {
       chomp;
       my $file = find_file ("$_?", @include);
       # If a file which used to be included is no longer there, then
       # don't say it's missing (it might no longer be included).  But
-      # of course, that cause the output to be outdated (as if the
+      # of course, that causes the output to be outdated (as if the
       # time stamp of that missing file was newer).
       return 0
 	if ! $file;
@@ -913,7 +937,7 @@ sub freeze ($)
   # output but comments and empty lines.
   my $result = xqx ("$m4"
 		    . ' --fatal-warning'
-		    . join (' --include=', '', @include)
+		    . join (' --include=', '', map { shell_quote ($_) } @include)
 		    . ' --define=divert'
 		    . " " . files_to_options (@ARGV)
 		    . ' </dev/null');
@@ -927,8 +951,8 @@ sub freeze ($)
   # or an improper paren etc.
   xsystem ("$m4"
 	   . ' --fatal-warning'
-	   . join (' --include=', '', @include)
-	   . " --freeze-state=$output"
+	   . join (' --include=', '', map { shell_quote ($_) } @include)
+	   . " --freeze-state=" . shell_quote ($output)
 	   . " " . files_to_options (@ARGV)
 	   . ' </dev/null');
 }
@@ -960,13 +984,13 @@ if (! -d "$cache")
   }
 
 # Open the index for update, and lock it.  autom4te handles several
-# files, but the index is the first and last file to be update, so
+# files, but the index is the first and last file to be updated, so
 # locking it is sufficient.
 $icache_file = new Autom4te::XFile $icache, O_RDWR|O_CREAT;
 $icache_file->lock (LOCK_EX);
 
 # Read the cache index if available and older than autom4te itself.
-# If autom4te is younger, then some structures such as C4che, might
+# If autom4te is younger, then some structures such as C4che might
 # have changed, which would corrupt its processing.
 Autom4te::C4che->load ($icache_file)
   if -f $icache && mtime ($icache) > mtime ($0);

@@ -1,10 +1,10 @@
 # This file is part of Autoconf.                          -*- Autoconf -*-
 # M4 macros used in building test suites.
 
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software
-# Foundation, Inc.
+# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+# Free Software Foundation, Inc.
 
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
@@ -97,17 +97,26 @@
 #  - VERSION_END
 #    Tail of the handling of --version.
 #
-#  - PREPARE_TESTS
+#  - BANNERS
+#    Output shell initialization for the associative array of banner text.
+#  - TESTS_BEGIN
 #    Like DEFAULTS but run after argument processing for purposes of
 #    optimization.  Do anything else that needs to be done to prepare for
 #    tests.  Sets up verbose and log file descriptors.  Sets and logs PATH.
+#  - PREPARE_TESTS
+#    Declares functions shared among the tests.  Perform any user
+#    initialization to be shared among all tests.
 #  - TESTS
 #    The core of the test suite.
-#  - TESTS_END
-#    tail of the core for;case, overall wrap up, generation of debugging
-#    scripts and statistics.
+#
 #  - TEST_SCRIPT
-#    The code for each test, the ``normal'' diversion
+#    The collector for code for each test, the ``normal'' diversion, but
+#    undiverted into other locations before final output.
+#
+#  - TEST_GROUPS
+#    Contents of each test group.  The tests deliberately occur after the
+#    end of the shell script, so that the shell need not spend time parsing
+#    commands it will not execute.
 
 m4_define([_m4_divert(DEFAULTS)],           100)
 m4_define([_m4_divert(PARSE_ARGS_BEGIN)],   200)
@@ -121,10 +130,12 @@ m4_define([_m4_divert(HELP_END)],           304)
 m4_define([_m4_divert(VERSION)],            350)
 m4_define([_m4_divert(VERSION_NOTICES)],    351)
 m4_define([_m4_divert(VERSION_END)],        352)
-m4_define([_m4_divert(PREPARE_TESTS)],      400)
-m4_define([_m4_divert(TESTS)],              401)
-m4_define([_m4_divert(TESTS_END)],          402)
-m4_define([_m4_divert(TEST_SCRIPT)],        403)
+m4_define([_m4_divert(BANNERS)],            400)
+m4_define([_m4_divert(TESTS_BEGIN)],        401)
+m4_define([_m4_divert(PREPARE_TESTS)],      402)
+m4_define([_m4_divert(TESTS)],              403)
+m4_define([_m4_divert(TEST_SCRIPT)],        450)
+m4_define([_m4_divert(TEST_GROUPS)],        500)
 
 
 # AT_LINE
@@ -144,8 +155,18 @@ m4_define([_m4_divert(TEST_SCRIPT)],        403)
 # is one of the biggest junk in the whole universe wrt regexp, don't
 # even think about using `?' or `\?'.  Bah, `*' will do.
 # Pleeeeeeeease, Gary, provide us with dirname and ERE!
+#
+# M4 recompiles the regular expression for every m4_bpatsubst, but __file__
+# rarely changes.  Be fast - only compute the dirname when necessary; for
+# autoconf alone, this shaves off several seconds in building testsuite.
+m4_define([_AT_LINE_file])
+m4_define([_AT_LINE_base])
 m4_define([AT_LINE],
-[m4_bpatsubst(__file__, [^\(.*/\)*\(.*\)], [[\2]]):__line__])
+[m4_if(m4_defn([_AT_LINE_file]), __file__, [],
+       [m4_do([m4_define([_AT_LINE_file], __file__)],
+	      [m4_define([_AT_LINE_base],
+			 m4_bregexp(/__file__, [/\([^/]*\)$], [[\1]]))])])dnl
+m4_defn([_AT_LINE_base]):__line__])
 
 
 # _AT_NORMALIZE_TEST_GROUP_NUMBER(SHELL-VAR)
@@ -154,76 +175,214 @@ m4_define([AT_LINE],
 # all the other test group numbers.
 m4_define([_AT_NORMALIZE_TEST_GROUP_NUMBER],
 [
-  while :; do
+  eval 'while :; do
     case $$1 in #(
-    $at_format*) break;;
+    '"$at_format"'*) break;;
     esac
     $1=0$$1
-  done
+  done'
 ])
 
-# _AT_CREATE_DEBUGGING_SCRIPT
-# ---------------------------
-# Create the debugging script $at_group_dir/run which will reproduce the
-# current test group.
-m4_define([_AT_CREATE_DEBUGGING_SCRIPT],
-[	  {
-	    echo "#! /bin/sh"
-	    echo 'test "${ZSH_VERSION+set}" = set && alias -g '\''${1+"$[@]"}'\''='\''"$[@]"'\'''
-	    echo "cd '$at_dir'"
-	    echo 'exec ${CONFIG_SHELL-'"$SHELL"'}' "$[0]" \
-	         '-v -d' "$at_debug_args" "$at_group" '${1+"$[@]"}'
-	    echo 'exit 1'
-	  } >$at_group_dir/run
-	  chmod +x $at_group_dir/run
-])# _AT_CREATE_DEBUGGING_SCRIPT
+# _AT_DEFINE_INIT(NAME, [DEFINITION])
+# -----------------------------------
+# Define macro NAME to die if invoked prior to AT_INIT, and to DEFINITION
+# after AT_INIT.
+m4_define([_AT_DEFINE_INIT],
+[m4_define($@)m4_pushdef([$1], [m4_fatal([$1: missing AT_INIT detected])])dnl
+m4_append([_AT_DEFINE_INIT_LIST], [[$1]], [,])])
+
+# _AT_DEFINE_SETUP(NAME, [DEFINITION])
+# -----------------------------------
+# Define macro NAME to die if invoked outside AT_SETUP/AT_CLEANUP, and
+# to DEFINITION otherwise.
+m4_define([_AT_DEFINE_SETUP],
+[m4_define([$1], [m4_ifndef([AT_ingroup],
+ [m4_fatal([$1: missing AT_SETUP detected])])$2])])
 
 
 # AT_INIT([TESTSUITE-NAME])
 # -------------------------
 # Begin test suite.
 m4_define([AT_INIT],
-[m4_pattern_forbid([^_?AT_])
+[m4_pushdef([AT_INIT], [m4_fatal([$0: invoked multiple times])])
+m4_pattern_forbid([^_?AT_])
+m4_pattern_allow([^_AT_T_EOF$])
 m4_define([AT_TESTSUITE_NAME],
-	  m4_defn([AT_PACKAGE_STRING])[ test suite]m4_ifval([$1], [: $1]))
+  m4_defn([AT_PACKAGE_STRING])[ test suite]m4_ifval([$1], [m4_expand([: $1])]))
 m4_define([AT_ordinal], 0)
 m4_define([AT_banner_ordinal], 0)
 m4_define([AT_groups_all], [])
 m4_define([AT_help_all], [])
-AS_INIT
+m4_foreach([AT_name], [_AT_DEFINE_INIT_LIST], [m4_popdef(m4_defn([AT_name]))])
+m4_wrap([_AT_FINISH])
+AS_INIT[]dnl
+m4_divert_push([DEFAULTS])dnl
 AT_COPYRIGHT(
-[Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software
-Foundation, Inc.
+[Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+Free Software Foundation, Inc.
 This test suite is free software; the Free Software Foundation gives
 unlimited permission to copy, distribute and modify it.])
 AS_PREPARE
-m4_divert_push([DEFAULTS])dnl
 
 SHELL=${CONFIG_SHELL-/bin/sh}
 
 # How were we run?
 at_cli_args="$[@]"
 
-# Load the config file.
-for at_file in atconfig atlocal
-do
-  test -r $at_file || continue
-  . ./$at_file || AS_ERROR([invalid content: $at_file])
-done
+m4_divert_push([BANNERS])dnl
 
-# Autoconf <=2.59b set at_top_builddir instead of at_top_build_prefix:
-: ${at_top_build_prefix=$at_top_builddir}
+# Should we print banners?  at_groups is space-separated for entire test,
+# newline-separated if only a subset of the testsuite is run.
+case $at_groups in
+  *' '*' '* | *"$as_nl"*"$as_nl"* )
+      at_print_banners=: ;;
+  * ) at_print_banners=false ;;
+esac
+# Text for banner N, set to empty once printed.
+m4_divert_pop([BANNERS])dnl back to DEFAULTS
+m4_divert_push([PREPARE_TESTS])dnl
 
-# atconfig delivers names relative to the directory the test suite is
-# in, but the groups themselves are run in testsuite-dir/group-dir.
-if test -n "$at_top_srcdir"; then
-  builddir=../..
-  for at_dir in srcdir top_srcdir top_build_prefix
-  do
-    at_val=AS_VAR_GET([at_$at_dir])
-    AS_VAR_SET([$at_dir], [$at_val/../..])
-  done
+## --------------- ##
+## Shell functions ##
+## --------------- ##
+
+# at_func_banner NUMBER
+# ---------------------
+# Output banner NUMBER, provided the testsuite is running multiple groups
+# and this particular banner has not yet been printed.
+at_func_banner ()
+{
+  $at_print_banners || return 0
+  eval at_banner_text=\$at_banner_text_$[1]
+  test "x$at_banner_text" = x && return 0
+  eval at_banner_text_$[1]=
+  AS_ECHO(["$as_nl$at_banner_text$as_nl"])
+} # at_func_banner
+
+# at_func_check_newline COMMAND
+# -----------------------------
+# Test if COMMAND includes a newline and, if so, print a message and return
+# exit code 1
+at_func_check_newline ()
+{
+  case "$[1]" in
+ *'
+'*) echo 'Not enabling shell tracing (command contains an embedded newline)'
+    return 1 ;;
+ *) return 0 ;;
+  esac
+}
+
+# at_func_filter_trace EXIT-CODE
+# ------------------------------
+# Split the contents of file "$at_stder1" into the "set -x" trace (on stderr)
+# and the other lines (on file "$at_stderr").  Return the exit code EXIT-CODE.
+at_func_filter_trace ()
+{
+  grep '^ *+' "$at_stder1" >&2
+  grep -v '^ *+' "$at_stder1" >"$at_stderr"
+  return $[1]
+}
+
+# at_func_log_failure FILE-LIST
+# -----------------------------
+# Copy the files in the list on stdout with a "> " prefix, and exit the shell
+# with a failure exit code.
+at_func_log_failure ()
+{
+  for file
+    do AS_ECHO(["$file:"]); sed 's/^/> /' "$file"; done
+  echo 1 > "$at_status_file"
+  exit 1
+}
+
+# at_func_check_skip EXIT-CODE
+# ----------------------------
+# Check whether EXIT-CODE is the special exit code 77, and if so exit the shell
+# with that same exit code.
+at_func_check_skip ()
+{
+  case $[1] in
+    77) echo 77 > "$at_status_file"; exit 77;;
+  esac
+}
+
+# at_func_check_status EXPECTED EXIT-CODE LINE
+# --------------------------------------------
+# Check whether EXIT-CODE is the expected exit code, and if so do nothing.
+# Otherwise, if it is 77 exit the shell with that same exit code; if it is
+# anything else print an error message and fail the test.
+at_func_check_status ()
+{
+dnl This order ensures that we don't `skip' if we are precisely checking
+dnl $? = 77.
+  case $[2] in
+    $[1] ) ;;
+    77) echo 77 > "$at_status_file"; exit 77;;
+    *) AS_ECHO(["$[3]: exit code was $[2], expected $[1]"])
+      at_failed=:;;
+  esac
+}
+
+# at_func_diff_devnull FILE
+# -------------------------
+# Emit a diff between /dev/null and FILE.  Uses "test -s" to avoid useless
+# diff invocations.
+at_func_diff_devnull ()
+{
+  test -s "$[1]" || return 0
+  $at_diff "$at_devnull" "$[1]"
+}
+
+# at_func_test NUMBER
+# -------------------
+# Parse out test NUMBER from the tail of this file.
+at_func_test ()
+{
+  eval at_sed=\$at_sed$[1]
+  sed "$at_sed" "$at_myself" > "$at_test_source"
+}
+
+# at_func_create_debugging_script
+# -------------------------------
+# Create the debugging script $at_group_dir/run which will reproduce the
+# current test group.
+at_func_create_debugging_script ()
+{
+  {
+    echo "#! /bin/sh" &&
+    echo 'test "${ZSH_VERSION+set}" = set dnl
+&& alias -g '\''${1+"$[@]"}'\''='\''"$[@]"'\''' &&
+    AS_ECHO(["cd '$at_dir'"]) &&
+    AS_ECHO(["exec \${CONFIG_SHELL-$SHELL} \"$at_myself\" -v -d ]dnl
+[$at_debug_args $at_group \${1+\"\$[@]\"}"]) &&
+    echo 'exit 1'
+  } >"$at_group_dir/run" &&
+  chmod +x "$at_group_dir/run"
+}
+
+# at_func_arith
+# -------------
+# Arithmetic evaluation, avoids expr if the shell is sane.
+#
+# subshell and eval are needed to keep Solaris sh from bailing out:
+if ( eval 'test $(( 1 + 1 )) = 2' ) 2>/dev/null; then
+  [#] With "$[@]", bash does not split positional parameters:
+  eval 'at_func_arith ()
+  {
+    at_func_arith_result=$(( $[*] ))
+  }'
+else
+  at_func_arith ()
+  {
+    at_func_arith_result=`expr "$[@]"`
+  }
 fi
+
+## ---------------------- ##
+## End of shell functions ##
+## ---------------------- ##
+m4_divert_pop([PREPARE_TESTS])dnl back to DEFAULTS
 
 # Not all shells have the 'times' builtin; the subshell is needed to make
 # sure we discard the 'times: not found' message from the shell.
@@ -234,9 +393,9 @@ at_times_p=false
 at_debug_args=
 # -e sets to true
 at_errexit_p=false
-# Shall we be verbose?
+# Shall we be verbose?  ':' means no, empty means yes.
 at_verbose=:
-at_quiet=echo
+at_quiet=
 
 # Shall we keep the debug scripts?  Must be `:' when the suite is
 # run by a debug script, so that the script doesn't remove itself.
@@ -247,31 +406,31 @@ at_help_p=false
 at_version_p=false
 # List test groups?
 at_list_p=false
+# --clean
+at_clean=false
 # Test groups to run
 at_groups=
+# Whether a write failure occurred
+at_write_fail=0
 
-# The directory we are in.
+# The directory we run the suite in.  Default to . if no -C option.
 at_dir=`pwd`
-# The directory the whole suite works in.
-# Should be absolutely to let the user `cd' at will.
-at_suite_dir=$at_dir/$as_me.dir
-# The file containing the suite.
-at_suite_log=$at_dir/$as_me.log
-# The file containing the location of the last AT_CHECK.
-at_check_line_file=$at_suite_dir/at-check-line
-# The file containing the exit status of the last command.
-at_status_file=$at_suite_dir/at-status
-# The files containing the output of the tested commands.
-at_stdout=$at_suite_dir/at-stdout
-at_stder1=$at_suite_dir/at-stder1
-at_stderr=$at_suite_dir/at-stderr
-# The file containing dates.
-at_times_file=$at_suite_dir/at-times
+# An absolute reference to this testsuite script.
+dnl m4-double quote, to preserve []
+[case $as_myself in
+  [\\/]* | ?:[\\/]* ) at_myself=$as_myself ;;
+  * ) at_myself=$at_dir/$as_myself ;;
+esac]
+# Whether -C is in effect.
+at_change_dir=false
 m4_divert_pop([DEFAULTS])dnl
-m4_wrap([m4_divert_text([DEFAULTS],
+m4_define([_AT_FINISH],
+[m4_ifdef([AT_ingroup], [m4_fatal([missing AT_CLEANUP detected])])dnl
+m4_divert_text([DEFAULTS],
 [
 # List of the tested programs.
-at_tested='m4_ifdef([AT_tested], [AT_tested])'
+at_tested='m4_ifdef([AT_tested],
+  [m4_translit(m4_dquote(m4_defn([AT_tested])), [ ], m4_newline)])'
 # List of the all the test groups.
 at_groups_all='AT_groups_all'
 # As many question marks as there are digits in the last test group number.
@@ -279,7 +438,21 @@ at_groups_all='AT_groups_all'
 # numerical order.
 at_format='m4_bpatsubst(m4_defn([AT_ordinal]), [.], [?])'
 # Description of all the test groups.
-at_help_all="AS_ESCAPE(m4_defn([AT_help_all]))"])])dnl
+at_help_all="AS_ESCAPE(m4_dquote(m4_defn([AT_help_all])))"
+
+# at_func_validate_ranges [N...]
+# ------------------------------
+# validate test group ranges
+at_func_validate_ranges ()
+{
+  for at_grp
+  do
+    if test $at_grp -lt 1 || test $at_grp -gt AT_ordinal; then
+      AS_ECHO(["invalid test group: $at_grp"]) >&2
+      exit 1
+    fi
+  done
+}])])dnl
 m4_divert_push([PARSE_ARGS])dnl
 
 at_prev=
@@ -312,10 +485,7 @@ do
 	;;
 
     --clean | -c )
-	test -d "$at_suite_dir" &&
-	  find "$at_suite_dir" -type d ! -perm -700 -exec chmod u+rwx \{\} \;
-	rm -f -r "$at_suite_dir" "$at_suite_log"
-	exit 0
+	at_clean=:
 	;;
 
     --debug | -d )
@@ -328,7 +498,7 @@ do
 	;;
 
     --verbose | -v )
-	at_verbose=echo; at_quiet=:
+	at_verbose=; at_quiet=:
 	;;
 
     --trace | -x )
@@ -336,20 +506,23 @@ do
 	;;
 
     [[0-9] | [0-9][0-9] | [0-9][0-9][0-9] | [0-9][0-9][0-9][0-9]])
+	at_func_validate_ranges $at_option
 	at_groups="$at_groups$at_option "
 	;;
 
     # Ranges
     [[0-9]- | [0-9][0-9]- | [0-9][0-9][0-9]- | [0-9][0-9][0-9][0-9]-])
 	at_range_start=`echo $at_option |tr -d X-`
-	at_range=`echo " $at_groups_all " | \
+	at_func_validate_ranges $at_range_start
+	at_range=`AS_ECHO([" $at_groups_all "]) | \
 	  sed -e 's/^.* \('$at_range_start' \)/\1/'`
 	at_groups="$at_groups$at_range "
 	;;
 
     [-[0-9] | -[0-9][0-9] | -[0-9][0-9][0-9] | -[0-9][0-9][0-9][0-9]])
 	at_range_end=`echo $at_option |tr -d X-`
-	at_range=`echo " $at_groups_all " | \
+	at_func_validate_ranges $at_range_end
+	at_range=`AS_ECHO([" $at_groups_all "]) | \
 	  sed -e 's/\( '$at_range_end'\) .*$/\1/'`
 	at_groups="$at_groups$at_range "
 	;;
@@ -367,10 +540,20 @@ do
 	  at_range_end=$at_range_start
 	  at_range_start=$at_tmp
 	fi
-	at_range=`echo " $at_groups_all " | \
+	at_func_validate_ranges $at_range_start $at_range_end
+	at_range=`AS_ECHO([" $at_groups_all "]) | \
 	  sed -e 's/^.*\( '$at_range_start' \)/\1/' \
 	      -e 's/\( '$at_range_end'\) .*$/\1/'`
 	at_groups="$at_groups$at_range "
+	;;
+
+    # Directory selection.
+    --directory | -C )
+	at_prev=--directory
+	;;
+    --directory=* )
+	at_change_dir=:
+	at_dir=$at_optarg
 	;;
 
     # Keywords.
@@ -394,12 +577,14 @@ do
 	    ;;
 	  esac
 	  # It is on purpose that we match the test group titles too.
-	  at_groups_selected=`echo "$at_groups_selected" |
+	  at_groups_selected=`AS_ECHO(["$at_groups_selected"]) |
 	      grep -i $at_invert ["^[1-9][^;]*;.*[; ]$at_keyword[ ;]"]`
 	done
-	at_groups_selected=`echo "$at_groups_selected" | sed 's/;.*//'`
 	# Smash the newlines.
-	at_groups="$at_groups`echo $at_groups_selected` "
+	at_groups_selected=`AS_ECHO(["$at_groups_selected"]) | sed 's/;.*//' |
+	  tr "$as_nl" ' '
+	`
+	at_groups="$at_groups$at_groups_selected "
 	;;
 m4_divert_pop([PARSE_ARGS])dnl
 dnl Process *=* last to allow for user specified --option=* type arguments.
@@ -408,58 +593,39 @@ m4_divert_push([PARSE_ARGS_END])dnl
     *=*)
 	at_envvar=`expr "x$at_option" : 'x\([[^=]]*\)='`
 	# Reject names that are not valid shell variable names.
-	expr "x$at_envvar" : "[.*[^_$as_cr_alnum]]" >/dev/null &&
-	  AS_ERROR([invalid variable name: $at_envvar])
-	at_value=`echo "$at_optarg" | sed "s/'/'\\\\\\\\''/g"`
-	eval "$at_envvar='$at_value'"
+	case $at_envvar in
+	  '' | [[0-9]]* | *[[!_$as_cr_alnum]]* )
+	    AS_ERROR([invalid variable name: $at_envvar]) ;;
+	esac
+	at_value=`AS_ECHO(["$at_optarg"]) | sed "s/'/'\\\\\\\\''/g"`
+	# Export now, but save eval for later and for debug scripts.
 	export $at_envvar
-	# Propagate to debug scripts.
 	at_debug_args="$at_debug_args $at_envvar='$at_value'"
 	;;
 
-     *) echo "$as_me: invalid option: $at_option" >&2
-	echo "Try \`$[0] --help' for more information." >&2
+     *) AS_ECHO(["$as_me: invalid option: $at_option"]) >&2
+	AS_ECHO(["Try \`$[0] --help' for more information."]) >&2
 	exit 1
 	;;
   esac
 done
 
+# Verify our last option didn't require an argument
+AS_IF([test -n "$at_prev"], [AS_ERROR([`$at_prev' requires an argument.])])
+
 # Selected test groups.
 if test -z "$at_groups"; then
   at_groups=$at_groups_all
 else
-  # Sort the tests, removing duplicates:
-  at_groups=`echo $at_groups | tr ' ' "$as_nl" | sort -nu`
-  # and add banners.  (Passing at_groups_all is tricky--see the comment
-  # starting with "Passing at_groups is tricky.")
-  at_groups=`echo "$at_groups$as_nl $at_groups_all" |
-    awk ['BEGIN { FS = "@" } # Effectively switch off field splitting.
-	/^$/ { next }  # Ignore the empty line.
-	!/ / { groups++; selected[$ 0] = 1; next }
-	# The last line, containing at_groups_all.
-	{
-		n = split($ 0, a, " ")
-		# If there are several tests, select their banners:
-		if (groups > 1) {
-			for (i = 1; i <= n; i++) {
-				if (a[i] ~ /^banner-/)
-					banner = a[i]
-				else if (banner != "" && selected[a[i]] == 1)
-					selected[banner] = 1
-			}
-		}
-		for (i = 1; i <= n; i++)
-			if (selected[a[i]] == 1)
-				list = list " " a[i]
-		print list
-	}']`
+  # Sort the tests, removing duplicates.
+  at_groups=`AS_ECHO(["$at_groups"]) | tr ' ' "$as_nl" | sort -nu`
 fi
 m4_divert_pop([PARSE_ARGS_END])dnl
 m4_divert_push([HELP])dnl
 
 # Help message.
 if $at_help_p; then
-  cat <<_ATEOF
+  cat <<_ATEOF || at_write_fail=1
 Usage: $[0] [[OPTION]... [VARIABLE=VALUE]... [TESTS]]
 
 Run all the tests, or the selected TESTS, given by numeric ranges, and
@@ -478,7 +644,7 @@ possibly amounts into
 _ATEOF
 m4_divert_pop([HELP])dnl
 m4_divert_push([HELP_MODES])dnl
-cat <<_ATEOF
+cat <<_ATEOF || at_write_fail=1
 
 Operation modes:
   -h, --help     print the help message, then exit
@@ -488,31 +654,34 @@ Operation modes:
 _ATEOF
 m4_divert_pop([HELP_MODES])dnl
 m4_divert_push([HELP_TUNING])dnl
-cat <<_ATEOF
+cat <<_ATEOF || at_write_fail=1
 
+dnl extra quoting prevents emacs whitespace mode from putting tabs in output
 Execution tuning:
+  -C, --directory=DIR
+[                 change to directory DIR before starting]
   -k, --keywords=KEYWORDS
-	         select the tests matching all the comma-separated KEYWORDS
-	         multiple \`-k' accumulate; prefixed \`!' negates a KEYWORD
+[                 select the tests matching all the comma-separated KEYWORDS]
+[                 multiple \`-k' accumulate; prefixed \`!' negates a KEYWORD]
   -e, --errexit  abort as soon as a test fails; implies --debug
   -v, --verbose  force more detailed output
-	         default for debugging scripts
+[                 default for debugging scripts]
   -d, --debug    inhibit clean up and top-level logging
-	         default for debugging scripts
+[                 default for debugging scripts]
   -x, --trace    enable tests shell tracing
 _ATEOF
 m4_divert_pop([HELP_TUNING])dnl
 m4_divert_push([HELP_END])dnl
-cat <<_ATEOF
+cat <<_ATEOF || at_write_fail=1
 
 Report bugs to <AT_PACKAGE_BUGREPORT>.
 _ATEOF
-  exit 0
+  exit $at_write_fail
 fi
 
 # List of tests.
 if $at_list_p; then
-  cat <<_ATEOF
+  cat <<_ATEOF || at_write_fail=1
 AT_TESTSUITE_NAME test groups:
 
  NUM: FILE-NAME:LINE     TEST-GROUP-NAME
@@ -522,7 +691,12 @@ _ATEOF
   # Passing at_groups is tricky.  We cannot use it to form a literal string
   # or regexp because of the limitation of AIX awk.  And Solaris' awk
   # doesn't grok more than 99 fields in a record, so we have to use `split'.
-  echo "$at_groups$as_nl$at_help_all" |
+  # at_groups needs to be space-separated for this script to work.
+  case $at_groups in
+    *"$as_nl"* )
+      at_groups=`AS_ECHO(["$at_groups"]) | tr "$as_nl" ' '` ;;
+  esac
+  AS_ECHO(["$at_groups$as_nl$at_help_all"]) |
     awk 'BEGIN { FS = ";" }
 	 NR == 1 {
 	   for (n = split($ 0, a, " "); n; n--) selected[[a[n]]] = 1
@@ -533,30 +707,94 @@ _ATEOF
 	     printf " %3d: %-18s %s\n", $ 1, $ 2, $ 3
 	     if ($ 4) printf "      %s\n", $ 4
 	   }
-	 }'
-  exit 0
+	 }' || at_write_fail=1
+  exit $at_write_fail
 fi
 m4_divert_pop([HELP_END])dnl
 m4_divert_push([VERSION])dnl
 if $at_version_p; then
-  echo "$as_me (AT_PACKAGE_STRING)"
-  cat <<\_ACEOF
+  AS_ECHO(["$as_me (AT_PACKAGE_STRING)"]) &&
+  cat <<\_ACEOF || at_write_fail=1
 m4_divert_pop([VERSION])dnl
 m4_divert_push([VERSION_END])dnl
 _ACEOF
-  exit 0
+  exit $at_write_fail
 fi
 m4_divert_pop([VERSION_END])dnl
-m4_divert_push([PREPARE_TESTS])dnl
+m4_divert_push([TESTS_BEGIN])dnl
+
+# Take any -C into account.
+if $at_change_dir ; then
+  if test x- = "x$at_dir" ; then
+    at_dir=./-
+  fi
+  test x != "x$at_dir" && cd "$at_dir" \
+    || AS_ERROR([unable to change directory])
+  at_dir=`pwd`
+fi
+
+# Load the config files for any default variable assignments.
+for at_file in atconfig atlocal
+do
+  test -r $at_file || continue
+  . ./$at_file || AS_ERROR([invalid content: $at_file])
+done
+
+# Autoconf <=2.59b set at_top_builddir instead of at_top_build_prefix:
+: ${at_top_build_prefix=$at_top_builddir}
+
+# Perform any assignments requested during argument parsing.
+eval "$at_debug_args"
+
+# atconfig delivers names relative to the directory the test suite is
+# in, but the groups themselves are run in testsuite-dir/group-dir.
+if test -n "$at_top_srcdir"; then
+  builddir=../..
+  for at_dir_var in srcdir top_srcdir top_build_prefix
+  do
+    at_val=AS_VAR_GET([at_$at_dir_var])
+    case $at_val in
+      [[\\/$]]* | ?:[[\\/]]* ) at_prefix= ;;
+      *) at_prefix=../../ ;;
+    esac
+    AS_VAR_SET([$at_dir_var], [$at_prefix$at_val])
+  done
+fi
+
+# The directory the whole suite works in.
+# Should be absolute to let the user `cd' at will.
+at_suite_dir=$at_dir/$as_me.dir
+# The file containing the suite.
+at_suite_log=$at_dir/$as_me.log
+# The file containing the location of the last AT_CHECK.
+at_check_line_file=$at_suite_dir/at-check-line
+# The file containing the exit status of the last command.
+at_status_file=$at_suite_dir/at-status
+# The files containing the output of the tested commands.
+at_stdout=$at_suite_dir/at-stdout
+at_stder1=$at_suite_dir/at-stder1
+at_stderr=$at_suite_dir/at-stderr
+# The file containing the function to run a test group.
+at_test_source=$at_suite_dir/at-test-source
+# The file containing dates.
+at_times_file=$at_suite_dir/at-times
+
+if $at_clean; then
+  test -d "$at_suite_dir" &&
+    find "$at_suite_dir" -type d ! -perm -700 -exec chmod u+rwx \{\} \;
+  rm -f -r "$at_suite_dir" "$at_suite_log"
+  exit $?
+fi
 
 # Don't take risks: use only absolute directories in PATH.
 #
-# For stand-alone test suites, AUTOTEST_PATH is relative to `.'.
+# For stand-alone test suites (ie. atconfig was not found),
+# AUTOTEST_PATH is relative to `.'.
 #
 # For embedded test suites, AUTOTEST_PATH is relative to the top level
 # of the package.  Then expand it into build/src parts, since users
 # may create executables in both places.
-AUTOTEST_PATH=`echo $AUTOTEST_PATH | sed "s&:&$PATH_SEPARATOR&g"`
+AUTOTEST_PATH=`AS_ECHO(["$AUTOTEST_PATH"]) | sed "s|:|$PATH_SEPARATOR|g"`
 at_path=
 _AS_PATH_WALK([$AUTOTEST_PATH $PATH],
 [test -n "$at_path" && at_path=$at_path$PATH_SEPARATOR
@@ -580,19 +818,19 @@ esac])
 #
 # There might be directories that don't exist, but don't redirect
 # builtins' (eg., cd) stderr directly: Ultrix's sh hates that.
-PATH=
+at_new_path=
 _AS_PATH_WALK([$at_path],
-[as_dir=`(cd "$as_dir" && pwd) 2>/dev/null`
-test -d "$as_dir" || continue
-case $PATH in
-	          $as_dir                 | \
-	          $as_dir$PATH_SEPARATOR* | \
-  *$PATH_SEPARATOR$as_dir                 | \
-  *$PATH_SEPARATOR$as_dir$PATH_SEPARATOR* ) ;;
-
-  '') PATH=$as_dir ;;
-   *) PATH=$PATH$PATH_SEPARATOR$as_dir ;;
+[test -d "$as_dir" || continue
+case $as_dir in
+  [[\\/]]* | ?:[[\\/]]* ) ;;
+  * ) as_dir=`(cd "$as_dir" && pwd) 2>/dev/null` ;;
+esac
+case $PATH_SEPARATOR$at_new_path$PATH_SEPARATOR in
+  *$PATH_SEPARATOR$as_dir$PATH_SEPARATOR*) ;;
+  $PATH_SEPARATOR$PATH_SEPARATOR) at_new_path=$as_dir ;;
+  *) at_new_path=$at_new_path$PATH_SEPARATOR$as_dir ;;
 esac])
+PATH=$at_new_path
 export PATH
 
 # Setting up the FDs.
@@ -611,37 +849,45 @@ AS_BOX(m4_defn([AT_TESTSUITE_NAME])[.])
   AS_BOX(m4_defn([AT_TESTSUITE_NAME])[.])
   echo
 
-  echo "$as_me: command line was:"
-  echo "  $ $[0] $at_cli_args"
+  AS_ECHO(["$as_me: command line was:"])
+  AS_ECHO(["  \$ $[0] $at_cli_args"])
   echo
 
   # Try to find a few ChangeLogs in case it might help determining the
   # exact version.  Use the relative dir: if the top dir is a symlink,
   # find will not follow it (and options to follow the links are not
-  # portable), which would result in no output here.
+  # portable), which would result in no output here.  Prune directories
+  # matching the package tarname, since they tend to be leftovers from
+  # `make dist' or `make distcheck' and contain redundant or stale logs.
   if test -n "$at_top_srcdir"; then
     AS_BOX([ChangeLogs.])
     echo
-    for at_file in `find "$at_top_srcdir" -name ChangeLog -print`
+    for at_file in `find "$at_top_srcdir" m4_ifdef([AT_PACKAGE_TARNAME],
+[-name "AT_PACKAGE_TARNAME-*" -prune -o ])-name ChangeLog -print`
     do
-      echo "$as_me: $at_file:"
+      AS_ECHO(["$as_me: $at_file:"])
       sed 's/^/| /;10q' $at_file
       echo
     done
 
-    AS_UNAME
-    echo
   fi
+
+  AS_UNAME
+  echo
 
   # Contents of the config files.
   for at_file in atconfig atlocal
   do
     test -r $at_file || continue
-    echo "$as_me: $at_file:"
+    AS_ECHO(["$as_me: $at_file:"])
     sed 's/^/| /' $at_file
     echo
   done
+} >&AS_MESSAGE_LOG_FD
 
+m4_divert_pop([TESTS_BEGIN])dnl
+m4_divert_push([PREPARE_TESTS])dnl
+{
   AS_BOX([Tested programs.])
   echo
 } >&AS_MESSAGE_LOG_FD
@@ -653,8 +899,8 @@ do
   _AS_PATH_WALK([$PATH], [test -f "$as_dir/$at_program" && break])
   if test -f "$as_dir/$at_program"; then
     {
-      echo "$at_srcdir/AT_LINE: $as_dir/$at_program --version"
-      "$as_dir/$at_program" --version
+      AS_ECHO(["$at_srcdir/AT_LINE: $as_dir/$at_program --version"])
+      "$as_dir/$at_program" --version </dev/null
       echo
     } >&AS_MESSAGE_LOG_FD 2>&1
   else
@@ -668,7 +914,7 @@ done
 
 at_start_date=`date`
 at_start_time=`date +%s 2>/dev/null`
-echo "$as_me: starting at: $at_start_date" >&AS_MESSAGE_LOG_FD
+AS_ECHO(["$as_me: starting at: $at_start_date"]) >&AS_MESSAGE_LOG_FD
 at_xpass_list=
 at_xfail_list=
 at_pass_list=
@@ -699,139 +945,144 @@ else
   at_diff=diff
 fi
 
+# Get the last needed group.
+for at_group in : $at_groups; do :; done
 
+# Extract the start and end lines of each test group at the tail
+# of this file
+awk '
+BEGIN { FS="" }
+/^@%:@AT_START_/ {
+  start = NR
+}
+/^@%:@AT_STOP_/ {
+  test = substr ($ 0, 10)
+  print "at_sed" test "=\"1," start "d;" (NR-1) "q\""
+  if (test == "'"$at_group"'") exit
+}' "$at_myself" > "$at_test_source" &&
+. "$at_test_source" ||
+  AS_ERROR([cannot create test line number cache])
+
+
+m4_text_box([Driver loop.])
 for at_group in $at_groups
 do
   # Be sure to come back to the top test directory.
   cd "$at_suite_dir"
 
-  case $at_group in
-    banner-*)
-      at_group_log=$at_suite_log
-      ;;
+  # Clearly separate the test groups when verbose.
+  test $at_group_count != 0 && $at_verbose echo
 
-    *)
-      at_group_normalized=$at_group
-      _AT_NORMALIZE_TEST_GROUP_NUMBER(at_group_normalized)
+  at_group_normalized=$at_group
+  _AT_NORMALIZE_TEST_GROUP_NUMBER(at_group_normalized)
 
-      # Create a fresh directory for the next test group, and enter.
-      at_group_dir=$at_suite_dir/$at_group_normalized
-      at_group_log=$at_group_dir/$as_me.log
-      if test -d "$at_group_dir"; then
-	find "$at_group_dir" -type d ! -perm -700 -exec chmod u+rwx \{\} \;
-	rm -fr "$at_group_dir"
-      fi
-      # Be tolerant if the above `rm' was not able to remove the directory.
-      AS_MKDIR_P([$at_group_dir])
-      cd $at_group_dir
-      ;;
-  esac
+  # Create a fresh directory for the next test group, and enter.
+  at_group_dir=$at_suite_dir/$at_group_normalized
+  at_group_log=$at_group_dir/$as_me.log
+  if test -d "$at_group_dir"; then
+    find "$at_group_dir" -type d ! -perm -700 -exec chmod u+rwx \{\} \;
+    rm -fr "$at_group_dir" ||
+      AS_WARN([test directory could not be cleaned.])
+  fi
+  # Be tolerant if the above `rm' was not able to remove the directory.
+  AS_MKDIR_P(["$at_group_dir"])
+  cd "$at_group_dir"
 
   echo 0 > "$at_status_file"
 
-  # Clearly separate the test groups when verbose.
-  test $at_group_count != 0 && $at_verbose
-
   # In verbose mode, append to the log file *and* show on
   # the standard output; in quiet mode only write to the log
-  if test $at_verbose = echo; then
+  if test -z "$at_verbose"; then
     at_tee_pipe='tee -a "$at_group_log"'
   else
     at_tee_pipe='cat >> "$at_group_log"'
   fi
 
-  case $at_group in
-dnl Test groups inserted here (TESTS).
-m4_divert_pop([TESTS])[]dnl
-m4_divert_push([TESTS_END])[]dnl
-
-  * )
-    echo "$as_me: no such test group: $at_group" >&2
-    continue
-    ;;
-  esac
+  if at_func_test $at_group && . "$at_test_source"; then :; else
+    AS_ECHO(["$as_me: unable to parse test group: $at_group"]) >&2
+    at_failed=:
+  fi
 
   # Be sure to come back to the suite directory, in particular
   # since below we might `rm' the group directory we are in currently.
   cd "$at_suite_dir"
 
-  case $at_group in
-    banner-*) ;;
-    *)
-      if test ! -f "$at_check_line_file"; then
-	sed "s/^ */$as_me: warning: /" <<_ATEOF
+  if test ! -f "$at_check_line_file"; then
+    sed "s/^ */$as_me: warning: /" <<_ATEOF
 	A failure happened in a test group before any test could be
 	run. This means that test suite is improperly designed.  Please
 	report this failure to <AT_PACKAGE_BUGREPORT>.
 _ATEOF
-	echo "$at_setup_line" >"$at_check_line_file"
+    AS_ECHO(["$at_setup_line"]) >"$at_check_line_file"
+  fi
+  at_func_arith 1 + $at_group_count
+  at_group_count=$at_func_arith_result
+  $at_verbose AS_ECHO_N(["$at_group. $at_setup_line: "])
+  AS_ECHO_N(["$at_group. $at_setup_line: "]) >> "$at_group_log"
+  case $at_xfail:$at_status in
+    yes:0)
+	at_msg="UNEXPECTED PASS"
+	at_xpass_list="$at_xpass_list $at_group"
+	at_errexit=$at_errexit_p
+	;;
+    no:0)
+	at_msg="ok"
+	at_pass_list="$at_pass_list $at_group"
+	at_errexit=false
+	;;
+    *:77)
+	at_msg='skipped ('`cat "$at_check_line_file"`')'
+	at_skip_list="$at_skip_list $at_group"
+	at_errexit=false
+	;;
+    yes:*)
+	at_msg='expected failure ('`cat "$at_check_line_file"`')'
+	at_xfail_list="$at_xfail_list $at_group"
+	at_errexit=false
+	;;
+    no:*)
+	at_msg='FAILED ('`cat "$at_check_line_file"`')'
+	at_fail_list="$at_fail_list $at_group"
+	at_errexit=$at_errexit_p
+	;;
+  esac
+  # Make sure there is a separator even with long titles.
+  AS_ECHO([" $at_msg"])
+  at_log_msg="$at_group. $at_desc ($at_setup_line): $at_msg"
+  case $at_status in
+    0|77)
+      # $at_times_file is only available if the group succeeded.
+      # We're not including the group log, so the success message
+      # is written in the global log separately.  But we also
+      # write to the group log in case they're using -d.
+      if test -f "$at_times_file"; then
+	at_log_msg="$at_log_msg     ("`sed 1d "$at_times_file"`')'
+	rm -f "$at_times_file"
       fi
-      at_group_count=`expr 1 + $at_group_count`
-      $at_verbose $ECHO_N "$at_group. $at_setup_line: $ECHO_C"
-      echo $ECHO_N "$at_group. $at_setup_line: $ECHO_C" >> "$at_group_log"
-      case $at_xfail:$at_status in
-	yes:0)
-	    at_msg="UNEXPECTED PASS"
-	    at_xpass_list="$at_xpass_list $at_group"
-	    at_errexit=$at_errexit_p
-	    ;;
-	no:0)
-	    at_msg="ok"
-	    at_pass_list="$at_pass_list $at_group"
-	    at_errexit=false
-	    ;;
-	*:77)
-	    at_msg='skipped ('`cat "$at_check_line_file"`')'
-	    at_skip_list="$at_skip_list $at_group"
-	    at_errexit=false
-	    ;;
-	yes:*)
-	    at_msg='expected failure ('`cat "$at_check_line_file"`')'
-	    at_xfail_list="$at_xfail_list $at_group"
-	    at_errexit=false
-	    ;;
-	no:*)
-	    at_msg='FAILED ('`cat "$at_check_line_file"`')'
-	    at_fail_list="$at_fail_list $at_group"
-	    at_errexit=$at_errexit_p
-	    ;;
-      esac
-      # Make sure there is a separator even with long titles.
-      echo " $at_msg"
-      at_log_msg="$at_group. $at_desc ($at_setup_line): $at_msg"
-      case $at_status in
-	0|77)
-	  # $at_times_file is only available if the group succeeded.
-	  # We're not including the group log, so the success message
-	  # is written in the global log separately.  But we also
-	  # write to the group log in case they're using -d.
-	  if test -f "$at_times_file"; then
-	    at_log_msg="$at_log_msg	("`sed 1d "$at_times_file"`')'
-	    rm -f "$at_times_file"
-          fi
-	  echo "$at_log_msg" >> "$at_group_log"
-	  echo "$at_log_msg" >&AS_MESSAGE_LOG_FD
+      AS_ECHO(["$at_log_msg"]) >> "$at_group_log"
+      AS_ECHO(["$at_log_msg"]) >&AS_MESSAGE_LOG_FD
 
-	  # Cleanup the group directory, unless the user wants the files.
-	  if $at_debug_p ; then
-	    _AT_CREATE_DEBUGGING_SCRIPT
-	  elif test -d "$at_group_dir"; then
-	    find "$at_group_dir" -type d ! -perm -700 -exec chmod u+rwx \{\} \;
-	    rm -fr "$at_group_dir"
-	  fi
-	  ;;
-	*)
-	  # Upon failure, include the log into the testsuite's global
-	  # log.  The failure message is written in the group log.  It
-	  # is later included in the global log.
-	  echo "$at_log_msg" >> "$at_group_log"
+      # Cleanup the group directory, unless the user wants the files.
+      if $at_debug_p ; then
+	at_func_create_debugging_script
+      else
+	if test -d "$at_group_dir"; then
+	  find "$at_group_dir" -type d ! -perm -700 -exec chmod u+rwx \{\} \;
+	  rm -fr "$at_group_dir"
+	fi
+	rm -f "$at_test_source"
+      fi
+      ;;
+    *)
+      # Upon failure, include the log into the testsuite's global
+      # log.  The failure message is written in the group log.  It
+      # is later included in the global log.
+      AS_ECHO(["$at_log_msg"]) >> "$at_group_log"
 
-	  # Upon failure, keep the group directory for autopsy, and
-	  # create the debugging script.
-	  _AT_CREATE_DEBUGGING_SCRIPT
-	  $at_errexit && break
-	  ;;
-      esac
+      # Upon failure, keep the group directory for autopsy, and
+      # create the debugging script.
+      at_func_create_debugging_script
+      $at_errexit && break
       ;;
   esac
 done
@@ -842,28 +1093,36 @@ cd "$at_dir"
 # Compute the duration of the suite.
 at_stop_date=`date`
 at_stop_time=`date +%s 2>/dev/null`
-echo "$as_me: ending at: $at_stop_date" >&AS_MESSAGE_LOG_FD
+AS_ECHO(["$as_me: ending at: $at_stop_date"]) >&AS_MESSAGE_LOG_FD
 case $at_start_time,$at_stop_time in
   [[0-9]*,[0-9]*])
-    at_duration_s=`expr $at_stop_time - $at_start_time`
-    at_duration_m=`expr $at_duration_s / 60`
-    at_duration_h=`expr $at_duration_m / 60`
-    at_duration_s=`expr $at_duration_s % 60`
-    at_duration_m=`expr $at_duration_m % 60`
+    at_func_arith $at_stop_time - $at_start_time
+    at_duration_s=$at_func_arith_result
+    at_func_arith $at_duration_s / 60
+    at_duration_m=$at_func_arith_result
+    at_func_arith $at_duration_m / 60
+    at_duration_h=$at_func_arith_result
+    at_func_arith $at_duration_s % 60
+    at_duration_s=$at_func_arith_result
+    at_func_arith $at_duration_m % 60
+    at_duration_m=$at_func_arith_result
     at_duration="${at_duration_h}h ${at_duration_m}m ${at_duration_s}s"
-    echo "$as_me: test suite duration: $at_duration" >&AS_MESSAGE_LOG_FD
+    AS_ECHO(["$as_me: test suite duration: $at_duration"]) >&AS_MESSAGE_LOG_FD
     ;;
 esac
 
 # Wrap up the test suite with summary statistics.
-at_skip_count=`set dummy $at_skip_list; shift; echo $[@%:@]`
-at_fail_count=`set dummy $at_fail_list; shift; echo $[@%:@]`
-at_xpass_count=`set dummy $at_xpass_list; shift; echo $[@%:@]`
-at_xfail_count=`set dummy $at_xfail_list; shift; echo $[@%:@]`
+set X $at_skip_list; shift; at_skip_count=$[@%:@]
+set X $at_fail_list; shift; at_fail_count=$[@%:@]
+set X $at_xpass_list; shift; at_xpass_count=$[@%:@]
+set X $at_xfail_list; shift; at_xfail_count=$[@%:@]
 
-at_run_count=`expr $at_group_count - $at_skip_count`
-at_unexpected_count=`expr $at_xpass_count + $at_fail_count`
-at_total_fail_count=`expr $at_xfail_count + $at_fail_count`
+at_func_arith $at_group_count - $at_skip_count
+at_run_count=$at_func_arith_result
+at_func_arith $at_xpass_count + $at_fail_count
+at_unexpected_count=$at_func_arith_result
+at_func_arith $at_xfail_count + $at_fail_count
+at_total_fail_count=$at_func_arith_result
 
 echo
 AS_BOX([Test results.])
@@ -915,9 +1174,11 @@ $at_xpass_count passed unexpectedly." ;;
 
     # No expected failures, but failures and xpasses
     *:1:0) at_result="$at_result $at_were run,
-$at_unexpected_count did not behave as expected ($at_fail_count unexpected failure)." ;;
+$at_unexpected_count did not behave as expected dnl
+($at_fail_count unexpected failure)." ;;
     *:*:0) at_result="$at_result $at_were run,
-$at_unexpected_count did not behave as expected ($at_fail_count unexpected failures)." ;;
+$at_unexpected_count did not behave as expected dnl
+($at_fail_count unexpected failures)." ;;
 
     # All of them.
     *:*:1) at_result="$at_result $at_were run,
@@ -955,17 +1216,17 @@ else
     # Summary of failed and skipped tests.
     if test $at_fail_count != 0; then
       echo "Failed tests:"
-      $SHELL "$[0]" $at_fail_list --list
+      $SHELL "$at_myself" $at_fail_list --list
       echo
     fi
     if test $at_skip_count != 0; then
       echo "Skipped tests:"
-      $SHELL "$[0]" $at_skip_list --list
+      $SHELL "$at_myself" $at_skip_list --list
       echo
     fi
     if test $at_xpass_count != 0; then
       echo "Unexpected passes:"
-      $SHELL "$[0]" $at_xpass_list --list
+      $SHELL "$at_myself" $at_xpass_list --list
       echo
     fi
     if test $at_fail_count != 0; then
@@ -973,10 +1234,10 @@ else
       echo
       for at_group in $at_fail_list
       do
-        at_group_normalized=$at_group
-        _AT_NORMALIZE_TEST_GROUP_NUMBER(at_group_normalized)
-        cat "$at_suite_dir/$at_group_normalized/$as_me.log"
-        echo
+	at_group_normalized=$at_group
+	_AT_NORMALIZE_TEST_GROUP_NUMBER(at_group_normalized)
+	cat "$at_suite_dir/$at_group_normalized/$as_me.log"
+	echo
       done
       echo
     fi
@@ -990,25 +1251,28 @@ else
   AS_BOX([$as_me.log was created.])
 
   echo
-  echo "Please send \`${at_testdir+${at_testdir}/}$as_me.log' and all information you think might help:"
-  echo
-  echo "   To: <AT_PACKAGE_BUGREPORT>"
-  echo "   Subject: @<:@AT_PACKAGE_STRING@:>@ $as_me:dnl
+  AS_ECHO(["Please send \`${at_testdir+${at_testdir}/}$as_me.log' ]dnl
+[and all information you think might help:
+
+   To: <AT_PACKAGE_BUGREPORT>
+   Subject: @<:@AT_PACKAGE_STRING@:>@ $as_me:dnl
 $at_fail_list${at_fail_list:+ failed${at_xpass_list:+,}}dnl
-$at_xpass_list${at_xpass_list:+ passed unexpectedly}"
-  echo
+$at_xpass_list${at_xpass_list:+ passed unexpectedly}
+"])
   if test $at_debug_p = false; then
     echo
     echo 'You may investigate any problem if you feel able to do so, in which'
     echo 'case the test suite provides a good starting point.  Its output may'
-    echo "be found below \`${at_testdir+${at_testdir}/}$as_me.dir'."
+    AS_ECHO(["be found below \`${at_testdir+${at_testdir}/}$as_me.dir'."])
     echo
   fi
     exit 1
 fi
 
 exit 0
-m4_divert_pop([TESTS_END])dnl
+
+m4_text_box([Actual tests.])
+m4_divert_pop([TESTS])dnl
 dnl End of AT_INIT: divert to KILL, only test groups are to be
 dnl output, the rest is ignored.  Current diversion is BODY, inherited
 dnl from M4sh.
@@ -1023,13 +1287,13 @@ m4_divert_push([KILL])
 # Internal implementation of AT_ARG_OPTION & AT_ARG_OPTION_ARG
 m4_defun([_AT_ARG_OPTION],
 [m4_divert_once([HELP_OTHER],
-[cat <<_ATEOF
+[cat <<_ATEOF || at_write_fail=1
 
 Other options:
 _ATEOF
 ])dnl m4_divert_once HELP_OTHER
 m4_divert_text([HELP_OTHER],
-[cat <<_ATEOF
+[cat <<_ATEOF || at_write_fail=1
 $2
 _ATEOF])dnl
 dnl Turn our options into our desired strings
@@ -1041,7 +1305,8 @@ m4_foreach([AT_option], m4_split(m4_normalize([$1]),[[ \|]+]),
 [m4_define_default([AT_first_option],AT_option)dnl
 m4_append([AT_case],m4_if(m4_len(AT_option),1,[],[-])[-]AT_option, [ | ])dnl
 m4_append([AT_case_no],[--no]AT_option, [ | ])dnl
-m4_append([AT_case_arg],m4_if(m4_len(AT_option),1,[],[-])[-]AT_option[=*], [ | ])dnl
+m4_append([AT_case_arg],
+	  m4_if(m4_len(AT_option),1,[],[-])[-]AT_option[=*], [ | ])dnl
 ])dnl m4_foreach AT_option
 dnl keep track so we or the user may process ACTION-IF-NOT-GIVEN
 m4_divert_once([PARSE_ARGS_BEGIN],
@@ -1055,12 +1320,6 @@ m4_divert_text([PARSE_ARGS_BEGIN],
 m4_ifvaln([$3],,[at_arg_[]m4_bpatsubst([AT_first_option], -, _)=false])dnl
 at_arg_given_[]m4_bpatsubst([AT_first_option], -, _)=false
 ])dnl m4_divert_text DEFAULTS
-m4_ifval([$3],[m4_divert_once([PARSE_ARGS_END],
-[
-##
-## Verify our last option didn't require an argument
-##
-AS_IF([test -n "$at_prev"],[AS_ERROR([`$at_prev' requires an argument.])])])])
 m4_divert_text([PARSE_ARGS],
 [dnl Parse the options and args when necessary.
 m4_ifvaln([$3],
@@ -1146,8 +1405,7 @@ m4_defun([AT_ARG_OPTION_ARG],[_AT_ARG_OPTION([$1],[$2],1,[$3],[$4])])
 # must correspond to the version of the package.  PATH should be
 # already preset so the proper executable will be selected.
 m4_define([AT_TESTED],
-[m4_append_uniq([AT_tested], [$1], [
-])])
+[m4_append_uniq_w([AT_tested], [$1])])
 
 
 # AT_COPYRIGHT(TEXT)
@@ -1165,20 +1423,25 @@ $1])])# AT_COPYRIGHT
 # ---------------------
 # Start a group of related tests, all to be executed in the same subshell.
 # The group is testing what DESCRIPTION says.
-m4_define([AT_SETUP],
-[m4_ifdef([AT_keywords], [m4_undefine([AT_keywords])])
-m4_ifdef([AT_capture_files], [m4_undefine([AT_capture_files])])
+_AT_DEFINE_INIT([AT_SETUP],
+[m4_ifdef([AT_ingroup], [m4_fatal([$0: nested AT_SETUP detected])],
+  [m4_define([AT_ingroup])])
+m4_ifdef([AT_keywords], [m4_undefine([AT_keywords])])
+m4_define([AT_capture_files], [])
 m4_define([AT_line], AT_LINE)
 m4_define([AT_xfail], [at_xfail=no])
-m4_define([AT_description], [$1])
+m4_define([AT_description], m4_expand([$1]))
 m4_define([AT_ordinal], m4_incr(AT_ordinal))
 m4_append([AT_groups_all], [ ]m4_defn([AT_ordinal]))
-m4_divert_push([TESTS])dnl
-  AT_ordinal ) @%:@ AT_ordinal. m4_defn([AT_line]): $1
-    at_setup_line='m4_defn([AT_line])'
-    at_desc="AS_ESCAPE([$1])"
-    $at_quiet $ECHO_N "m4_format([%3d: %-]m4_eval(47 - m4_qdelta([$1]))[s],
-	               AT_ordinal, AS_ESCAPE([[$1]]))[]$ECHO_C"
+m4_divert_push([TEST_GROUPS])dnl
+[#AT_START_]AT_ordinal
+@%:@ AT_ordinal. m4_defn([AT_line]): m4_defn([AT_description])
+at_setup_line='m4_defn([AT_line])'
+m4_if(AT_banner_ordinal, [0], [], [at_func_banner AT_banner_ordinal
+])dnl
+at_desc="AS_ESCAPE(m4_dquote(m4_defn([AT_description])))"
+$at_quiet AS_ECHO_N([m4_format(["%3d: $at_desc%*s"], AT_ordinal,
+  m4_max(0, m4_eval(47 - m4_qlen(m4_defn([AT_description])))), [])])
 m4_divert_push([TEST_SCRIPT])dnl
 ])
 
@@ -1187,7 +1450,7 @@ m4_divert_push([TEST_SCRIPT])dnl
 # -----------------------------
 # Set up the test to be expected to fail if SHELL-EXPRESSION evaluates to
 # true (exitcode = 0).
-m4_define([AT_XFAIL_IF],
+_AT_DEFINE_SETUP([AT_XFAIL_IF],
 [dnl
 dnl Try to limit the amount of conditionals that we emit.
 m4_case([$1],
@@ -1202,15 +1465,16 @@ m4_case([$1],
 # AT_KEYWORDS(KEYWORDS)
 # ---------------------
 # Declare a list of keywords associated to the current test group.
-m4_define([AT_KEYWORDS],
-[m4_append_uniq([AT_keywords], [$1], [ ])])
+# The list is stored in lower case, since the -k option is case-insensitive.
+_AT_DEFINE_SETUP([AT_KEYWORDS],
+[m4_append_uniq_w([AT_keywords], m4_tolower([[$1]]))])
 
 
 # AT_CAPTURE_FILE(FILE)
 # ---------------------
 # If the current test group does not behave as expected, save the contents of
 # FILE in the test suite log.
-m4_define([AT_CAPTURE_FILE],
+_AT_DEFINE_SETUP([AT_CAPTURE_FILE],
 [m4_append_uniq([AT_capture_files], ["$1"], [ \
 ])])
 
@@ -1218,43 +1482,41 @@ m4_define([AT_CAPTURE_FILE],
 # AT_CLEANUP
 # ----------
 # Complete a group of related tests.
-m4_define([AT_CLEANUP],
-[m4_append([AT_help_all],
-m4_defn([AT_ordinal]);m4_defn([AT_line]);m4_defn([AT_description]);m4_ifdef([AT_keywords], [m4_defn([AT_keywords])]);
+_AT_DEFINE_INIT([AT_CLEANUP],
+[m4_ifdef([AT_ingroup], [m4_undefine([AT_ingroup])],
+  [m4_fatal([$0: missing AT_SETUP detected])])dnl
+m4_append([AT_help_all],
+m4_defn([AT_ordinal]);m4_defn([AT_line]);m4_defn([AT_description]);dnl
+m4_ifdef([AT_keywords], [m4_defn([AT_keywords])]);
 )dnl
-m4_divert_pop([TEST_SCRIPT])dnl Back to TESTS
-    AT_xfail
-    echo "#                             -*- compilation -*-" >> "$at_group_log"
-    (
-      echo "AT_ordinal. m4_defn([AT_line]): testing $1..."
-      $at_traceon
+m4_divert_pop([TEST_SCRIPT])dnl Back to TEST_GROUPS
+AT_xfail
+echo "#                             -*- compilation -*-" >> "$at_group_log"
+(
+  AS_ECHO(["AT_ordinal. m4_defn([AT_line]): testing $1..."])
+  $at_traceon
 m4_undivert([TEST_SCRIPT])dnl Insert the code here
-      $at_traceoff
-      $at_times_p && times >"$at_times_file"
-    ) AS_MESSAGE_LOG_FD>&1 2>&1 | eval $at_tee_pipe
-    at_status=`cat "$at_status_file"`
-    ;;
-
-m4_divert_pop([TESTS])dnl Back to KILL.
+  $at_traceoff
+  $at_times_p && times >"$at_times_file"
+) AS_MESSAGE_LOG_FD>&1 2>&1 | eval $at_tee_pipe
+at_status=`cat "$at_status_file"`
+[#AT_STOP_]AT_ordinal
+m4_divert_pop([TEST_GROUPS])dnl Back to KILL.
 ])# AT_CLEANUP
 
 
-# AT_BANNER(TEXT)
-# ---------------
-# Output TEXT without any shell expansion.
-m4_define([AT_BANNER],
-[m4_define([AT_banner_ordinal], m4_incr(AT_banner_ordinal))
-m4_append([AT_groups_all], [ banner-]m4_defn([AT_banner_ordinal]))
-m4_divert_text([TESTS],
-[
-  banner-AT_banner_ordinal ) @%:@ Banner AT_banner_ordinal. AT_LINE
-    cat <<\_ATEOF
-
-$1
-
-_ATEOF
-    ;;
-])dnl
+# AT_BANNER([TEXT])
+# -----------------
+# Start a category of related test groups.  If multiple groups are executed,
+# output TEXT as a banner without any shell expansion, prior to any test
+# from the category.  If TEXT is empty, no banner is printed.
+_AT_DEFINE_INIT([AT_BANNER],
+[m4_ifdef([AT_ingroup], [m4_fatal([$0: nested AT_SETUP detected])])dnl
+m4_define([AT_banner_ordinal], m4_incr(AT_banner_ordinal))
+m4_divert_text([BANNERS],
+[@%:@ Banner AT_banner_ordinal. AT_LINE
+@%:@ Category starts at test group m4_incr(AT_ordinal).
+at_banner_text_[]AT_banner_ordinal="AS_ESCAPE([$1])"])dnl
 ])# AT_BANNER
 
 
@@ -1264,7 +1526,7 @@ _ATEOF
 # an end of line.
 # This macro is not robust to active symbols in CONTENTS *on purpose*.
 # If you don't want CONTENTS to be evaluated, quote it twice.
-m4_define([AT_DATA],
+_AT_DEFINE_SETUP([AT_DATA],
 [cat >$1 <<'_ATEOF'
 $2[]_ATEOF
 ])
@@ -1294,27 +1556,23 @@ $2[]_ATEOF
 #    AT_CHECK([command], [], [stdout])
 #    # Some checks on `stdout'
 #
-# This is an unfortunate limitation inherited from Ultrix which will not
-# let you redirect several times the same FD (see the Autoconf documentation).
-# If you use the `AT_CHECK([command >out])' be sure to get a test suite
-# that will show spurious failures.
-#
-# You might wonder why not just use `ignore' and directly use stdout and
-# stderr left by the test suite.  Firstly because the names of these files
-# is an internal detail, and secondly, because
+# You might wonder why you can't just use `ignore', then directly use stdout
+# and stderr left by the test suite:
 #
 #    AT_CHECK([command], [], [ignore])
 #    AT_CHECK([check stdout])
 #
-# will use `stdout' both in input and output: undefined behavior would
-# certainly result.  That's why the test suite will save them in `at-stdout'
-# and `at-stderr', and will provide you with `stdout' and `stderr'.
+# If the test suite always captured data in the file `stdout', then the
+# second command would be trying to read and write from the same file, with
+# undefined behavior.  Therefore, the test suite actually captures data in
+# an internal file of a different name, and only creates `stdout' when
+# explicitly requested.
 #
 # Any line of stderr starting with leading blanks and a `+' are filtered
 # out, since most shells when tracing include subshell traces in stderr.
 # This may cause spurious failures when the test suite is run with `-x'.
 #
-m4_define([AT_CHECK],
+_AT_DEFINE_SETUP([AT_CHECK],
 [_AT_CHECK([$1],[$2],[$3],[$4],[$5],[$6],1)])
 
 # AT_CHECK_NOESCAPE(COMMANDS, [STATUS = 0], STDOUT, STDERR,
@@ -1322,16 +1580,16 @@ m4_define([AT_CHECK],
 # ---------------------------------------------------------
 # Like AT_CHECK, but do not AS_ESCAPE shell metacharacters in the STDOUT
 # and STDERR arguments before running the comparison.
-m4_define([AT_CHECK_NOESCAPE],
+_AT_DEFINE_SETUP([AT_CHECK_NOESCAPE],
 [_AT_CHECK([$1],[$2],[$3],[$4],[$5],[$6])])
 
 
 # _AT_DECIDE_TRACEABLE(COMMANDS)
 # ------------------------------
 # Worker for for _AT_CHECK that expands to shell code.  If COMMANDS are safe to
-# trace with `set -x', the shell code will set `at_trace_this=yes'.  Otherwise,
+# trace with `set -x', the shell code will evaluate to true.  Otherwise,
 # the shell code will print a message stating an aspect of COMMANDS that makes
-# tracing them unsafe.
+# tracing them unsafe, and evaluate to false.
 #
 # Tracing COMMANDS is not safe if they contain a command that spans multiple
 # lines.  When the test suite user passes `-x' or `--trace', the test suite
@@ -1350,10 +1608,10 @@ m4_define([AT_CHECK_NOESCAPE],
 # + foo
 # bar
 #
-# In a subset of cases, one could filter such extended shell traces from stderr.
-# Since test commands spanning several lines are rare, I chose instead to simply
-# not trace COMMANDS that could yield multiple trace lines.  Distinguishing such
-# COMMANDS became the task at hand.
+# In a subset of cases, one could filter such extended shell traces from
+# stderr.  Since test commands spanning several lines are rare, I chose
+# instead to simply not trace COMMANDS that could yield multiple trace lines.
+# Distinguishing such COMMANDS became the task at hand.
 #
 # These features may cause a shell command to span multiple lines:
 #
@@ -1380,12 +1638,12 @@ m4_define([AT_CHECK_NOESCAPE],
 #   'bar
 #   echo "$var"
 # Parameter expansions appear in COMMANDS with much greater frequency than do
-# newlines and command substitutions, so disabling tracing for all such COMMANDS
-# would much more substantially devalue `testsuite -x'.  To determine which
-# parameter expansions yield multiple lines, we escape all ``', `"', and `\' in
-# a copy of COMMANDS and expand that string within double quotes at runtime.  If
-# the result of that expansion contains multiple lines, the test suite disables
-# tracing for the command in question.
+# newlines and command substitutions, so disabling tracing for all such
+# COMMANDS would much more substantially devalue `testsuite -x'.  To determine
+# which parameter expansions yield multiple lines, we escape all ``', `"',
+# and `\' in a copy of COMMANDS and expand that string within double quotes
+# at runtime.  If the result of that expansion contains multiple lines, the
+# test suite disables tracing for the command in question.
 #
 # This method leads the test suite to expand some parameters that the shell
 # itself will never expand due to single-quotes or backslash escapes.  This is
@@ -1404,34 +1662,54 @@ m4_define([AT_CHECK_NOESCAPE],
 # to safely expand arbitrary COMMANDS in an argument list, so the below tests
 # examine COMMANDS unexpanded.
 m4_define([_AT_DECIDE_TRACEABLE],
-[dnl Utility macros.
-m4_pushdef([at_lf], [
-])[]dnl
+dnl Utility macro.
 dnl
 dnl Examine COMMANDS for a reason to never trace COMMANDS.
-m4_pushdef([at_reason],
-	   m4_bmatch([$1],
-	             [`.*`], [[a `...` command substitution]],
-	             [\$(],  [[a $(...) command substitution]],
-	             [\${],  [[a ${...} parameter expansion]],
-	             at_lf,  [[an embedded newline]],
-		     [[]]dnl No reason.
+[m4_pushdef([at_reason],
+m4_cond([m4_eval(m4_index([$1], [`]) >= 0)], [1],
+		[[a `...` command substitution]],
+	[m4_eval(m4_index([$1], [$(]) >= 0)], [1],
+		[[a $(...) command substitution]],
+	[m4_eval(m4_index([$1], [${]) >= 0)], [1],
+		[[a ${...} parameter expansion]],
+	[m4_eval(m4_index([$1], m4_newline) >= 0)], [1],
+		[[an embedded newline]],
+	[]dnl No reason.
 ))dnl
 dnl
 m4_ifval(m4_defn([at_reason]),
-[echo 'Not enabling shell tracing (command contains ]m4_defn([at_reason])[)'],
-[m4_bmatch([$1], [\$],
-dnl COMMANDS may contain parameter expansions; expand them at runtime.
-[case "AS_ESCAPE([$1], [`"\])" in
-        *'
-'*) echo 'Not enabling shell tracing (command contains an embedded newline)' ;;
- *) at_trace_this=yes ;;
-    esac],
+[{ echo 'Not enabling shell tracing (command contains ]m4_defn([at_reason])[)'
+   false; }],
+[m4_if(m4_index([$1], [$]), [-1],
 dnl We know at build time that tracing COMMANDS is always safe.
-[at_trace_this=yes])])[]dnl
-m4_popdef([at_lf])[]dnl
+[test -n "$at_traceon"],
+dnl COMMANDS may contain parameter expansions; expand them at runtime.
+[test -n "$at_traceon" \
+  && at_func_check_newline "AS_ESCAPE([$1], [`\"])"])])[]dnl
 m4_popdef([at_reason])])
 
+
+# AT_DIFF_STDERR/AT_DIFF_STDOUT
+# -----------------------------
+# These are subroutines of AT_CHECK.  Using indirect dispatch is a tad
+# faster than using m4_case, and these are called very frequently.
+m4_define([AT_DIFF_STDERR(stderr)],
+	  [echo stderr:; tee stderr <"$at_stderr"])
+m4_define([AT_DIFF_STDERR(ignore)],
+	  [echo stderr:; cat "$at_stderr"])
+m4_define([AT_DIFF_STDERR(experr)],
+	  [$at_diff experr "$at_stderr" || at_failed=:])
+m4_define([AT_DIFF_STDERR()],
+	  [at_func_diff_devnull "$at_stderr" || at_failed=:])
+
+m4_define([AT_DIFF_STDOUT(stdout)],
+	  [echo stdout:; tee stdout <"$at_stdout"])
+m4_define([AT_DIFF_STDOUT(ignore)],
+	  [echo stdout:; cat "$at_stdout"])
+m4_define([AT_DIFF_STDOUT(expout)],
+	  [$at_diff expout "$at_stdout" || at_failed=:])
+m4_define([AT_DIFF_STDOUT()],
+	  [at_func_diff_devnull "$at_stdout" || at_failed=:])
 
 # _AT_CHECK(COMMANDS, [STATUS = 0], STDOUT, STDERR,
 #           [RUN-IF-FAIL], [RUN-IF-PASS], SHELL_ESCAPE_IO)
@@ -1467,57 +1745,27 @@ m4_popdef([at_reason])])
 #  ( $at_traceon; $1 ) >at-stdout 2>at-stder1
 #
 m4_define([_AT_CHECK],
-[$at_traceoff
-echo "$at_srcdir/AT_LINE: AS_ESCAPE([$1])"
+[{ $at_traceoff
+AS_ECHO(["$at_srcdir/AT_LINE: AS_ESCAPE([$1])"])
 echo AT_LINE >"$at_check_line_file"
 
-at_trace_this=
-if test -n "$at_traceon"; then
-    _AT_DECIDE_TRACEABLE([$1])
-fi
-
-if test -n "$at_trace_this"; then
-    ( $at_traceon; $1 ) >"$at_stdout" 2>"$at_stder1"
-    at_status=$?
-    grep '^ *+' "$at_stder1" >&2
-    grep -v '^ *+' "$at_stder1" >"$at_stderr"
+if _AT_DECIDE_TRACEABLE([$1]); then
+  ( $at_traceon; $1 ) >"$at_stdout" 2>"$at_stder1"
+  at_func_filter_trace $?
 else
-    ( :; $1 ) >"$at_stdout" 2>"$at_stderr"
-    at_status=$?
+  ( :; $1 ) >"$at_stdout" 2>"$at_stderr"
 fi
-
+at_status=$?
 at_failed=false
-dnl Check stderr.
-m4_case([$4],
-	stderr, [echo stderr:; tee stderr <"$at_stderr"],
-	ignore, [echo stderr:; cat "$at_stderr"],
-	experr, [$at_diff experr "$at_stderr" || at_failed=:],
-	[],     [$at_diff "$at_devnull" "$at_stderr" || at_failed=:],
-	[echo >>"$at_stderr"; echo "m4_ifval([$7],[AS_ESCAPE([$4])],[$4])" | $at_diff - "$at_stderr" || at_failed=:])
-dnl Check stdout.
-m4_case([$3],
-	stdout, [echo stdout:; tee stdout <"$at_stdout"],
-	ignore, [echo stdout:; cat "$at_stdout"],
-	expout, [$at_diff expout "$at_stdout" || at_failed=:],
-	[],     [$at_diff "$at_devnull" "$at_stdout" || at_failed=:],
-	[echo >>"$at_stdout"; echo "m4_ifval([$7],[AS_ESCAPE([$3])],[$3])" | $at_diff - "$at_stdout" || at_failed=:])
-dnl Check exit val.  Don't `skip' if we are precisely checking $? = 77.
-case $at_status in
-m4_if([$2], [77],
-    [],
-    [   77) echo 77 > "$at_status_file"; exit 77;;
-])dnl
-m4_if([$2], [ignore],
-    [   *);;],
-    [   m4_default([$2], [0])) ;;
-   *) echo "$at_srcdir/AT_LINE: exit code was $at_status, expected m4_default([$2], [0])"
-      at_failed=:;;])
-esac
-AS_IF($at_failed, [$5
-  m4_ifdef([AT_capture_files],
-    [for file in AT_capture_files
-     do echo "$file:"; sed 's/^/> /' "$file"; done])
-  echo 1 > "$at_status_file"
-  exit 1], [$6])
-$at_traceon
+m4_ifdef([AT_DIFF_STDERR($4)], [m4_indir([AT_DIFF_STDERR($4)])],
+  [echo >>"$at_stderr"; AS_ECHO(["m4_ifval([$7],[AS_ESCAPE([$4])],[$4])"]) | \
+  $at_diff - "$at_stderr" || at_failed=:])
+m4_ifdef([AT_DIFF_STDOUT($3)], [m4_indir([AT_DIFF_STDOUT($3)])],
+  [echo >>"$at_stdout"; AS_ECHO(["m4_ifval([$7],[AS_ESCAPE([$3])],[$3])"]) | \
+  $at_diff - "$at_stdout" || at_failed=:])
+m4_if([$2], [ignore], [at_func_check_skip],
+  [at_func_check_status m4_default([$2], [0])]) $at_status "$at_srcdir/AT_LINE"
+AS_IF($at_failed, [$5], [$6])
+$at_failed && at_func_log_failure AT_capture_files
+$at_traceon; }
 ])# _AT_CHECK

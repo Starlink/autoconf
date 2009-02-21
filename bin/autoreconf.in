@@ -6,10 +6,10 @@ eval 'case $# in 0) exec @PERL@ -S "$0";; *) exec @PERL@ -S "$0" "$@";; esac'
     if 0;
 
 # autoreconf - install the GNU Build System in a directory tree
-# Copyright (C) 1994, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
-# Free Software Foundation, Inc.
+# Copyright (C) 1994, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+# 2007, 2008  Free Software Foundation, Inc.
 
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
@@ -89,7 +89,7 @@ Library directories:
   -I, --include=DIR          append directory DIR to search path
 
 The environment variables AUTOCONF, AUTOHEADER, AUTOMAKE, ACLOCAL,
-AUTOPOINT, LIBTOOLIZE, M4 are honored.
+AUTOPOINT, LIBTOOLIZE, M4, and MAKE are honored.
 
 Report bugs to <bug-autoconf\@gnu.org>.
 ";
@@ -97,9 +97,10 @@ Report bugs to <bug-autoconf\@gnu.org>.
 # $VERSION
 # --------
 $version = "autoreconf (@PACKAGE_NAME@) @VERSION@
-Copyright (C) 2006 Free Software Foundation, Inc.
-This is free software.  You may redistribute copies of it under the terms of
-the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.
+Copyright (C) @RELEASE_YEAR@ Free Software Foundation, Inc.
+License GPLv2+: GNU GPL version 2 or later
+<http://gnu.org/licenses/old-licenses/gpl-2.0.html>
+This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
 Written by David J. MacKenzie and Akim Demaille.
@@ -112,6 +113,7 @@ my $automake   = $ENV{'AUTOMAKE'}   || 'automake';
 my $aclocal    = $ENV{'ACLOCAL'}    || 'aclocal';
 my $libtoolize = $ENV{'LIBTOOLIZE'} || 'libtoolize';
 my $autopoint  = $ENV{'AUTOPOINT'}  || 'autopoint';
+my $make       = $ENV{'MAKE'}       || 'make';
 
 # --install -- as --add-missing in other tools.
 my $install = 0;
@@ -129,7 +131,7 @@ my @include;
 my @warning;
 
 # Rerun `./configure && make'?
-my $make = 0;
+my $run_make = 0;
 
 # Recurse into subpackages
 my $recursive = 1;
@@ -151,7 +153,7 @@ sub parse_args ()
 	  'B|prepend-include=s'	 => \@prepend_include,
 	  'i|install'            => \$install,
 	  's|symlink'            => \$symlink,
-	  'm|make'               => \$make,
+	  'm|make'               => \$run_make,
 	  'recursive!'           => \$recursive);
 
   # Split the warnings as a list of elements instead of a list of
@@ -179,15 +181,15 @@ sub parse_args ()
 	}
     }
 
-  $aclocal_supports_force = `$aclocal --help` =~ /--force/;
-  $automake_supports_force_missing = `$automake --help` =~ /--force-missing/;
+  $aclocal_supports_force = `$aclocal --help 2>/dev/null` =~ /--force/;
+  $automake_supports_force_missing = `$automake --help 2>/dev/null` =~ /--force-missing/;
 
   # Dispatch autoreconf's option to the tools.
   # --include;
-  $autoconf   .= join (' --include=', '', @include);
-  $autoconf   .= join (' --prepend-include=', '', @prepend_include);
-  $autoheader .= join (' --include=', '', @include);
-  $autoheader .= join (' --prepend-include=', '', @prepend_include);
+  $autoconf   .= join (' --include=', '', map { shell_quote ($_) } @include);
+  $autoconf   .= join (' --prepend-include=', '', map { shell_quote ($_) } @prepend_include);
+  $autoheader .= join (' --include=', '', map { shell_quote ($_) } @include);
+  $autoheader .= join (' --prepend-include=', '', map { shell_quote ($_) } @prepend_include);
 
   # --install and --symlink;
   if ($install)
@@ -318,7 +320,7 @@ sub autoreconf_current_directory ()
   my $uses_gettext;
   if (-f $configure_ac)
     {
-      my $configure_ac_file = new Autom4te::XFile $configure_ac;
+      my $configure_ac_file = new Autom4te::XFile "< $configure_ac";
       while ($_ = $configure_ac_file->getline)
 	{
 	  s/#.*//;
@@ -365,7 +367,7 @@ sub autoreconf_current_directory ()
     }
   else
     {
-      xsystem "$autopoint";
+      xsystem_hint ("autopoint is needed because this package uses Gettext", "$autopoint");
     }
 
 
@@ -529,7 +531,7 @@ sub autoreconf_current_directory ()
 	{
 	  $libtoolize .= " --ltdl";
 	}
-      xsystem ($libtoolize);
+      xsystem_hint ("libtoolize is needed because this package uses Libtool", $libtoolize);
       $rerun_aclocal = 1;
     }
   else
@@ -615,7 +617,7 @@ sub autoreconf_current_directory ()
   # Running make.  #
   # -------------- #
 
-  if ($make)
+  if ($run_make)
     {
       if (!-f "config.status")
 	{
@@ -631,7 +633,7 @@ sub autoreconf_current_directory ()
 	    }
 	  else
 	    {
-	      xsystem ("make");
+	      xsystem ("$make");
 	    }
 	}
     }

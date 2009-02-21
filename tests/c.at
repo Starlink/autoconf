@@ -5,7 +5,7 @@ AT_BANNER([C low level compiling/preprocessing macros.])
 # Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software
 # Foundation, Inc.
 #
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
@@ -141,7 +141,7 @@ AT_CLEANUP
 AT_SETUP([AC_PROG_CPP without warnings])
 
 # Ignore if /lib/cpp doesn't work
-AT_CHECK([echo '#include <stdio.h>' | /lib/cpp || exit 77],
+AT_CHECK([[echo '#include <stdio.h>' | /lib/cpp || exit 77]],
   [], [ignore], [ignore])
 
 # A cpp which exit status is meaningless.
@@ -179,7 +179,7 @@ AT_CLEANUP
 AT_SETUP([AC_PROG_CPP via CC])
 
 # Ignore if /lib/cpp doesn't work
-AT_CHECK([echo '#include <stdio.h>' | /lib/cpp || exit 77],
+AT_CHECK([[echo '#include <stdio.h>' | /lib/cpp || exit 77]],
   [], [ignore], [ignore])
 
 AT_DATA([mycc],
@@ -211,3 +211,24 @@ AT_CHECK_DEFINES(
 ])
 
 AT_CLEANUP
+
+
+## ------------------------------------ ##
+## AC_NO_EXECUTABLES (working linker).  ##
+## ------------------------------------ ##
+
+AT_CHECK_MACRO([AC_NO_EXECUTABLES (working linker)],
+[AC_NO_EXECUTABLES
+AC_PROG_CC
+])
+
+
+## ----------------------------------- ##
+## AC_NO_EXECUTABLES (broken linker).  ##
+## ----------------------------------- ##
+
+AT_CHECK_MACRO([AC_NO_EXECUTABLES (broken linker)],
+[LDFLAGS=-lnosuchlibrary
+AC_NO_EXECUTABLES
+AC_PROG_CC
+])

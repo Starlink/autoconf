@@ -2,9 +2,10 @@
 
 AT_BANNER([Autoconf base layer.])
 
-# Copyright (C) 2000, 2001, 2003, 2005, 2006 Free Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2003, 2005, 2006, 2007 Free Software
+# Foundation, Inc.
 #
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
@@ -86,7 +87,7 @@ AT_CLEANUP
 ## AC_REQUIRE and AC_DEFUN_ONCE: Require, expand.  ##
 ## ----------------------------------------------- ##
 
-AT_SETUP([AC_REQUIRE & AC_DEFUN_ONCE: Require, expand])
+AT_SETUP([AC_REQUIRE & AC_DEFUN_ONCE: [Require, expand]])
 
 AT_DATA([configure.ac],
 [[AC_DEFUN([TEST],
@@ -130,7 +131,7 @@ AT_CLEANUP
 ## AC_REQUIRE and AC_DEFUN_ONCE: Expand, require.  ##
 ## ----------------------------------------------- ##
 
-AT_SETUP([AC_REQUIRE & AC_DEFUN_ONCE: Expand, require])
+AT_SETUP([AC_REQUIRE & AC_DEFUN_ONCE: [Expand, require]])
 
 AT_DATA([configure.ac],
 [[AC_DEFUN([TEST],
@@ -204,16 +205,29 @@ AT_CLEANUP
 ## ---------------- ##
 
 # Make sure AC_CACHE_CHECK is silent with -q.
+# Also make sure we warn about cache id's not named with `_cv_'.
 
 AT_SETUP([AC_CACHE_CHECK])
 
 AT_DATA([configure.ac],
 [[AC_INIT
+# m4_define([ac_nothing], [ac_cv_absolutely_nothing])
 AC_CACHE_CHECK([for nothing],
 	       [ac_nothing],
 	       [ac_nothing=found])
 ]])
 
+AT_CHECK_AUTOCONF([], [], [], [stderr])
+AT_CHECK([grep 'must contain _cv_ to be cached' stderr], [], [ignore])
+
+# Do not warn about defines:
+sed 's/^# //' configure.ac > t
+mv -f t configure.ac
+AT_CHECK_AUTOCONF
+AT_CHECK_CONFIGURE([-q])
+
+sed '/m4_define/d; s/ac_nothing/ac_cv_nothing/' configure.ac > t
+mv -f t configure.ac
 AT_CHECK_AUTOCONF
 AT_CHECK_CONFIGURE([-q])
 
@@ -286,8 +300,60 @@ AT_DATA([configure.ac],
 cat <&AS_ORIGINAL_STDIN_FD >&AS_MESSAGE_FD
 ]])
 AT_CHECK_AUTOCONF
-AT_CHECK([echo Hello | top_srcdir=$abs_top_srcdir ./configure | grep -v 'configure: loading site script '],, [Hello
+AT_CHECK([echo Hello | ./configure | grep -v 'configure: loading site script '],, [Hello
 ])
-AT_CHECK([echo Hello | top_srcdir=$abs_top_srcdir ./configure --silent])
+AT_CHECK([echo Hello | ./configure --silent])
+
+AT_CLEANUP
+
+
+## ------------------- ##
+## configure arguments ##
+## ------------------- ##
+
+AT_SETUP([configure arguments])
+
+AT_DATA([configure.ac],
+[[AC_INIT
+echo "$@"
+]])
+
+AT_CHECK_AUTOCONF
+AT_CHECK_CONFIGURE([FOO=bar --enable-baz --without-zork --silent], [0], [stdout], [ignore])
+AT_CHECK([grep 'FOO=bar --enable-baz --without-zork --silent' stdout], [0], [ignore], [ignore])
+
+AT_CLEANUP
+
+
+## --------------------- ##
+## configure directories ##
+## --------------------- ##
+
+AT_SETUP([configure directories])
+
+AT_DATA([foo.in],
+[[prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+]])
+
+AT_DATA([configure.ac],
+[[AC_INIT
+AC_CONFIG_FILES([foo])
+AC_OUTPUT
+]])
+
+AT_CHECK_AUTOCONF
+dnl check that relative paths are rejected
+AT_CHECK_CONFIGURE([--libdir=.], [1], [ignore], [stderr])
+AT_CHECK([grep 'expected an absolute directory name for --libdir: \.' stderr],
+	 [0], [ignore])
+
+dnl check that extra slashes are stripped, and that defaults are not expanded
+AT_CHECK_CONFIGURE([--prefix=/usr//])
+AT_CHECK([cat foo], [0], [[prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+]])
 
 AT_CLEANUP

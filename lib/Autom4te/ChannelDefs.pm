@@ -1,6 +1,6 @@
-# Copyright (C) 2002, 2003, 2006 Free Software Foundation, Inc.
+# Copyright (C) 2002, 2003, 2006, 2008 Free Software Foundation, Inc.
 
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
@@ -41,7 +41,7 @@ Autom4te::ChannelDefs - channel definitions for Automake and helper functions
 
 =head1 DESCRIPTION
 
-This packages defines channels that can be used in Automake to
+This package defines channels that can be used in Automake to
 output diagnostics and other messages (via C<msg()>).  It also defines
 some helper function to enable or disable these channels, and some
 shorthand function to output on specific channels.
@@ -305,7 +305,7 @@ Parse the argument of C<--warning=CATEGORY> or C<-WCATEGORY>.
 C<$OPTIONS> is C<"--warning"> or C<"-W">, C<@ARGUMENT> is a list of
 C<CATEGORY>.
 
-This can be used as a argument to C<Getopt>.
+This can be used as an argument to C<Getopt>.
 
 =cut
 

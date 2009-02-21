@@ -2,9 +2,10 @@
 
 AT_BANNER([Executables (autoheader, autoupdate...).])
 
-# Copyright (C) 2000, 2001, 2003, 2004, 2006 Free Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2003, 2004, 2006, 2007, 2008 Free Software
+# Foundation, Inc.
 #
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
@@ -51,13 +52,13 @@ AT_CHECK([test "$ac_cv_sh_n_works" = yes || exit 77])
 # Specify the absolute name of the tool, as some shells don't honor PATH when
 # running `sh PROG'.
 
-AT_CHECK_SHELL_SYNTAX([$abs_top_builddir/bin/autoconf])
-AT_CHECK_SHELL_SYNTAX([$abs_top_builddir/tests/autoconf])
-AT_CHECK_SHELL_SYNTAX([$abs_top_builddir/tests/testsuite])
+AT_CHECK_SHELL_SYNTAX(["$abs_top_builddir/bin/autoconf"])
+AT_CHECK_SHELL_SYNTAX(["$abs_top_builddir/tests/autoconf"])
+AT_CHECK_SHELL_SYNTAX(["$abs_top_builddir/tests/testsuite"])
 
 # These are not built, they are in the src tree.
-AT_CHECK_SHELL_SYNTAX([$abs_top_srcdir/build-aux/install-sh])
-AT_CHECK_SHELL_SYNTAX([$abs_top_srcdir/build-aux/missing])
+AT_CHECK_SHELL_SYNTAX(["$abs_top_srcdir/build-aux/install-sh"])
+AT_CHECK_SHELL_SYNTAX(["$abs_top_srcdir/build-aux/missing"])
 
 AT_CLEANUP
 
@@ -139,6 +140,76 @@ AT_CHECK([cat file], 0,
 AT_CLEANUP
 
 
+# autom4te and file names containing whitespace
+# ---------------------------------------------
+
+AT_SETUP([autom4te and whitespace in file names])
+
+x=
+export x
+rm -f a b
+for funny in \
+  'with  funny '\'' $x & #! name' \
+  'with  funny \ '\'' \'\'' " <a >b * ? name ' # "restore font-lock
+do
+  funny=`func_sanitize_file_name "$funny"`
+  file=" file $funny"
+  outfile="$file out "
+  dir=`func_sanitize_dir_name " dir $funny"`
+  cachedir=" cache$dir"
+  TMPDIR=" tmp$dir"
+  export TMPDIR
+
+  # skip if we cannot create such a file or directory
+  AT_CHECK([mkdir "$dir" "$cachedir" "$TMPDIR" && touch "$file" || exit 77])
+
+  cat >"$file" <<'END'
+[m4@&t@_include(foo.m4)
+m4@&t@_divert(0)d@&t@nl
+FOO]
+END
+  cat >"$dir"/foo.m4 <<'END'
+[m4@&t@_define([FOO], [bar])]
+END
+
+  AT_CHECK_AUTOM4TE([-C "$cachedir" -B "$dir" --language=m4sugar -o "$outfile" "$file"])
+  AT_CHECK([cat "$outfile"], [],
+  [[bar
+]])
+  rm -rf "$outfile" "$cachedir"
+  AT_CHECK_AUTOM4TE([-C "$cachedir" -I "$dir" --language=m4sugar -o "$outfile" "$file"])
+  AT_CHECK([cat "$outfile"], [],
+  [[bar
+]])
+
+  # This exercises a slightly different code path and will catch an open with
+  # trailing whitespace:
+  cat >"$file" <<'END'
+[m4@&t@_include(foo.m4)
+m4@&t@_pattern_forbid([^bar$])
+m4@&t@_divert(0)d@&t@nl
+FOO]
+END
+  rm -rf "$outfile" "$cachedir"
+  AT_CHECK_AUTOM4TE([-C "$cachedir" -I "$dir" --language=m4sugar -o "$outfile" "$file"],
+		    [1], [], [stderr])
+  AT_CHECK([grep 'possibly undefined macro' stderr], [], [ignore])
+
+  cat >"$file" <<'END'
+[m4@&t@_include(foo.m4)
+m4@&t@_divert(0)d@&t@nl]
+END
+  rm -rf "$file.m4f"
+  AT_CHECK_AUTOM4TE([-C "$cachedir" -I "$dir" --language=m4sugar --freeze -o "$file.m4f" "$file"])
+  AT_CHECK([test -s "$file.m4f"])
+
+  # Check --reload-state
+  AT_CHECK_AUTOM4TE([-C "$cachedir" --language=m4sugar -o "$outfile" "$file.m4f" /dev/null])
+
+  test ! -f b
+done
+
+AT_CLEANUP
 
 
 ## ------------------ ##
@@ -265,7 +336,7 @@ AT_CLEANUP
 
 # autoconf: forbidden tokens, basic
 # ---------------------------------
-AT_SETUP([autoconf: forbidden tokens, basic])
+AT_SETUP([autoconf: forbidden tokens,[] basic])
 
 AT_DATA_M4SH([configure.ac],
 [[AS_INIT
@@ -285,13 +356,15 @@ configure.ac:4: error: possibly undefined macro: AS@&t@_FOO
 configure.ac:5: error: possibly undefined macro: _AS@&t@_BAR
 configure.ac:6: error: possibly undefined macro: d@&t@nl
 ]])
+# Second run should succeed and yield no output.
+AT_CHECK([autoconf])
 
 AT_CLEANUP
 
 
 # autoconf: forbidden tokens, exceptions
 # --------------------------------------
-AT_SETUP([autoconf: forbidden tokens, exceptions])
+AT_SETUP([autoconf: forbidden tokens,[] exceptions])
 
 AT_DATA_M4SH([configure.ac],
 [[AS_INIT
@@ -386,6 +459,39 @@ AT_CHECK([[grep '^[^/].*/mkdir -p' sub/foo]], 1)
 AT_CLEANUP
 
 
+# autoconf: input from stdin
+# --------------------------
+AT_SETUP([autoconf: input from stdin])
+
+# Past Autoconf versions failed to read from stdin when other, non-frozen input
+# files were present.
+AT_DATA([aclocal.m4])
+
+AT_CHECK([echo 'AC_INIT(X, 1.0, bug-autoconf@gnu.org)' | autoconf -t AC_INIT -],
+	 0, [stdin:1:AC_INIT:X:1.0:bug-autoconf@gnu.org
+])
+AT_CHECK([echo 'AC_INIT(X, 2.0, bug-autoconf@gnu.org)' | autoconf -t AC_INIT -],
+	 0, [stdin:1:AC_INIT:X:2.0:bug-autoconf@gnu.org
+])
+
+AT_CLEANUP
+
+
+# autoconf: AC_AUTOCONF_VERSION
+# --------------------------------------
+AT_SETUP([autoconf: AC_AUTOCONF_VERSION])
+
+AT_DATA([configure.ac],
+[[AC_INIT
+version AC_AUTOCONF_VERSION version
+AC_OUTPUT
+]])
+
+AT_CHECK_AUTOCONF
+AT_CHECK([[grep 'version ]]AT_PACKAGE_VERSION[[ version' configure]],
+0, [ignore])
+
+AT_CLEANUP
 
 
 
@@ -600,7 +706,7 @@ AT_CHECK([cat configure.ac], 0, [expout])
 AT_CHECK_AUTOUPDATE
 AT_CHECK([cat configure.ac], 0, [expout])
 
-AT_CLEANUP(configure.ac~)
+AT_CLEANUP
 
 
 # autoupdating AC_LINK_FILES
@@ -627,7 +733,7 @@ AT_CHECK([cat src1], 0, [dst1
 AT_CHECK([cat src2], 0, [dst2
 ])
 
-AT_CLEANUP(src1 src2 configure.ac~)
+AT_CLEANUP
 
 
 # autoupdating AC_PREREQ
@@ -825,5 +931,115 @@ AT_CHECK([aclocal -I aclocal], [0], [ignore], [ignore])
 AT_CHECK_AUTOUPDATE
 AT_CHECK([aclocal -I m4], [0], [ignore], [ignore])
 AT_CHECK_AUTOUPDATE
+
+AT_CLEANUP
+
+
+# Keeping autom4te.cfg complete
+# -----------------------------
+
+AT_SETUP([autom4te preselections])
+: ${sleep='sleep 1'}	# Command to force different time stamps.
+# If this test should run on FAT file systems and older w32,
+# then setting $sleep correctly needs to be revisited.
+
+# We use aclocal and automake.
+AT_CHECK([automake --version || exit 77], [], [ignore], [ignore])
+AT_CHECK([test ! -f $HOME/.autom4te.cfg || exit 77], [], [ignore], [ignore])
+
+AT_DATA([configure.in],
+[[AC_INIT(GNU foo, 1.0)
+AM_INIT_AUTOMAKE
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+]])
+
+AT_DATA([Makefile.am],
+[[AUTOMAKE_OPTIONS = foreign
+]])
+
+$sleep # `aclocal.m4' should be strictly younger than its inputs
+
+# If Autoconf is too old, or the user has turned caching off, skip:
+AT_CHECK([aclocal || { ret=$?; test $ret -eq 63 && ret=77; exit $ret; }],
+         [], [], [ignore])
+AT_CHECK([test -d autom4te.cache || exit 77])
+AT_CHECK([autoconf])
+
+# If this test fails due to missing entries in lib/autom4te.in, then
+# comparing the old and new requests is a good place to start debugging:
+cp autom4te.cache/requests old-requests
+echo newer >newer
+$sleep # if `configure' is regenerated, we want it to be strictly newer,
+       # to catch the error consistently.
+AT_CHECK([aclocal], [], [], [ignore])
+AT_CHECK([automake --no-force --add-missing], [], [], [ignore])
+AT_CHECK([autoconf])
+AT_CHECK([test "`find configure -newer newer`" = "" ||
+	  { diff old-requests autom4te.cache/requests; exit 1; }])
+
+AT_CLEANUP
+
+
+# autotools and file names containing whitespace
+# ---------------------------------------------
+
+AT_SETUP([autotools and whitespace in file names])
+
+# We use aclocal.
+AT_CHECK([aclocal --version || exit 77], [], [ignore], [ignore])
+
+x=
+export x
+rm -f a b
+for funny in \
+  'with  funny '\'' $x & #! name ' \
+  'with  funny \ '\'' \'\'' " <a >b * ? name '
+do
+  funny=`func_sanitize_file_name "$funny"`
+  file=" file $funny"
+  dir=`func_sanitize_dir_name " dir $funny"`
+  TMPDIR=" tmp$dir"
+  export TMPDIR
+
+  cat >"$file.in" <<'END'
+[AC_INIT(x,0)
+m4@&t@_include([foo.m4])
+AC_CONFIG_HEADERS([config.h:config.hin])
+AC_MACRO
+AC_OUTPUT]
+END
+  # skip if we cannot create such a file or directory
+  AT_CHECK([mkdir "$dir" "$TMPDIR" && test -f "$file.in" || exit 77])
+  cat >"$dir"/foo.m4 <<'END'
+[AC_DEFUN([AC_MACRO], [echo hi])]
+END
+
+  AT_CHECK_AUTOHEADER([-B "$dir" "$file.in"])
+  AT_CHECK_AUTOHEADER([-I "$dir" "$file.in"])
+  AT_CHECK_AUTOUPDATE([-B "$dir" "$file.in"])
+  AT_CHECK_AUTOUPDATE([-I "$dir" "$file.in"])
+  AT_CHECK_AUTOUPDATE([-B "$dir" - < "$file.in"], [], [ignore])
+  AT_CHECK_AUTOCONF([-B "$dir" -o "$file" "$file.in"])
+  AT_CHECK_AUTOCONF([-I "$dir" -o "$file" "$file.in"])
+  # In autoconf, these exercise a slightly different code path:
+  AT_CHECK_AUTOCONF([--prepend-include="$dir" -o "$file" "$file.in"])
+  AT_CHECK_AUTOCONF([--include="$dir" -o "$file" "$file.in"])
+  AT_CHECK([autoscan -B "$dir"], [], [], [ignore])
+  AT_CHECK([autoscan -I "$dir"], [], [], [ignore])
+  # autoreconf requires a sane input file name.  Also, disable aclocal.
+  mv -f "$file.in" configure.in
+  AT_DATA([aclocal.m4])
+  AT_CHECK([autoreconf -B "$dir"])
+  AT_CHECK([autoreconf -I "$dir"])
+
+  cat >"$file.c" <<'END'
+#if FOO
+#endif
+END
+  AT_CHECK([ifnames "$file.c"], [], [ignore])
+
+  test ! -f b
+done
 
 AT_CLEANUP

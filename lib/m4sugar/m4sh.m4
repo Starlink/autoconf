@@ -2,10 +2,10 @@
 # M4 sugar for common shell constructs.
 # Requires GNU M4 and M4sugar.
 #
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software
-# Foundation, Inc.
+# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+# Free Software Foundation, Inc.
 #
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
@@ -152,7 +152,7 @@ m4_define([AS_REQUIRE],
 m4_define([AS_REQUIRE_SHELL_FN],
 [_AS_DETECT_REQUIRED([_AS_SHELL_FN_WORK])dnl
 m4_provide_if([AS_SHELL_FN_$1], [],
-               [m4_provide([AS_SHELL_FN_$1])m4_divert_text([M4SH-INIT], [$1() {
+	       [m4_provide([AS_SHELL_FN_$1])m4_divert_text([M4SH-INIT], [$1() {
 $2
 }])])])
 
@@ -180,7 +180,7 @@ m4_define([_AS_BOURNE_COMPATIBLE],
 [AS_IF([test -n "${ZSH_VERSION+set}" && (emulate sh) >/dev/null 2>&1],
  [emulate sh
   NULLCMD=:
-  [#] Zsh 3.x and 4.x performs word splitting on ${1+"$[@]"}, which
+  [#] Pre-4.2 versions of Zsh do word splitting on ${1+"$[@]"}, which
   # is contrary to our usage.  Disable this feature.
   alias -g '${1+"$[@]"}'='"$[@]"'
   setopt NO_GLOB_SUBST],
@@ -199,7 +199,7 @@ _AS_BOURNE_COMPATIBLE
 $1
 _ASEOF
 }],
-[(eval "AS_ESCAPE(m4_quote($1))")])])
+[(eval "AS_ESCAPE(m4_expand([$1]))")])])
 
 
 # _AS_DETECT_REQUIRED(TEST)
@@ -239,13 +239,13 @@ m4_expand_once([m4_append([_AS_DETECT_SUGGESTED_BODY], [
 # <http://lists.gnu.org/archive/html/autoconf-patches/2006-03/msg00081.html>.
 #
 m4_defun_once([_AS_DETECT_BETTER_SHELL],
-[m4_wrap([m4_divert_text([M4SH-SANITIZE], [
+[m4_append([_AS_CLEANUP], [m4_divert_text([M4SH-SANITIZE], [
 AS_REQUIRE([_AS_UNSET_PREPARE])dnl
 if test "x$CONFIG_SHELL" = x; then
   AS_IF([_AS_RUN([_AS_DETECT_REQUIRED_BODY]) 2>/dev/null],
-        [as_have_required=yes],
+	[as_have_required=yes],
 	[as_have_required=no])
-  AS_IF([test $as_have_required = yes && dnl
+  AS_IF([test $as_have_required = yes &&dnl
 	 _AS_RUN([_AS_DETECT_SUGGESTED_BODY]) 2> /dev/null],
     [],
     [as_candidate_shells=
@@ -261,7 +261,7 @@ if test "x$CONFIG_SHELL" = x; then
 	 # Try only shells that exist, to save several forks.
 	 AS_IF([{ test -f "$as_shell" || test -f "$as_shell.exe"; } &&
 		_AS_RUN([_AS_DETECT_REQUIRED_BODY],
-                        [("$as_shell") 2> /dev/null])],
+			[("$as_shell") 2> /dev/null])],
 	       [CONFIG_SHELL=$as_shell
 	       as_have_required=yes
 	       AS_IF([_AS_RUN([_AS_DETECT_SUGGESTED_BODY], ["$as_shell" 2> /dev/null])],
@@ -269,11 +269,11 @@ if test "x$CONFIG_SHELL" = x; then
       done
 
       AS_IF([test "x$CONFIG_SHELL" != x],
-        [for as_var in BASH_ENV ENV
-        do ($as_unset $as_var) >/dev/null 2>&1 && $as_unset $as_var
-        done
-        export CONFIG_SHELL
-        exec "$CONFIG_SHELL" "$as_myself" ${1+"$[@]"}])
+	[for as_var in BASH_ENV ENV
+	do ($as_unset $as_var) >/dev/null 2>&1 && $as_unset $as_var
+	done
+	export CONFIG_SHELL
+	exec "$CONFIG_SHELL" "$as_myself" ${1+"$[@]"}])
 
     AS_IF([test $as_have_required = no],
       [echo This script requires a shell more modern than all the
@@ -349,6 +349,7 @@ AS_BOURNE_COMPATIBLE
 
 # PATH needs CR
 _AS_CR_PREPARE
+_AS_ECHO_PREPARE
 _AS_PATH_SEPARATOR_PREPARE
 _AS_UNSET_PREPARE
 
@@ -357,8 +358,6 @@ _AS_UNSET_PREPARE
 # there to prevent editors from complaining about space-tab.
 # (If _AS_PATH_WALK were called with IFS unset, it would disable word
 # splitting by setting IFS to empty value.)
-as_nl='
-'
 IFS=" ""	$as_nl"
 
 # Find who we are.  Look in the path if we contain no directory separator.
@@ -374,7 +373,7 @@ if test "x$as_myself" = x; then
   as_myself=$[0]
 fi
 if test ! -f "$as_myself"; then
-  echo "$as_myself: error: cannot find myself; rerun with an absolute file name" >&2
+  AS_ECHO(["$as_myself: error: cannot find myself; rerun with an absolute file name"]) >&2
   AS_EXIT
 fi
 
@@ -387,17 +386,10 @@ PS2='> '
 PS4='+ '
 
 # NLS nuisances.
-for as_var in \
-  LANG LANGUAGE LC_ADDRESS LC_ALL LC_COLLATE LC_CTYPE LC_IDENTIFICATION \
-  LC_MEASUREMENT LC_MESSAGES LC_MONETARY LC_NAME LC_NUMERIC LC_PAPER \
-  LC_TELEPHONE LC_TIME
-do
-  if (set +x; test -z "`(eval $as_var=C; export $as_var) 2>&1`"); then
-    eval $as_var=C; export $as_var
-  else
-    ($as_unset $as_var) >/dev/null 2>&1 && $as_unset $as_var
-  fi
-done
+LC_ALL=C
+export LC_ALL
+LANGUAGE=C
+export LANGUAGE
 
 # Required to use basename.
 _AS_EXPR_PREPARE
@@ -427,7 +419,7 @@ m4_defun([_AS_PREPARE],
 [_AS_LINENO_PREPARE
 
 _AS_DIRNAME_PREPARE
-_AS_ECHO_N_PREPARE
+_AS_ECHO_N_PREPARE[]dnl We do not need this ourselves but user code might.
 _AS_EXPR_PREPARE
 _AS_LN_S_PREPARE
 _AS_MKDIR_P_PREPARE
@@ -465,7 +457,7 @@ m4_define([_AS_CASE],
        [$#], 1, [  *) $1 ;;],
        [$#], 2, [  $1) m4_default([$2], [:]) ;;],
        [  $1) m4_default([$2], [:]) ;;
-$0(m4_shiftn(2, $@))])dnl
+$0(m4_shift2($@))])dnl
 ])
 m4_defun([AS_CASE],
 [m4_ifval([$2$3],
@@ -507,7 +499,7 @@ m4_define([_AS_IF],
 [m4_ifval([$2$3],
 [elif $1; then
   m4_default([$2], [:])
-m4_ifval([$3], [$0(m4_shiftn(2, $@))])],
+m4_ifval([$3], [$0(m4_shift2($@))])],
 [m4_ifvaln([$1],
 [else
   $1])dnl
@@ -517,7 +509,7 @@ m4_defun([AS_IF],
 [m4_ifval([$2$3],
 [if $1; then
   m4_default([$2], [:])
-m4_ifval([$3], [_$0(m4_shiftn(2, $@))])[]dnl
+m4_ifval([$3], [_$0(m4_shift2($@))])[]dnl
 fi
 ])dnl
 ])# AS_IF
@@ -563,10 +555,15 @@ $as_unset $1 || test "${$1+set}" != set || { $1=$2; export $1; }])
 # AS_ESCAPE(STRING, [CHARS = $"`\])
 # ---------------------------------
 # Escape the CHARS in STRING.
+#
+# Avoid the m4_bpatsubst if there are no interesting characters to escape.
+# _AS_ESCAPE bypasses argument defaulting.
 m4_define([AS_ESCAPE],
-[m4_bpatsubst([$1],
-	     m4_dquote(m4_default([$2], [\"$`])),
-	     [\\\&])])
+[_$0([$1], m4_default([$2], [\"$`]))])
+m4_define([_AS_ESCAPE],
+[m4_if(m4_len([$1]),
+       m4_len(m4_translit([[$1]], [$2])),
+       [$1], [m4_bpatsubst([$1], [[$2]], [\\\&])])])
 
 
 # _AS_QUOTE_IFELSE(STRING, IF-MODERN-QUOTATION, IF-OLD-QUOTATION)
@@ -576,12 +573,22 @@ m4_define([AS_ESCAPE],
 # If STRING contains `\\' or `\$', it's modern.
 # If STRING contains `\"' or `\`', it's old.
 # Otherwise it's modern.
-# We use two quotes in the pattern to keep highlighting tools at peace.
+#
+# Profiling shows that m4_index is 5 to 8x faster than m4_bregexp.  The
+# slower implementation used:
+# m4_bmatch([$1],
+#	    [\\[\\$]], [$2],
+#	    [\\[`"]], [$3],
+#	    [$2])
+# The current implementation caters to the common case of no backslashes,
+# to minimize m4_index expansions (hence the nested if).
 m4_define([_AS_QUOTE_IFELSE],
-[m4_bmatch([$1],
-	  [\\[\\$]], [$2],
-	  [\\[`""]], [$3],
-	  [$2])])
+[m4_cond([m4_index([$1], [\])], [-1], [$2],
+	 [m4_eval(m4_index([$1], [\\]) >= 0)], [1], [$2],
+	 [m4_eval(m4_index([$1], [\$]) >= 0)], [1], [$2],
+	 [m4_eval(m4_index([$1], [\`]) >= 0)], [1], [$3],
+	 [m4_eval(m4_index([$1], [\"]) >= 0)], [1], [$3],
+	 [$2])])
 
 
 # _AS_QUOTE(STRING, [CHARS = `"])
@@ -590,7 +597,7 @@ m4_define([_AS_QUOTE_IFELSE],
 # backslash all the quotes.
 m4_define([_AS_QUOTE],
 [_AS_QUOTE_IFELSE([$1],
-		  [AS_ESCAPE([$1], m4_default([$2], [`""]))],
+		  [_AS_ESCAPE([$1], m4_default([$2], [`""]))],
 		  [m4_warn([obsolete],
 	   [back quotes and double quotes must not be escaped in: $1])dnl
 $1])])
@@ -600,7 +607,7 @@ $1])])
 # -----------------------------------------------
 # Perform shell expansions on STRING and echo the string to FD.
 m4_define([_AS_ECHO_UNQUOTED],
-[echo "$1" >&m4_default([$2], [AS_MESSAGE_FD])])
+[AS_ECHO(["$1"]) >&m4_default([$2], [AS_MESSAGE_FD])])
 
 
 # _AS_ECHO(STRING, [FD = AS_MESSAGE_FD])
@@ -644,9 +651,7 @@ esac
 # ----------------------------------------
 # Same as _AS_ECHO, but echo doesn't return to a new line.
 m4_define([_AS_ECHO_N],
-[AS_REQUIRE([_AS_ECHO_N_PREPARE])dnl
-echo $ECHO_N "_AS_QUOTE([$1])$ECHO_C" >&m4_default([$2],
-						    [AS_MESSAGE_FD])])
+[AS_ECHO_N(["_AS_QUOTE([$1])"]) >&m4_default([$2], [AS_MESSAGE_FD])])
 
 
 # AS_MESSAGE(STRING, [FD = AS_MESSAGE_FD])
@@ -693,7 +698,7 @@ $as_expr X/[]$1 : '.*/\([[^/][^/]*]\)/*$' \| \
 	 X[]$1 : 'X\(/\)' \| .])
 
 m4_defun([_AS_BASENAME_SED],
-[echo X/[]$1 |
+[AS_ECHO([X/[]$1]) |
     sed ['/^.*\/\([^/][^/]*\)\/*$/{
 	    s//\1/
 	    q
@@ -747,7 +752,7 @@ $as_expr X[]$1 : 'X\(.*[[^/]]\)//*[[^/][^/]]*/*$' \| \
 	 X[]$1 : 'X\(/\)' \| .])
 
 m4_defun([_AS_DIRNAME_SED],
-[echo X[]$1 |
+[AS_ECHO([X[]$1]) |
     sed ['/^X\(.*[^/]\)\/\/*[^/][^/]*\/*$/{
 	    s//\1/
 	    q
@@ -782,6 +787,64 @@ else
   as_dirname=false
 fi
 ])# _AS_DIRNAME_PREPARE
+
+
+# AS_ECHO(WORD)
+# -------------
+# Output WORD followed by a newline.  WORD must be a single shell word
+# (typically a quoted string).  The bytes of WORD are output as-is, even
+# if it starts with "-" or contains "\".
+m4_defun([AS_ECHO],
+[AS_REQUIRE([_$0_PREPARE])dnl
+$as_echo $1])
+
+
+# AS_ECHO_N(WORD)
+# -------------
+# Like AS_ECHO(WORD), except do not output the trailing newline.
+m4_defun([AS_ECHO_N],
+[AS_REQUIRE([_AS_ECHO_PREPARE])dnl
+$as_echo_n $1])
+
+
+# _AS_ECHO_PREPARE
+# -----------------
+# Arrange for $as_echo 'FOO' to echo FOO without escape-interpretation;
+# and similarly for $as_echo_foo, which omits the trailing newline.
+# 'FOO' is an optional single argument; a missing FOO is treated as empty.
+m4_defun([_AS_ECHO_PREPARE],
+[[as_nl='
+'
+export as_nl
+# Printing a long string crashes Solaris 7 /usr/bin/printf.
+as_echo='\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'
+as_echo=$as_echo$as_echo$as_echo$as_echo$as_echo
+as_echo=$as_echo$as_echo$as_echo$as_echo$as_echo$as_echo
+if (test "X`printf %s $as_echo`" = "X$as_echo") 2>/dev/null; then
+  as_echo='printf %s\n'
+  as_echo_n='printf %s'
+else
+  if test "X`(/usr/ucb/echo -n -n $as_echo) 2>/dev/null`" = "X-n $as_echo"; then
+    as_echo_body='eval /usr/ucb/echo -n "$][1$as_nl"'
+    as_echo_n='/usr/ucb/echo -n'
+  else
+    as_echo_body='eval expr "X$][1" : "X\\(.*\\)"'
+    as_echo_n_body='eval
+      arg=$][1;
+      case $arg in
+      *"$as_nl"*)
+	expr "X$arg" : "X\\(.*\\)$as_nl";
+	arg=`expr "X$arg" : ".*$as_nl\\(.*\\)"`;;
+      esac;
+      expr "X$arg" : "X\\(.*\\)" | tr -d "$as_nl"
+    '
+    export as_echo_n_body
+    as_echo_n='sh -c $as_echo_n_body as_echo'
+  fi
+  export as_echo_body
+  as_echo='sh -c $as_echo_body as_echo'
+fi
+]])# _AS_ECHO_PREPARE
 
 
 # AS_TEST_X
@@ -888,26 +951,30 @@ _AS_LINENO_WORKS || {
 # Don't use conftest.sym to avoid file name issues on DJGPP, where this
 # would yield conftest.sym.exe for DJGPP < 2.04.  And don't use `conftest'
 # as base name to avoid prohibiting concurrency (e.g., concurrent
-# config.statuses).
+# config.statuses).  On read-only media, assume 'cp -p' and hope we
+# are just running --help anyway.
 m4_defun([_AS_LN_S_PREPARE],
 [rm -f conf$$ conf$$.exe conf$$.file
 if test -d conf$$.dir; then
   rm -f conf$$.dir/conf$$.file
 else
   rm -f conf$$.dir
-  mkdir conf$$.dir
+  mkdir conf$$.dir 2>/dev/null
 fi
-echo >conf$$.file
-if ln -s conf$$.file conf$$ 2>/dev/null; then
-  as_ln_s='ln -s'
-  # ... but there are two gotchas:
-  # 1) On MSYS, both `ln -s file dir' and `ln file dir' fail.
-  # 2) DJGPP < 2.04 has no symlinks; `ln -s' creates a wrapper executable.
-  # In both cases, we have to default to `cp -p'.
-  ln -s conf$$.file conf$$.dir 2>/dev/null && test ! -f conf$$.exe ||
+if (echo >conf$$.file) 2>/dev/null; then
+  if ln -s conf$$.file conf$$ 2>/dev/null; then
+    as_ln_s='ln -s'
+    # ... but there are two gotchas:
+    # 1) On MSYS, both `ln -s file dir' and `ln file dir' fail.
+    # 2) DJGPP < 2.04 has no symlinks; `ln -s' creates a wrapper executable.
+    # In both cases, we have to default to `cp -p'.
+    ln -s conf$$.file conf$$.dir 2>/dev/null && test ! -f conf$$.exe ||
+      as_ln_s='cp -p'
+  elif ln conf$$.file conf$$ 2>/dev/null; then
+    as_ln_s=ln
+  else
     as_ln_s='cp -p'
-elif ln conf$$.file conf$$ 2>/dev/null; then
-  as_ln_s=ln
+  fi
 else
   as_ln_s='cp -p'
 fi
@@ -939,7 +1006,7 @@ m4_define([AS_MKDIR_P],
     as_dirs=
     while :; do
       case $as_dir in #(
-      *\'*) as_qdir=`echo "$as_dir" | sed "s/'/'\\\\\\\\''/g"`;; #(
+      *\'*) as_qdir=`AS_ECHO(["$as_dir"]) | sed "s/'/'\\\\\\\\''/g"`;; #'(
       *) as_qdir=$as_dir;;
       esac
       as_dirs="'$as_qdir' $as_dirs"
@@ -969,15 +1036,11 @@ fi
 m4_defun([_AS_PATH_SEPARATOR_PREPARE],
 [# The user is always right.
 if test "${PATH_SEPARATOR+set}" != set; then
-  echo "#! /bin/sh" >conf$$.sh
-  echo  "exit 0"   >>conf$$.sh
-  chmod +x conf$$.sh
-  if (PATH="/nonexistent;."; conf$$.sh) >/dev/null 2>&1; then
-    PATH_SEPARATOR=';'
-  else
-    PATH_SEPARATOR=:
-  fi
-  rm -f conf$$.sh
+  PATH_SEPARATOR=:
+  (PATH='/bin;/bin'; FPATH=$PATH; sh -c :) >/dev/null 2>&1 && {
+    (PATH='/bin:/bin'; FPATH=$PATH; sh -c :) >/dev/null 2>&1 ||
+      PATH_SEPARATOR=';'
+  }
 fi
 ])# _AS_PATH_SEPARATOR_PREPARE
 
@@ -1050,10 +1113,10 @@ else
   as_test_x='
     eval sh -c '\''
       if test -d "$[]1"; then
-        test -d "$[]1/.";
+	test -d "$[]1/.";
       else
 	case $[]1 in
-        -*)set "./$[]1";;
+	-*)set "./$[]1";;
 	esac;
 	case `ls -ld'$as_ls_L_option' "$[]1" 2>/dev/null` in
 	???[[sx]]*):;;*)false;;esac;fi
@@ -1101,14 +1164,21 @@ m4_define([_AS_BOX_INDIR],
 _ASBOX])
 
 
-# AS_HELP_STRING(LHS, RHS, [COLUMN])
-# ----------------------------------
+# AS_HELP_STRING(LHS, RHS, [INDENT-COLUMN = 26], [WRAP-COLUMN = 79])
+# ------------------------------------------------------------------
 #
-# Format a help string so that it looks pretty when
-# the user executes "script --help".  This macro takes three
-# arguments, a "left hand side" (LHS), a "right hand side" (RHS), and
-# the COLUMN which is a string of white spaces which leads to the
-# the RHS column (default: 26 white spaces).
+# Format a help string so that it looks pretty when the user executes
+# "script --help".  This macro takes up to four arguments, a
+# "left hand side" (LHS), a "right hand side" (RHS), a decimal
+# INDENT-COLUMN which is the column where wrapped lines should begin
+# (the default of 26 is recommended), and a decimal WRAP-COLUMN which is
+# the column where lines should wrap (the default of 79 is recommended).
+# LHS is expanded, RHS is not.
+#
+# For backwards compatibility not documented in the manual, INDENT-COLUMN
+# can also be specified as a string of white spaces, whose width
+# determines the indentation column.  Using TABs in INDENT-COLUMN is not
+# recommended, since screen width of TAB is not computed.
 #
 # The resulting string is suitable for use in other macros that require
 # a help string (e.g. AC_ARG_WITH).
@@ -1128,9 +1198,9 @@ _ASBOX])
 # "--with-readline", while the RHS is "support fancy command line
 # editing".
 #
-# If the LHS contains more than (COLUMN - 3) characters, then the LHS is
-# terminated with a newline so that the RHS starts on a line of its own
-# beginning with COLUMN.  In the default case, this corresponds to an
+# If the LHS contains more than (INDENT-COLUMN - 3) characters, then the
+# LHS is terminated with a newline so that the RHS starts on a line of its
+# own beginning at INDENT-COLUMN.  In the default case, this corresponds to an
 # LHS with more than 23 characters.
 #
 # Therefore, in the example, if the LHS were instead
@@ -1149,13 +1219,40 @@ _ASBOX])
 # know quadrigraphs.
 #
 m4_define([AS_HELP_STRING],
-[m4_pushdef([AS_Prefix], m4_default([$3], [                          ]))dnl
-m4_pushdef([AS_Prefix_Format],
-	   [  %-]m4_eval(m4_len(AS_Prefix) - 3)[s ])dnl [  %-23s ]
-m4_text_wrap([$2], AS_Prefix, m4_format(AS_Prefix_Format, [$1]))dnl
-m4_popdef([AS_Prefix_Format])dnl
-m4_popdef([AS_Prefix])dnl
+[m4_text_wrap([$2], m4_cond([[$3]], [], [                          ],
+			    [m4_eval([$3]+0)], [0], [[$3]],
+			    [m4_format([[%*s]], [$3], [])]),
+	      m4_expand([  $1 ]), [$4])dnl
 ])# AS_HELP_STRING
+
+
+# AS_IDENTIFIER_IF(EXPRESSION, IF-IDENT, IF-NOT-IDENT)
+# ----------------------------------------------------
+# If EXPRESSION serves as an identifier (ie, after removal of @&t@, it
+# matches the regex `^[a-zA-Z_][a-zA-Z_0-9]*$'), execute IF-IDENT,
+# otherwise IF-NOT-IDENT.
+#
+# This is generally faster than the alternative:
+#   m4_bmatch(m4_bpatsubst([[$1]], [@&t@]), ^m4_defn([m4_re_word])$,
+#             [$2], [$3])
+#
+# Rather than expand m4_defn every time AS_IDENTIFIER_IF is expanded, we
+# inline its expansion up front.  Only use a regular expression if we
+# detect a potential quadrigraph.
+#
+# First, check if the entire string matches m4_cr_symbol2.  Only then do
+# we worry if the first character also matches m4_cr_symbol1 (ie. does not
+# match m4_cr_digit).
+m4_define([AS_IDENTIFIER_IF],
+[m4_if(m4_index([$1], [@]), [-1],
+       [_$0($@)],
+       [_$0(m4_bpatsubst([[$1]], [@&t@]), [$2], [$3])])])
+m4_define([_AS_IDENTIFIER_IF],
+[m4_cond([[$1]], [], [$3],
+	 [m4_eval(m4_len(m4_translit([[$1]], ]]dnl
+m4_dquote(m4_dquote(m4_defn([m4_cr_symbols2])))[[)) > 0)], [1], [$3],
+	 [m4_len(m4_translit(m4_format([[%.1s]], [$1]), ]]dnl
+m4_dquote(m4_dquote(m4_defn([m4_cr_symbols1])))[[))], [0], [$2], [$3])])
 
 
 # AS_LITERAL_IF(EXPRESSION, IF-LITERAL, IF-NOT-LITERAL)
@@ -1164,9 +1261,33 @@ m4_popdef([AS_Prefix])dnl
 # IF-INDIR, else IF-NOT-INDIR.
 # This is an *approximation*: for instance EXPRESSION = `\$' is
 # definitely a literal, but will not be recognized as such.
+#
+# Why do we reject EXPRESSION expanding with `[' or `]' as a literal?
+# Because AS_TR_SH is MUCH faster if it can use m4_translit on literals
+# instead of m4_bpatsubst; but m4_translit is much tougher to do safely
+# if `[' is translated.
+#
+# Note that the quadrigraph @S|@ can result in non-literals, but outright
+# rejecting all @ would make AC_INIT complain on its bug report address.
+#
+# We used to use m4_bmatch(m4_quote($1), [[`$]], [$3], [$2]), but
+# profiling shows that it is faster to use m4_translit.
+#
+# Because the translit is stripping quotes, it must also neutralize anything
+# that might be in a macro name, as well as comments and commas.  All the
+# problem characters are unified so that a single m4_index can scan the
+# result.
+#
+# Rather than expand m4_defn every time AS_LITERAL_IF is expanded, we
+# inline its expansion up front.
 m4_define([AS_LITERAL_IF],
-[m4_bmatch(m4_quote($1), [[`$]],
-	   [$3], [$2])])
+[m4_cond([m4_eval(m4_index(m4_quote($1), [@S|@]) == -1)], [0], [$3],
+	 [m4_index(m4_translit(m4_quote($1),
+			       [[]`,#]]]dnl
+m4_dquote(m4_dquote(m4_defn([m4_cr_symbols2])))[[,
+			       [$$$]),
+		   [$])], [-1], [$2],
+	 [$3])])
 
 
 # AS_TMPDIR(PREFIX, [DIRECTORY = $TMPDIR [= /tmp]])
@@ -1185,7 +1306,7 @@ m4_if([$2], [], [: ${TMPDIR=/tmp}])
   (umask 077 && mkdir "$tmp")
 } ||
 {
-   echo "$me: cannot create a temporary directory in m4_default([$2], [$TMPDIR])" >&2
+   AS_ECHO(["$as_me: cannot create a temporary directory in m4_default([$2], [$TMPDIR])"]) >&2
    AS_EXIT
 }dnl
 ])# AS_TMPDIR
@@ -1218,7 +1339,7 @@ uname -v = `(uname -v) 2>/dev/null || echo unknown`
 
 _ASUNAME
 
-_AS_PATH_WALK([$PATH], [echo "PATH: $as_dir"])
+_AS_PATH_WALK([$PATH], [AS_ECHO(["PATH: $as_dir"])])
 }])
 
 
@@ -1346,12 +1467,23 @@ as_tr_sh="eval sed 'y%*+%pp%;s%[[^_$as_cr_alnum]]%_%g'"
 # Transform EXPRESSION into a valid shell variable name.
 # sh/m4 polymorphic.
 # Be sure to update the definition of `$as_tr_sh' if you change this.
+#
+# AS_LITERAL_IF guarantees that a literal does not have any nested quotes,
+# once $1 is expanded.  m4_translit silently uses only the first occurrence
+# of a character that appears multiple times in argument 2, since we know
+# that m4_cr_not_symbols2 also contains [ and ].  m4_translit also silently
+# ignores characters in argument 3 that do not match argument 2; we use this
+# fact to skip worrying about the length of m4_cr_not_symbols2.
+#
+# For speed, we inline the literal definitions that can be computed up front.
 m4_defun([AS_TR_SH],
 [AS_REQUIRE([_$0_PREPARE])dnl
 AS_LITERAL_IF([$1],
-	      [m4_bpatsubst(m4_translit([[$1]], [*+], [pp]),
-			    [[^a-zA-Z0-9_]], [_])],
-	      [`echo "$1" | $as_tr_sh`])])
+	      [m4_translit([$1], [*+[]]]]dnl
+m4_dquote(m4_dquote(m4_defn([m4_cr_not_symbols2])))[[,
+				 [pp[]]]]dnl
+m4_dquote(m4_dquote(m4_for(,1,255,,[[_]])))[[)],
+	      [`AS_ECHO(["$1"]) | $as_tr_sh`])])
 
 
 # _AS_TR_CPP_PREPARE
@@ -1368,14 +1500,16 @@ as_tr_cpp="eval sed 'y%*$as_cr_letters%P$as_cr_LETTERS%;s%[[^_$as_cr_alnum]]%_%g
 # Map EXPRESSION to an upper case string which is valid as rhs for a
 # `#define'.  sh/m4 polymorphic.  Be sure to update the definition
 # of `$as_tr_cpp' if you change this.
+#
+# See implementation comments in AS_TR_SH.
 m4_defun([AS_TR_CPP],
 [AS_REQUIRE([_$0_PREPARE])dnl
 AS_LITERAL_IF([$1],
-	      [m4_bpatsubst(m4_translit([[$1]],
-					[*abcdefghijklmnopqrstuvwxyz],
-					[PABCDEFGHIJKLMNOPQRSTUVWXYZ]),
-			   [[^A-Z0-9_]], [_])],
-	      [`echo "$1" | $as_tr_cpp`])])
+	      [m4_translit([$1], [*[]]]]dnl
+m4_dquote(m4_dquote(m4_defn([m4_cr_letters])m4_defn([m4_cr_not_symbols2])))[[,
+				 [P[]]]]dnl
+m4_dquote(m4_dquote(m4_defn([m4_cr_LETTERS])m4_for(,1,255,,[[_]])))[[)],
+	      [`AS_ECHO(["$1"]) | $as_tr_cpp`])])
 
 
 # _AS_TR_PREPARE
@@ -1418,12 +1552,13 @@ m4_define([AS_VAR_SET],
 # Get the value of the shell VARIABLE.
 # Evaluates to $VARIABLE if there are no indirection in VARIABLE,
 # else into the appropriate `eval' sequence.
-# FIXME: This mishandles values that end in newlines, or have backslashes,
-# or are '-n'.  Fixing this will require changing the API.
+# FIXME: This mishandles values that end in newlines.
+# Fixing this will require changing the API.
 m4_define([AS_VAR_GET],
 [AS_LITERAL_IF([$1],
 	       [$$1],
-	       [`eval echo '${'m4_bpatsubst($1, [[\\`]], [\\\&])'}'`])])
+	       [`eval 'as_val=${'m4_bpatsubst([$1], [[\\`]], [\\\&])'}
+		 AS_ECHO(["$as_val"])'`])])
 
 
 # AS_VAR_TEST_SET(VARIABLE)
@@ -1462,7 +1597,7 @@ m4_define([AS_VAR_SET_IF],
 #
 # If the value `$1' was a literal (e.g. `stdlib.h'), then `header' is
 # in fact the value `ac_cv_header_stdlib_h'.  If `$1' was indirect,
-# then `header's value in m4 is in fact `$ac_header', the shell
+# then `header's value in m4 is in fact `$as_header', the shell
 # variable that holds all of the magic to get the expansion right.
 #
 # At the end of the block, free the variable with
@@ -1502,9 +1637,10 @@ m4_define([_AS_SHELL_FN_SPY],
 [_AS_DETECT_SUGGESTED([_AS_SHELL_FN_WORK])
 _AS_RUN([_AS_SHELL_FN_WORK]) || {
   echo No shell found that supports shell functions.
-  echo Please tell autoconf@gnu.org about your system,
-  echo including any error possibly output before this
-  echo message
+  echo Please tell bug-autoconf@gnu.org about your system,
+  echo including any error possibly output before this message.
+  echo This can help us improve future autoconf versions.
+  echo Configuration will now proceed without shell functions.
 }
 ])
 
@@ -1513,13 +1649,17 @@ _AS_RUN([_AS_SHELL_FN_WORK]) || {
 # -------
 # Initialize m4sh.
 m4_define([AS_INIT],
-[m4_init
+[# Wrap our cleanup prior to m4sugar's cleanup.
+m4_wrap([_AS_CLEANUP])
+m4_init
 
 # Forbidden tokens and exceptions.
 m4_pattern_forbid([^_?AS_])
 
 # Bangshe and minimal initialization.
 m4_divert_text([BINSH], [@%:@! /bin/sh])
+m4_divert_text([HEADER-COMMENT],
+	       [@%:@ Generated from __file__ by m4_PACKAGE_STRING.])
 m4_divert_text([M4SH-SANITIZE], [AS_SHELL_SANITIZE])
 AS_REQUIRE([_AS_SHELL_FN_SPY])
 
