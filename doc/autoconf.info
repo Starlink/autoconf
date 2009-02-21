@@ -1,7 +1,7 @@
 This is autoconf.info, produced by makeinfo version 4.8 from
 autoconf.texi.
 
-   This manual is for GNU Autoconf (version 2.62, 5 April 2008), a
+   This manual (9 September 2008) is for GNU Autoconf (version 2.63), a
 package for creating scripts to configure source code packages using
 templates and an M4 macro package.
 
@@ -51,9 +51,9 @@ File: autoconf.info,  Node: Top,  Next: Introduction,  Up: (dir)
 Autoconf
 ********
 
-This manual is for GNU Autoconf (version 2.62, 5 April 2008), a package
-for creating scripts to configure source code packages using templates
-and an M4 macro package.
+This manual (9 September 2008) is for GNU Autoconf (version 2.63), a
+package for creating scripts to configure source code packages using
+templates and an M4 macro package.
 
    Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
@@ -275,6 +275,7 @@ Programming in M4sugar
 * Evaluation Macros::           More quotation and evaluation control
 * Text processing Macros::      String manipulation in M4
 * Number processing Macros::    Arithmetic computation in M4
+* Set manipulation Macros::     Set manipulation in M4
 * Forbidden Patterns::          Catching unexpanded macros
 
 Writing Autoconf Macros
@@ -375,6 +376,7 @@ Running `configure' Scripts
 * Multiple Architectures::      Compiling for multiple architectures at once
 * Installation Names::          Installing in different directories
 * Optional Features::           Selecting optional features
+* Particular Systems::          Particular systems
 * System Type::                 Specifying the system type
 * Sharing Defaults::            Setting site-wide defaults for `configure'
 * Defining Variables::          Specifying the compiler etc.
@@ -456,10 +458,10 @@ File: autoconf.info,  Node: Introduction,  Next: The GNU Build System,  Prev: To
      nature of God.  "Surely a Physicist," said the physicist, "because
          early in the Creation, God made Light; and you know, Maxwell's
   equations, the dual nature of electromagnetic waves, the relativistic
-           consequences..." "An Engineer!," said the engineer, "because
+          consequences...." "An Engineer!," said the engineer, "because
 before making Light, God split the Chaos into Land and Water; it takes a
       hell of an engineer to handle that big amount of mud, and orderly
-           separation of solids from liquids..." The computer scientist
+          separation of solids from liquids...." The computer scientist
   shouted: "And the Chaos, where do you think it was coming from, hmm?"
 
                                                             --Anonymous
@@ -556,10 +558,10 @@ details, or view the actual repository
 (http://git.sv.gnu.org/gitweb/?p=autoconf.git).  Anonymous CVS access
 is also available, see `README' for more details.  Patches relative to
 the current `git' version can be sent for review to the Autoconf
-Patches mailing list <autoconf-patches@gnu.org>.  Discussions on past
-patches are archived
-(http://lists.gnu.org/archive/html/autoconf-patches/), and all commits
-are archived in the read-only Autoconf Commit mailing list
+Patches mailing list <autoconf-patches@gnu.org>, with discussion on
+prior patches archived
+(http://lists.gnu.org/archive/html/autoconf-patches/); and all commits
+are posted in the read-only Autoconf Commit mailing list
 <autoconf-commit@gnu.org>, which is also archived
 (http://lists.gnu.org/archive/html/autoconf-commit/).
 
@@ -709,7 +711,7 @@ on the GNU build tools.
 
    - Web
 
-     The home pages for Autoconf
+     The project home pages for Autoconf
      (http://www.gnu.org/software/autoconf/), Automake
      (http://www.gnu.org/software/automake/), Gnulib
      (http://www.gnu.org/software/gnulib/), and Libtool
@@ -961,7 +963,7 @@ quoting for all literal string arguments_:
      AC_MSG_WARN([[AC_DC stinks  --Iron Maiden]])
 
    You are now able to understand one of the constructs of Autoconf that
-has been continually misunderstood...  The rule of thumb is that
+has been continually misunderstood....  The rule of thumb is that
 _whenever you expect macro expansion, expect quote expansion_; i.e.,
 expect one level of quotes to be lost.  For instance:
 
@@ -1094,12 +1096,15 @@ are comments.
      interesting symbols it finds in them.  This output can be
      voluminous.
 
+`--debug'
+`-d'
+     Don't remove temporary files.
+
 `--include=DIR'
 `-I DIR'
      Append DIR to the include path.  Multiple invocations accumulate.
 
 `--prepend-include=DIR'
-
 `-B DIR'
      Prepend DIR to the include path.  Multiple invocations accumulate.
 
@@ -1185,7 +1190,6 @@ it reads overrides the earlier ones.
      Append DIR to the include path.  Multiple invocations accumulate.
 
 `--prepend-include=DIR'
-
 `-B DIR'
      Prepend DIR to the include path.  Multiple invocations accumulate.
 
@@ -1336,6 +1340,7 @@ infrastructure to a source package.  If you use `autopoint', your
      Print the version number of Autoconf and exit.
 
 `--verbose'
+`-V'
      Print the name of each directory `autoreconf' examines and the
      commands it runs.  If given two or more times, pass `--verbose' to
      subordinate tools that support it.
@@ -1379,7 +1384,6 @@ infrastructure to a source package.  If you use `autopoint', your
      Passed on to `autoconf' and `autoheader' internally.
 
 `--prepend-include=DIR'
-
 `-B DIR'
      Prepend DIR to the include path.  Multiple invocations accumulate.
      Passed on to `autoconf' and `autoheader' internally.
@@ -1523,7 +1527,7 @@ version of Autoconf that can successfully compile a given
      earlier than VERSION, print an error message to the standard error
      output and exit with failure (exit status is 63).  For example:
 
-          AC_PREREQ([2.62])
+          AC_PREREQ([2.63])
 
      This macro is the only macro that may be used before `AC_INIT', but
      for consistency, you are invited not to do so.
@@ -1533,11 +1537,20 @@ version of Autoconf that can successfully compile a given
      version of Autoconf that is currently parsing the input file, in a
      format suitable for `m4_version_compare' (*note
      m4_version_compare::); in other words, for this release of
-     Autoconf, its value is `2.62'.  One potential use of this macro is
+     Autoconf, its value is `2.63'.  One potential use of this macro is
      for writing conditional fallbacks based on when a feature was
      added to Autoconf, rather than using `AC_PREREQ' to require the
      newer version of Autoconf.  However, remember that the Autoconf
      philosophy favors feature checks over version checks.
+
+     You should not expand this macro directly; use
+     `m4_defn([AC_AUTOCONF_VERSION])' instead.  This is because some
+     users might have a beta version of Autoconf installed, with
+     arbitrary letters included in its version string.  This means it
+     is possible for the version string to contain the name of a
+     defined macro, such that expanding `AC_AUTOCONF_VERSION' would
+     trigger the expansion of that macro during rescanning, and change
+     the version string to be different than what you intended to check.
 
 
 File: autoconf.info,  Node: Notices,  Next: Input,  Prev: Versioning,  Up: Setup
@@ -2348,8 +2361,10 @@ VPATH and Make::).  Older `make' programs do not support `VPATH'; when
 using them, the source code must be in the same directory as the object
 files.
 
-   To support `VPATH', each `Makefile.in' should contain two lines that
-look like:
+   If you are using GNU Automake, the remaining details in this section
+are already covered for you, based on the contents of your
+`Makefile.am'.  But if you are using Autoconf in isolation, then
+supporting `VPATH' requires the following in your `Makefile.in':
 
      srcdir = @srcdir@
      VPATH = @srcdir@
@@ -2515,33 +2530,52 @@ statements which are used as hooks.  For example, suppose your
      AC_CONFIG_HEADERS([conf.h])
      AC_CHECK_HEADERS([unistd.h])
 
-Then you could have code like the following in `conf.h.in'.  On systems
-that have `unistd.h', `configure' defines `HAVE_UNISTD_H' to 1.  On
-other systems, the whole line is commented out (in case the system
-predefines that symbol).
+Then you could have code like the following in `conf.h.in'.  The
+`conf.h' created by `configure' defines `HAVE_UNISTD_H' to 1, if and
+only if the system has `unistd.h'.
 
      /* Define as 1 if you have unistd.h.  */
      #undef HAVE_UNISTD_H
 
-   Pay attention that `#undef' is in the first column, and there is
-nothing after `HAVE_UNISTD_H', not even white space.  You can then
-decode the configuration header using the preprocessor directives:
-
-     #include <conf.h>
-
-     #ifdef HAVE_UNISTD_H
-     # include <unistd.h>
-     #else
-     /* We are in trouble.  */
-     #endif
-
-   The use of old form templates, with `#define' instead of `#undef' is
-strongly discouraged.  Similarly with old templates with comments on
-the same line as the `#undef'.  Anyway, putting comments in
-preprocessor macros has never been a good idea.
+   The format of the template file is stricter than what the C
+preprocessor is required to accept.  A directive line should contain
+only whitespace, `#undef', and `HAVE_UNISTD_H'.  The use of `#define'
+instead of `#undef', or of comments on the same line as `#undef', is
+strongly discouraged.  Each hook should only be listed once.  Other
+preprocessor lines, such as `#ifdef' or `#include', are copied verbatim
+from the template into the generated header.
 
    Since it is a tedious task to keep a template header up to date, you
 may use `autoheader' to generate it, see *Note autoheader Invocation::.
+
+   During the instantiation of the header, each `#undef' line in the
+template file for each symbol defined by `AC_DEFINE' is changed to an
+appropriate `#define'. If the corresponding `AC_DEFINE' has not been
+executed during the `configure' run, the `#undef' line is commented
+out.  (This is important, e.g., for `_POSIX_SOURCE': on many systems,
+it can be implicitly defined by the compiler, and undefining it in the
+header would then break compilation of subsequent headers.)
+
+   Currently, _all_ remaining `#undef' lines in the header template are
+commented out, whether or not there was a corresponding `AC_DEFINE' for
+the macro name; but this behavior is not guaranteed for future releases
+of Autoconf.
+
+   Generally speaking, since you should not use `#define', and you
+cannot guarantee whether a `#undef' directive in the header template
+will be converted to a `#define' or commented out in the generated
+header file, the template file cannot be used for conditional
+definition effects.  Consequently, if you need to use the construct
+
+     #ifdef THIS
+     # define THAT
+     #endif
+
+you must place it outside of the template.  If you absolutely need to
+hook it to the config header itself, please put the directives to a
+separate file, and `#include' that file from the config header
+template.  If you are using `autoheader', you would probably use
+`AH_BOTTOM' to append the `#include' directive.
 
 
 File: autoconf.info,  Node: autoheader Invocation,  Next: Autoheader Macros,  Prev: Header Templates,  Up: Configuration Headers
@@ -2621,7 +2655,6 @@ the header file to the standard output.
      Append DIR to the include path.  Multiple invocations accumulate.
 
 `--prepend-include=DIR'
-
 `-B DIR'
      Prepend DIR to the include path.  Multiple invocations accumulate.
 
@@ -3286,10 +3319,9 @@ this:
      or otherwise to `ranlib' if that program exists in PATH, or to `:'
      if neither program exists.
 
-     In the future, when cross-compiling this macro will _only_ accept
-     program names that are prefixed with the host type.  For more
-     information, see *Note Specifying the system type: Specifying
-     Names.
+     When cross-compiling, this macro will issue a warning if no program
+     prefixed with the host type could be found.  For more information,
+     see *Note Specifying the system type: Specifying Names.
 
  -- Macro: AC_CHECK_TARGET_TOOLS (VARIABLE, PROGS-TO-CHECK-FOR,
           [VALUE-IF-NOT-FOUND], [PATH = `$PATH'])
@@ -3316,8 +3348,9 @@ this:
      VALUE-IF-NOT-FOUND is not specified, the value of VARIABLE is not
      changed.  Calls `AC_SUBST' for VARIABLE.
 
-     In the future, when cross-compiling this macro will _not_ accept
-     program names that are not prefixed with the host type.
+     When cross-compiling, this macro will issue a warning if no program
+     prefixed with the host type could be found.  For more information,
+     see *Note Specifying the system type: Specifying Names.
 
  -- Macro: AC_PATH_PROG (VARIABLE, PROG-TO-CHECK-FOR,
           [VALUE-IF-NOT-FOUND], [PATH = `$PATH'])
@@ -3375,8 +3408,9 @@ this:
      Like `AC_CHECK_TOOL', but set VARIABLE to the absolute name of the
      program if it is found.
 
-     In the future, when cross-compiling this macro will _not_ accept
-     program names that are not prefixed with the host type.
+     When cross-compiling, this macro will issue a warning if no program
+     prefixed with the host type could be found.  For more information,
+     see *Note Specifying the system type: Specifying Names.
 
 
 File: autoconf.info,  Node: Files,  Next: Libraries,  Prev: Alternative Programs,  Up: Existing Tests
@@ -3591,8 +3625,11 @@ additions.  Please help us keeping it as complete as possible.
 
      All systems we know of in current use return `void'.  The `int'
      was to support K&R C, where of course `void' is not available.
-     `AC_TYPE_SIGNAL' (*note Particular Types::) can be used to
-     establish the correct type in all cases.
+     The obsolete macro `AC_TYPE_SIGNAL' (*note AC_TYPE_SIGNAL::) can
+     be used to establish the correct type in all cases.
+
+     In most cases, it is more robust to use `sigaction' when it is
+     available, rather than `signal'.
 
 `snprintf'
      The C99 standard says that if the output array isn't big enough
@@ -3807,7 +3844,7 @@ in some cases how they respond when given certain arguments.
      visible on some systems (e.g., glibc 2.2).  Otherwise linkage
      problems may occur when compiling with `AC_SYS_LARGEFILE' on
      largefile-sensitive systems where `off_t' does not default to a
-     64bit entity.
+     64bit entity.  All systems with `fseeko' also supply `ftello'.
 
  -- Macro: AC_FUNC_GETGROUPS
      If the `getgroups' function is available and works (unlike on
@@ -4935,19 +4972,6 @@ C99-or-better environment.  *Note Gnulib::.
      Define `pid_t' to a suitable type, if standard headers do not
      define it.
 
- -- Macro: AC_TYPE_SIGNAL
-     If `signal.h' declares `signal' as returning a pointer to a
-     function returning `void', define `RETSIGTYPE' to be `void';
-     otherwise, define it to be `int'.
-
-     Define signal handlers as returning type `RETSIGTYPE':
-
-          RETSIGTYPE
-          hup_handler ()
-          {
-          ...
-          }
-
  -- Macro: AC_TYPE_SIZE_T
      Define `size_t' to a suitable type, if standard headers do not
      define it.
@@ -5369,8 +5393,10 @@ features.  To check for characteristics not listed here, use
      The default for ACTION-IF-FALSE is to do nothing.  The default for
      ACTION-IF-UNKNOWN is to abort configure and tell the installer how
      to bypass this test.  And finally, the default for
-     ACTION-IF-UNIVERSAL is to define `WORDS_BIGENDIAN' or not,
-     depending on the architecture that the code is being generated for.
+     ACTION-IF-UNIVERSAL is to ensure that `WORDS_BIGENDIAN' is defined
+     if and only if a universal build is detected and the current code
+     is big-endian; this default works only if `autoheader' is used
+     (*note autoheader Invocation::).
 
      If you use this macro without specifying ACTION-IF-UNIVERSAL, you
      should also use `AC_CONFIG_HEADERS'; otherwise `WORDS_BIGENDIAN'
@@ -5448,6 +5474,16 @@ features.  To check for characteristics not listed here, use
  -- Macro: AC_C_CHAR_UNSIGNED
      If the C type `char' is unsigned, define `__CHAR_UNSIGNED__',
      unless the C compiler predefines it.
+
+     These days, using this macro is not necessary.  The same
+     information can be determined by this portable alternative, thus
+     avoiding the use of preprocessor macros in the namespace reserved
+     for the implementation.
+
+          #include <limits.h>
+          #if CHAR_MIN == 0
+          # define CHAR_UNSIGNED 1
+          #endif
 
  -- Macro: AC_C_STRINGIZE
      If the C preprocessor supports the stringizing operator, define
@@ -5984,7 +6020,7 @@ capabilities.
      the system supports `#!', `no' if not.
 
  -- Macro: AC_SYS_LARGEFILE
-     Arrange for large-file support
+     Arrange for 64-bit file offsets, known as large-file support
      (http://www.unix-systems.org/version2/whatsnew/lfs20mar.html).  On
      some hosts, one must use special compiler options to build
      programs that can access large files.  Append any such options to
@@ -6249,7 +6285,7 @@ which programming language is used in the subsequent tests in
      to run the macro with a correct current language, and check it
      with `AC_LANG_ASSERT'.  And anyway, that may help the user
      understand she is running a Fortran macro while expecting a result
-     about her Fortran 77 compiler...
+     about her Fortran 77 compiler....
 
  -- Macro: AC_REQUIRE_CPP
      Ensure that whichever preprocessor would currently be used for
@@ -7789,7 +7825,13 @@ expression `[^[]', which matches any character other than `['.  This
 expression contains unbalanced brackets so it cannot be put easily into
 an M4 macro.
 
-   You can work around this problem by using one of the following
+   Additionally, there are a few m4sugar macros (such as `m4_split' and
+`m4_expand') which internally use special markers in addition to the
+regular quoting characters.  If the arguments to these macros contain
+the literal strings `-=<{(' or `)}>=-', the macros might behave
+incorrectly.
+
+   You can work around these problems by using one of the following
 "quadrigraphs":
 
 `@<:@'
@@ -7803,6 +7845,12 @@ an M4 macro.
 
 `@%:@'
      `#'
+
+`@{:@'
+     `('
+
+`@:}@'
+     `)'
 
 `@&t@'
      Expands to nothing.
@@ -7818,9 +7866,16 @@ example, the string `^@<:@', independently of its quotation, appears as
 
      Trailing spaces are smashed by `autom4te'.  This is a feature.
 
-   - to produce other quadrigraphs
+   - to produce quadrigraphs and other strings reserved by m4sugar
 
-     For instance `@<@&t@:@' produces `@<:@'.
+     For instance `@<@&t@:@' produces `@<:@'.  For a more contrived
+     example:
+
+          m4_define([a], [A])m4_define([b], [B])m4_define([c], [C])dnl
+          m4_split([a )}>=- b -=<{( c])
+          =>[a], [], [B], [], [c]
+          m4_split([a )}@&t@>=- b -=<@&t@{( c])
+          =>[a], [)}>=-], [b], [-=<{(], [c]
 
    - to escape _occurrences_ of forbidden patterns
 
@@ -8060,7 +8115,7 @@ It supports an extended syntax for the FILES:
           m4 --reload-state=4.m4f input.m4
 
 `--freeze'
-`-f'
+`-F'
      Produce a frozen state file.  `autom4te' freezing is stricter than
      M4's: it must produce no warnings, and no output other than empty
      lines (a line with white space is _not_ empty) and comments
@@ -8202,7 +8257,6 @@ combined command line arguments:
           `aclocal.m4'.
 
 `--prepend-include=DIR'
-
 `-B DIR'
      Prepend directory DIR to the search path.  This is used to include
      the language-specific files before any third-party macros.
@@ -8283,6 +8337,7 @@ your own macros into these namespaces.
 * Evaluation Macros::           More quotation and evaluation control
 * Text processing Macros::      String manipulation in M4
 * Number processing Macros::    Arithmetic computation in M4
+* Set manipulation Macros::     Set manipulation in M4
 * Forbidden Patterns::          Catching unexpanded macros
 
 
@@ -8375,10 +8430,13 @@ their native equivalent.
      for future versions of M4sugar, once GNU M4 2.0 is released and
      supports extended regular expression syntax.
 
- -- Macro: m4_defn (MACRO)
-     Unlike the M4 builtin, this macro fails if MACRO is not defined.
-     Also, while newer M4 can concatenate multiple definitions, this
-     version currently only supports a single MACRO.  See `m4_undefine'.
+ -- Macro: m4_defn (MACRO...)
+     This macro fails if MACRO is not defined, even when using older
+     versions of M4 that did not warn.  See `m4_undefine'.
+     Unfortunately, in order to support these older versions of M4,
+     there are some situations involving unbalanced quotes where
+     concatenating multiple macros together will work in newer M4 but
+     not in m4sugar; use quadrigraphs to work around this.
 
  -- Macro: m4_divert (DIVERSION)
      M4sugar relies heavily on diversions, so rather than behaving as a
@@ -8414,19 +8472,17 @@ their native equivalent.
      both have the secure semantics regardless of which macro the
      underlying M4 provides.
 
- -- Macro: m4_popdef (MACRO)
-     Unlike the M4 builtin, this macro fails if MACRO is not defined.
-     Also, while newer M4 can pop multiple definitions at once, this
-     version currently only supports a single MACRO.  See `m4_undefine'.
+ -- Macro: m4_popdef (MACRO...)
+     This macro fails if MACRO is not defined, even when using older
+     versions of M4 that did not warn.  See `m4_undefine'.
 
- -- Macro: m4_undefine (MACRO)
-     Unlike the M4 builtin, this macro fails if MACRO is not defined.
-     Also, while newer M4 can undefine multiple definitions at once,
-     this version currently only supports a single MACRO.  Use
+ -- Macro: m4_undefine (MACRO...)
+     This macro fails if MACRO is not defined, even when using older
+     versions of M4 that did not warn.  Use
 
           m4_ifdef([MACRO], [m4_undefine([MACRO])])
 
-     to recover the behavior of the builtin.
+     if you are not sure whether MACRO is defined.
 
  -- Macro: m4_undivert (DIVERSION)
      Unlike the M4 builtin, only one diversion can be undiverted per
@@ -8625,7 +8681,8 @@ convenience wrappers around `m4_if'.
      the result of each step of the recursion remains as a quoted
      string.  However, it means that anchors (`^' and `$' in the REGEX
      will line up with the extra quotations, and not the characters of
-     the original string.
+     the original string.  The overquoting is removed after the final
+     substitution.
 
  -- Macro: m4_case (STRING, VALUE-1, IF-VALUE-1, [VALUE-2],
           [IF-VALUE-2], ..., [DEFAULT])
@@ -8706,6 +8763,20 @@ of quoted elements; generally the lists are comma-separated, although
 lists with unquoted elements when those elements are not likely to be
 macro names, as in `[fputc_unlocked, fgetc_unlocked]'.
 
+   Although not generally recommended, it is possible for quoted lists
+to have side effects; all side effects are expanded only once, and
+prior to visiting any list element.  On the other hand, the fact that
+unquoted macros are expanded exactly once means that macros without
+side effects can be used to generate lists.  For example,
+
+     m4_foreach([i], [[1], [2], [3]m4_errprintn([hi])], [i])
+     error-->hi
+     =>123
+     m4_define([list], [[1], [2], [3]])
+     =>
+     m4_foreach([i], [list], [i])
+     =>123
+
  -- Macro: m4_car (LIST)
      Expands to the quoted first element of the comma-separated quoted
      LIST.  Often used with `m4_cdr' to recursively iterate through a
@@ -8734,7 +8805,10 @@ macro names, as in `[fputc_unlocked, fgetc_unlocked]'.
      bounds by increments of STEP.  For each iteration, expand
      EXPRESSION with the numeric value assigned to VAR.  If STEP is
      omitted, it defaults to `1' or `-1' depending on the order of the
-     limits.  If given, STEP has to match this order.
+     limits.  If given, STEP has to match this order.  The number of
+     iterations is determined independently from definition of VAR;
+     iteration cannot be short-circuited or lengthened by modifying VAR
+     from within EXPRESSION.
 
  -- Macro: m4_foreach (VAR, LIST, EXPRESSION)
      Loop over the comma-separated M4 list LIST, assigning each value
@@ -8754,23 +8828,44 @@ macro names, as in `[fputc_unlocked, fgetc_unlocked]'.
      The deprecated macro `AC_FOREACH' is an alias of `m4_foreach_w'.
 
  -- Macro: m4_map (MACRO, LIST)
+ -- Macro: m4_mapall (MACRO, LIST)
  -- Macro: m4_map_sep (MACRO, SEPARATOR, LIST)
+ -- Macro: m4_mapall_sep (MACRO, SEPARATOR, LIST)
      Loop over the comma separated quoted list of argument descriptions
      in LIST, and invoke MACRO with the arguments.  An argument
      description is in turn a comma-separated quoted list of quoted
-     elements, suitable for `m4_apply', making it possible to invoke
-     MACRO without arguments if an argument description is empty.
-     `m4_map_sep' additionally outputs SEPARATOR between macro
-     invocations, with no additional expansion of the separator.
+     elements, suitable for `m4_apply'.  The macros `m4_map' and
+     `m4_map_sep' ignore empty argument descriptions, while `m4_mapall'
+     and `m4_mapall_sep' invoke MACRO with no arguments.  The macros
+     `m4_map_sep' and `m4_mapall_sep' additionally expand SEPARATOR
+     between invocations of MACRO.
+
+     Note that SEPARATOR is expanded, unlike in `m4_join'.  When
+     separating output with commas, this means that the map result can
+     be used as a series of arguments, by using a single-quoted comma as
+     SEPARATOR, or as a single string, by using a double-quoted comma.
+
           m4_map([m4_count], [])
           =>
           m4_map([ m4_count], [[],
                                [[1]],
                                [[1], [2]]])
+          => 1 2
+          m4_mapall([ m4_count], [[],
+                                  [[1]],
+                                  [[1], [2]]])
           => 0 1 2
           m4_map_sep([m4_eval], [,], [[[1+2]],
                                       [[10], [16]]])
           =>3,a
+          m4_map_sep([m4_echo], [,], [[[a]], [[b]]])
+          =>a,b
+          m4_count(m4_map_sep([m4_echo], [,], [[[a]], [[b]]]))
+          =>2
+          m4_map_sep([m4_echo], [[,]], [[[a]], [[b]]])
+          =>a,b
+          m4_count(m4_map_sep([m4_echo], [[,]], [[[a]], [[b]]]))
+          =>1
 
  -- Macro: m4_shiftn (COUNT, ...)
  -- Macro: m4_shift2 (...)
@@ -8814,7 +8909,22 @@ by adding or removing levels of quotes.
  -- Macro: m4_do (ARG, ...)
      This macro loops over its arguments and expands each ARG in
      sequence.  Its main use is for readability; it allows the use of
-     indentation and fewer `dnl' to result in the same expansion.
+     indentation and fewer `dnl' to result in the same expansion.  This
+     macro guarantees that no expansion will be concatenated with
+     subsequent text; to achieve full concatenation, use
+     `m4_unquote(m4_join([], ARG...))'.
+
+          m4_define([ab],[1])m4_define([bc],[2])m4_define([abc],[3])dnl
+          m4_do([a],[b])c
+          =>abc
+          m4_unquote(m4_join([],[a],[b]))c
+          =>3
+          m4_define([a],[A])m4_define([b],[B])m4_define([c],[C])dnl
+          m4_define([AB],[4])m4_define([BC],[5])m4_define([ABC],[6])dnl
+          m4_do([a],[b])c
+          =>ABC
+          m4_unquote(m4_join([],[a],[b]))c
+          =>3
 
  -- Macro: m4_dquote (ARG, ...)
      Return the arguments as a quoted list of quoted arguments.
@@ -8841,12 +8951,6 @@ by adding or removing levels of quotes.
      `m4_expand', whitespace is preserved, even after the expansion of
      macros contained in ARG.
 
-     Note that `m4_expand' cannot parse everything.  The expansion of
-     ARG must not contain unbalanced quotes (although quadrigraphs can
-     get around this), nor unbalanced parentheses (portable shell `case'
-     statements are a major culprit here, but creative shell comments
-     can get around this).
-
           m4_define([active], [ACT, IVE])dnl
           m4_define([active2], [[ACT, IVE]])dnl
           m4_quote(active, active)
@@ -8857,6 +8961,22 @@ by adding or removing levels of quotes.
           =>ACT, IVE,ACT, IVE
           m4_expand([active2, active2])
           =>ACT, IVE, ACT, IVE
+
+     Note that `m4_expand' cannot handle an ARG that expands to literal
+     unbalanced quotes, but that quadrigraphs can be used when
+     unbalanced output is necessary.  Likewise, unbalanced parentheses
+     must be supplied with double quoting or a quadrigraph.
+
+          m4_define([pattern], [[!@<:@]])dnl
+          m4_define([bar], [BAR])dnl
+          m4_expand([case $foo in
+            m4_defn([pattern])@:}@ bar ;;
+            *[)] blah ;;
+          esac])
+          =>case $foo in
+          =>  [![]) BAR ;;
+          =>  *) blah ;;
+          =>esac
 
  -- Macro: m4_ignore (...)
      This macro was introduced in Autoconf 2.62.  Expands to nothing,
@@ -8895,6 +9015,15 @@ by adding or removing levels of quotes.
      pair of quotes.  This effectively collapses multiple arguments
      into one, although it loses whitespace after unquoted commas in
      the process.
+
+ -- Macro: m4_reverse (ARG, ...)
+     Outputs each argument with the same level of quoting, but in
+     reverse order, and with space following each comma for readability.
+
+          m4_define([active], [ACT,IVE])
+          =>
+          m4_reverse(active, [active])
+          =>active, IVE, ACT
 
  -- Macro: m4_unquote (ARG, ...)
      This macro was introduced in Autoconf 2.62.  Expand each argument,
@@ -8972,6 +9101,14 @@ double.
      warns if SEPARATOR is not empty, but occurs within STRING, since
      that can lead to duplicates.
 
+     Note that `m4_append' can scale linearly in the length of the final
+     string, depending on the quality of the underlying M4
+     implementation, while `m4_append_uniq' has an inherent quadratic
+     scaling factor.  If an algorithm can tolerate duplicates in the
+     final string, use the former for speed.  If duplicates must be
+     avoided, consider using `m4_set_add' instead (*note Set
+     manipulation Macros::).
+
           m4_define([active], [ACTIVE])dnl
           m4_append([sentence], [This is an])dnl
           m4_append([sentence], [ active ])dnl
@@ -9039,12 +9176,16 @@ double.
      result is still a quoted string.
 
  -- Macro: m4_join ([SEPARATOR], ARGS...)
-     Concatenate each ARG, separated by SEPARATOR, with the exception
-     that no back-to-back separators are issued for empty arguments.
-     The result is a quoted string.
+ -- Macro: m4_joinall ([SEPARATOR], ARGS...)
+     Concatenate each ARG, separated by SEPARATOR.  `joinall' uses
+     every argument, while `join' omits empty arguments so that there
+     are no back-to-back separators in the output.  The result is a
+     quoted string.
           m4_define([active], [ACTIVE])dnl
           m4_join([|], [one], [], [active], [two])
           =>one|active|two
+          m4_joinall([|], [one], [], [active], [two])
+          =>one||active|two
 
      Note that if all you intend to do is join ARGS with commas between
      them, to form a quoted list suitable for `m4_foreach', it is more
@@ -9090,6 +9231,9 @@ double.
           =>## abc ##
           =>## --- ##
 
+     The MESSAGE must contain balanced quotes and parentheses, although
+     quadrigraphs can be used to work around this.
+
  -- Macro: m4_text_wrap (STRING, [PREFIX], [PREFIX1 = `PREFIX'], [WIDTH
           = `79'])
      Break STRING into a series of whitespace-separated words, then
@@ -9127,7 +9271,7 @@ double.
      respectively.
 
 
-File: autoconf.info,  Node: Number processing Macros,  Next: Forbidden Patterns,  Prev: Text processing Macros,  Up: Programming in M4sugar
+File: autoconf.info,  Node: Number processing Macros,  Next: Set manipulation Macros,  Prev: Text processing Macros,  Up: Programming in M4sugar
 
 8.3.8 Arithmetic computation in M4
 ----------------------------------
@@ -9215,10 +9359,195 @@ anything that can be parsed by `m4_eval'.
           =>1
 
 
-File: autoconf.info,  Node: Forbidden Patterns,  Prev: Number processing Macros,  Up: Programming in M4sugar
+File: autoconf.info,  Node: Set manipulation Macros,  Next: Forbidden Patterns,  Prev: Number processing Macros,  Up: Programming in M4sugar
 
-8.3.9 Forbidden Patterns
-------------------------
+8.3.9 Set manipulation in M4
+----------------------------
+
+Sometimes, it is necessary to track a set of data, where the order does
+not matter and where there are no duplicates in the set.  The following
+macros facilitate set manipulations.  Each set is an opaque object,
+which can only be accessed via these basic operations.  The underlying
+implementation guarantees linear scaling for set creation, which is more
+efficient than using the quadratic `m4_append_uniq'.  Both set names
+and values can be arbitrary strings, except for unbalanced quotes.
+This implementation ties up memory for removed elements until the next
+operation that must traverse all the elements of a set; and although
+that may slow down some operations until the memory for removed elements
+is pruned, it still guarantees linear performance.
+
+ -- Macro: m4_set_add (SET, VALUE, [IF-UNIQ], [IF-DUP])
+     Adds the string VALUE as a member of set SET.  Expand IF-UNIQ if
+     the element was added, or IF-DUP if it was previously in the set.
+     Operates in amortized constant time, so that set creation scales
+     linearly.
+
+ -- Macro: m4_set_add_all (SET, VALUE...)
+     Adds each VALUE to the set SET.  This is slightly more efficient
+     than repeatedly invoking `m4_set_add'.
+
+ -- Macro: m4_set_contains (SET, VALUE, [IF-PRESENT], [IF-ABSENT])
+     Expands IF-PRESENT if the string VALUE is a member of SET,
+     otherwise IF-ABSENT.
+
+          m4_set_contains([a], [1], [yes], [no])
+          =>no
+          m4_set_add([a], [1], [added], [dup])
+          =>added
+          m4_set_add([a], [1], [added], [dup])
+          =>dup
+          m4_set_contains([a], [1], [yes], [no])
+          =>yes
+          m4_set_remove([a], [1], [removed], [missing])
+          =>removed
+          m4_set_contains([a], [1], [yes], [no])
+          =>no
+          m4_set_remove([a], [1], [removed], [missing])
+          =>missing
+
+ -- Macro: m4_set_contents (SET, [SEP])
+ -- Macro: m4_set_dump (SET, [SEP])
+     Expands to a single string consisting of all the members of the set
+     SET, each separated by SEP, which is not expanded.
+     `m4_set_contents' leaves the elements in SET but reclaims any
+     memory occupied by removed elements, while `m4_set_dump' is a
+     faster one-shot action that also deletes the set.  No provision is
+     made for disambiguating members that contain a non-empty SEP as a
+     substring; use `m4_set_empty' to distinguish between an empty set
+     and the set containing only the empty string.  The order of the
+     output is unspecified; in the current implementation, part of the
+     speed of `m4_set_dump' results from using a different output order
+     than `m4_set_contents'.  These macros scale linearly in the size
+     of the set before memory pruning, and `m4_set_contents([SET],
+     [SEP])' is faster than `m4_joinall([SEP]m4_set_listc([SET]))'.
+
+          m4_set_add_all([a], [1], [2], [3])
+          =>
+          m4_set_contents([a], [-])
+          =>1-2-3
+          m4_joinall([-]m4_set_listc([a]))
+          =>1-2-3
+          m4_set_dump([a], [-])
+          =>3-2-1
+          m4_set_contents([a])
+          =>
+          m4_set_add([a], [])
+          =>
+          m4_set_contents([a], [-])
+          =>
+
+ -- Macro: m4_set_delete (SET)
+     Delete all elements and memory associated with SET.  This is
+     linear in the set size, and faster than removing one element at a
+     time.
+
+ -- Macro: m4_set_difference (SETA, SETB)
+ -- Macro: m4_set_intersection (SETA, SETB)
+ -- Macro: m4_set_union (SETA, SETB)
+     Compute the relation between SETA and SETB, and output the result
+     as a list of quoted arguments without duplicates and with a
+     leading comma.  Set difference selects the elements in SETA but
+     not SETB, intersection selects only elements in both sets, and
+     union selects elements in either set.  These actions are linear in
+     the sum of the set sizes.  The leading comma is necessary to
+     distinguish between no elements and the empty string as the only
+     element.
+
+          m4_set_add_all([a], [1], [2], [3])
+          =>
+          m4_set_add_all([b], [3], [], [4])
+          =>
+          m4_set_difference([a], [b])
+          =>,1,2
+          m4_set_difference([b], [a])
+          =>,,4
+          m4_set_intersection([a], [b])
+          =>,3
+          m4_set_union([a], [b])
+          =>,1,2,3,,4
+
+ -- Macro: m4_set_empty (SET, [IF-EMPTY], [IF-ELEMENTS])
+     Expand IF-EMPTY if the set SET has no elements, otherwise expand
+     IF-ELEMENTS.  This macro operates in constant time.  Using this
+     macro can help disambiguate output from `m4_set_contents' or
+     `m4_set_list'.
+
+ -- Macro: m4_set_foreach (SET, VARIABLE, ACTION)
+     For each element in the set SET, expand ACTION with the macro
+     VARIABLE defined as the set element.  Behavior is unspecified if
+     ACTION recursively lists the contents of SET (although listing
+     other sets is acceptable), or if it modifies the set in any way
+     other than removing the element currently contained in VARIABLE.
+     This macro is faster than the corresponding `m4_foreach([VARIABLE],
+     m4_indir([m4_dquote]m4_set_listc([SET])), [ACTION])'.
+
+          m4_set_add_all([a]m4_for([i], [1], [5], [], [,i]))
+          =>
+          m4_set_contents([a])
+          =>12345
+          m4_set_foreach([a], [i],
+            [m4_if(m4_eval(i&1), [0], [m4_set_remove([a], i, [i])])])
+          =>24
+          m4_set_contents([a])
+          =>135
+
+ -- Macro: m4_set_list (SET)
+ -- Macro: m4_set_listc (SET)
+     Produce a list of arguments, where each argument is a quoted
+     element from the set SET.  The variant `m4_set_listc' is
+     unambiguous, by adding a leading comma if there are any set
+     elements, whereas the variant `m4_set_list' cannot distinguish
+     between an empty set and a set containing only the empty string.
+     These can be directly used in macros that take multiple arguments,
+     such as `m4_join' or `m4_set_add_all', or wrapped by `m4_dquote'
+     for macros that take a quoted list, such as `m4_map' or
+     `m4_foreach'.  Any memory occupied by removed elements is
+     reclaimed during these macros.
+
+          m4_set_add_all([a], [1], [2], [3])
+          =>
+          m4_set_list([a])
+          =>1,2,3
+          m4_set_list([b])
+          =>
+          m4_set_listc([b])
+          =>
+          m4_count(m4_set_list([b]))
+          =>1
+          m4_set_empty([b], [0], [m4_count(m4_set_list([b]))])
+          =>0
+          m4_set_add([b], [])
+          =>
+          m4_set_list([b])
+          =>
+          m4_set_listc([b])
+          =>,
+          m4_count(m4_set_list([b]))
+          =>1
+          m4_set_empty([b], [0], [m4_count(m4_set_list([b]))])
+          =>1
+
+ -- Macro: m4_set_remove (SET, VALUE, [IF-PRESENT], [IF-ABSENT])
+     If VALUE is an element in the set SET, then remove it and expand
+     IF-PRESENT.  Otherwise expand IF-ABSENT.  This macro operates in
+     constant time so that multiple removals will scale linearly rather
+     than quadratically; but when used outside of `m4_set_foreach', it
+     leaves memory occupied until the set is later compacted by
+     `m4_set_contents' or `m4_set_list'.  Several other set operations
+     are then less efficient between the time of element removal and
+     subsequent memory compaction, but still maintain their guaranteed
+     scaling performance.
+
+ -- Macro: m4_set_size (SET)
+     Expand to the size of the set SET.  This implementation operates
+     in constant time, and is thus more efficient than
+     `m4_eval(m4_count(m4_set_listc([set])) - 1)'.
+
+
+File: autoconf.info,  Node: Forbidden Patterns,  Prev: Set manipulation Macros,  Up: Programming in M4sugar
+
+8.3.10 Forbidden Patterns
+-------------------------
 
 M4sugar provides a means to define suspicious patterns, patterns
 describing tokens which should not be found in the output.  For
@@ -10004,7 +10333,8 @@ supported by all shells!
 
    Shell functions are considered portable nowadays, though Autoconf
 still does not use them (Autotest does).  However, some pitfalls have
-to be avoided for portable use of shell functions.
+to be avoided for portable use of shell functions (*note Shell
+Functions::).
 
    Some ancient systems have quite small limits on the length of the
 `#!' line; for instance, 32 bytes (not including the newline) on SunOS
@@ -10336,6 +10666,17 @@ But using ksh:
 
 Within the process which runs the `descrips' script, file descriptor 5
 is closed.
+
+   Don't rely on redirection to a closed file descriptor to cause an
+error.  With Solaris `/bin/sh', when the redirection fails, the output
+goes to the original file descriptor.
+
+     $ bash -c 'echo hi >&3' 3>&-; echo $?
+     bash: 3: Bad file descriptor
+     1
+     $ /bin/sh -c 'echo hi >&3' 3>&-; echo $?
+     hi
+     0
 
    DOS variants cannot rename or remove open files, such as in `mv foo
 bar >foo' or `rm foo >foo', even though this is perfectly portable
@@ -10715,6 +11056,22 @@ back-quoted expressions (pfew!).
           $ echo "`printf 'foo\r\n'`"" bar" | cmp - broken
           - broken differ: char 4, line 1
 
+     Upon interrupt or SIGTERM, some shells may abort a command
+     substitution, replace it with a null string, and wrongly evaluate
+     the enclosing command before entering the trap or ending the
+     script.  This can lead to spurious errors:
+
+          $ sh -c 'if test `sleep 5; echo hi` = hi; then echo yes; fi'
+          $ ^C
+          sh: test: hi: unexpected operator/operand
+
+     You can avoid this by assigning the command substitution to a
+     temporary variable:
+
+          $ sh -c 'res=`sleep 5; echo hi`
+                   if test "x$res" = xhi; then echo yes; fi'
+          $ ^C
+
 `$(COMMANDS)'
      This construct is meant to replace ``COMMANDS`', and it has most
      of the problems listed under ``COMMANDS`'.
@@ -10751,6 +11108,41 @@ back-quoted expressions (pfew!).
 `$((EXPRESSION))'
      Arithmetic expansion is not portable as some shells (most notably
      Solaris 10 `/bin/sh') don't support it.
+
+     Among shells that do support `$(( ))', not all of them obey the
+     Posix rule that octal and hexadecimal constants must be recognized:
+
+          $ bash -c 'echo $(( 010 + 0x10 ))'
+          24
+          $ zsh -c 'echo $(( 010 + 0x10 ))'
+          26
+          $ zsh -c 'emulate sh; echo $(( 010 + 0x10 ))'
+          24
+          $ pdksh -c 'echo $(( 010 + 0x10 ))'
+          pdksh:  010 + 0x10 : bad number `0x10'
+          $ pdksh -c 'echo $(( 010 ))'
+          10
+
+     When it is available, using arithmetic expansion provides a
+     noticeable speedup in script execution; but testing for support
+     requires `eval' to avoid syntax errors.  If shell function support
+     has also been detected, then this construct can be used to assign
+     `foo' to an arithmetic result, provided all numeric arguments are
+     provided in decimal and without a leading zero:
+
+          if ( eval 'test $(( 1 + 1 )) = 2' ) 2>/dev/null; then
+            eval 'func_arith ()
+            {
+              func_arith_result=$(( $* ))
+            }'
+          else
+            func_arith ()
+            {
+              func_arith_result=`expr "$@"`
+            }
+          fi
+          func_arith 1 + 1
+          foo=$func_arith_result
 
 `^'
      Always quote `^', otherwise traditional shells such as `/bin/sh'
@@ -11130,6 +11522,17 @@ this triggers bugs in zsh 4.x; while Autoconf tries to find a shell
 that does not exhibit the bug, zsh might be the only shell present on
 the user's machine.
 
+   Likewise, the state of `$?' is not reliable when entering a shell
+function.  This has the effect that using a function as the first
+command in a `trap' handler can cause problems.
+
+     $ bash -c 'foo(){ echo $?; }; trap foo 0; (exit 2); exit 2'; echo $?
+     2
+     2
+     $ ash -c 'foo(){ echo $?; }; trap foo 0; (exit 2); exit 2'; echo $?
+     0
+     2
+
    Shell variables and functions may share the same namespace, for
 example with Solaris 10 `/bin/sh':
 
@@ -11178,7 +11581,21 @@ into account later in the pipe.
 `!'
      The Unix version 7 shell did not support negating the exit status
      of commands with `!', and this feature is still absent from some
-     shells (e.g., Solaris `/bin/sh').  Shell code like this:
+     shells (e.g., Solaris `/bin/sh').  Other shells, such as FreeBSD
+     `/bin/sh' or `ash', have bugs when using `!':
+
+          $ sh -c '! : | :'; echo $?
+          1
+          $ ash -c '! : | :'; echo $?
+          0
+          $ sh -c '! { :; }'; echo $?
+          1
+          $ ash -c '! { :; }'; echo $?
+          {: not found
+          Syntax error: "}" unexpected
+          2
+
+     Shell code like this:
 
           if ! cmp file1 file2 >/dev/null 2>&1; then
             echo files differ or trouble
@@ -11225,11 +11642,25 @@ into account later in the pipe.
      parentheses like this:
 
           case $file_name in
-          (*.c) echo "C source code";;
+            (*.c) echo "C source code";;
           esac
 
      but the `(' in this example is not portable to many Bourne shell
-     implementations.  It can be omitted safely.
+     implementations, which is a pity for those of us using tools that
+     rely on balanced parentheses.  For instance, with Solaris
+     `/bin/sh':
+
+          $ case foo in (foo) echo foo;; esac
+          error-->syntax error: `(' unexpected
+
+     The leading `(' can be omitted safely.  In contexts where
+     unbalanced parentheses cause other problems, such as when using a
+     case statement as an argument to an Autoconf macro, you can also
+     resort to creative shell comments to supply the balance:
+
+          case $file_name in #(
+            *.c) echo "C source code";;
+          esac
 
      Zsh handles pattern fragments derived from parameter expansions or
      command substitutions as though quoted:
@@ -11284,13 +11715,6 @@ into account later in the pipe.
 
           ash-0.3.8 $ case foo in esac;
           error-->Syntax error: ";" unexpected (expecting ")")
-
-     Many shells still do not support parenthesized cases, which is a
-     pity for those of us using tools that rely on balanced
-     parentheses.  For instance, Solaris `/bin/sh':
-
-          $ case foo in (foo) echo foo;; esac
-          error-->syntax error: `(' unexpected
 
 `cd'
      Posix 1003.1-2001 requires that `cd' must support the `-L'
@@ -11382,6 +11806,46 @@ into account later in the pipe.
      You should not rely on `LINENO' within `eval'.  *Note Special
      Shell Variables::.
 
+`exec'
+     Posix describes several categories of shell built-ins.  Special
+     built-ins (such as `exit') must impact the environment of the
+     current shell, and need not be available through `exec'.  All
+     other built-ins are regular, and must not propagate variable
+     assignments to the environment of the current shell.  However, the
+     group of regular built-ins is further distinguished by commands
+     that do not require a `PATH' search (such as `cd'), in contrast to
+     built-ins that are offered as a more efficient version of
+     something that must still be found in a `PATH' search (such as
+     `echo').  Posix is not clear on whether `exec' must work with the
+     list of 17 utilities that are invoked without a `PATH' search, and
+     many platforms lack an executable for some of those built-ins:
+
+          $ sh -c 'exec cd /tmp'
+          sh: line 0: exec: cd: not found
+
+     All other built-ins that provide utilities specified by Posix must
+     have a counterpart executable that exists on `PATH', although Posix
+     allows `exec' to use the built-in instead of the executable.  For
+     example, contrast `bash' 3.2 and `pdksh' 5.2.14:
+
+          $ bash -c 'pwd --version' | head -n1
+          bash: line 0: pwd: --: invalid option
+          pwd: usage: pwd [-LP]
+          $ bash -c 'exec pwd --version' | head -n1
+          pwd (GNU coreutils) 6.10
+          $ pdksh -c 'exec pwd --version' | head -n1
+          pdksh: pwd: --: unknown option
+
+     When it is desired to avoid a regular shell built-in, the
+     workaround is to use some other forwarding command, such as `env'
+     or `nice', that will ensure a path search:
+
+          $ pdksh -c 'exec true --version' | head -n1
+          $ pdksh -c 'nice true --version' | head -n1
+          true (GNU coreutils) 6.10
+          $ pdksh -c 'env true --version' | head -n1
+          true (GNU coreutils) 6.10
+
 `exit'
      The default value of `exit' is supposed to be `$?'; unfortunately,
      some shells, such as the DJGPP port of Bash 2.04, just perform
@@ -11431,7 +11895,17 @@ into account later in the pipe.
      and then a sequence of `bar's.
 
      Therefore you should `export' again each environment variable that
-     you update.
+     you update; the export can occur before or after the assignment.
+
+     Posix is not clear on whether the `export' of an undefined
+     variable causes the variable to be defined with the value of an
+     empty string, or merely marks any future definition of a variable
+     by that name for export.  Various shells behave differently in
+     this regard:
+
+          $ sh -c 'export foo; env | grep foo'
+          $ ash -c 'export foo; env | grep foo'
+          foo=
 
 `false'
      Don't expect `false' to exit with status 1: in native Solaris
@@ -12620,6 +13094,22 @@ Awk
      is on an NFS-mounted 4.2 volume.  However, these problems are no
      longer of practical concern.
 
+`tr'
+     Not all versions of `tr' handle all backslash character escapes.
+     For example, Solaris 10 `/usr/ucb/tr' falls over, even though
+     Solaris contains more modern `tr' in other locations.  Therefore,
+     it is more portable to use octal escapes, even though this ties
+     the result to ASCII, when using `tr' to delete newlines or
+     carriage returns.
+
+          $ { echo moon; echo light; } | /usr/ucb/tr -d '\n' ; echo
+          moo
+          light
+          $ { echo moon; echo light; } | /usr/bin/tr -d '\n' ; echo
+          moonlight
+          $ { echo moon; echo light; } | /usr/ucb/tr -d '\012' ; echo
+          moonlight
+
 
 
 File: autoconf.info,  Node: Portable Make,  Next: Portable C and C++,  Prev: Portable Shell,  Up: Top
@@ -12879,13 +13369,19 @@ use Autoconf, do
 
      SHELL = @SHELL@
 
+If you use Automake, this is done for you.
+
    Do not force `SHELL = /bin/sh' because that is not correct
-everywhere.  For instance DJGPP lacks `/bin/sh', and when its GNU
-`make' port sees such a setting it enters a special emulation mode
-where features like pipes and redirections are emulated on top of DOS's
-`command.com'.  Unfortunately this emulation is incomplete; for
-instance it does not handle command substitutions.  On DJGPP `SHELL'
-should point to Bash.
+everywhere.  Remember, `/bin/sh' is not Posix compliant on many
+systems, such as FreeBSD 4, NetBSD 3, AIX 3, Solaris 10, or Tru64.
+Additionally, DJGPP lacks `/bin/sh', and when its GNU `make' port sees
+such a setting it enters a special emulation mode where features like
+pipes and redirections are emulated on top of DOS's `command.com'.
+Unfortunately this emulation is incomplete; for instance it does not
+handle command substitutions.  Using `@SHELL@' means that your makefile
+will benefit from the same improved shell, such as `bash' or `ksh',
+that was discovered during `configure', so that you aren't fighting two
+different sets of shell bugs between the two contexts.
 
    Posix-compliant `make' should never acquire the value of $(SHELL)
 from the environment, even when `make -e' is used (otherwise, think
@@ -12907,6 +13403,21 @@ since it doesn't use it.
      $ env SHELL=/bin/tcsh FOO=bar gmake -e  # GNU make
      /bin/sh
      bar
+
+   Conversely, `make' is not supposed to export any changes to the
+macro `SHELL' to child processes.  Again, many implementations break
+this rule:
+
+     $ cat Makefile
+     all:
+             @echo $(SHELL)
+             @printenv SHELL
+     $ env SHELL=sh make -e SHELL=/bin/ksh   # BSD Make, GNU make 3.80
+     /bin/ksh
+     /bin/ksh
+     $ env SHELL=sh gmake -e SHELL=/bin/ksh  # GNU make 3.81
+     /bin/ksh
+     sh
 
 
 File: autoconf.info,  Node: Comments in Make Rules,  Next: obj/ and Make,  Prev: The Make Macro SHELL,  Up: Portable Make
@@ -14119,17 +14630,14 @@ configuring as follows fails:
 
      ./configure CC=m68k-coff-gcc
 
-   In the future, when cross-compiling Autoconf will _not_ accept tools
+   When cross-compiling, `configure' will warn about any tools
 (compilers, linkers, assemblers) whose name is not prefixed with the
-host type.  The only case when this may be useful is when you really
-are not cross-compiling, but only building for a
-least-common-denominator architecture: an example is building for
-`i386-pc-linux-gnu' while running on an `i686-pc-linux-gnu'
-architecture.  In this case, some particular pairs might be similar
-enough to let you get away with the system compilers, but in general
-the compiler might make bogus assumptions on the host: if you know what
-you are doing, please create symbolic links from the host compiler to
-the build compiler.
+host type.  This is an aid to users performing cross-compilation.
+Continuing the example above, if a cross-compiler named `cc' is used
+with a native `pkg-config', then libraries found by `pkg-config' will
+likely cause subtle build failures; but using the names `m68k-coff-cc'
+and `m68k-coff-pkg-config' avoids any confusion.  Avoiding the warning
+is as simple as creating the correct symlinks naming the cross tools.
 
    `configure' recognizes short aliases for many system types; for
 example, `decstation' can be used instead of `mips-dec-ultrix4.2'.
@@ -14541,7 +15049,8 @@ of the `AS_HELP_STRING' macro.
      The `AS_HELP_STRING' macro is particularly helpful when the
      LEFT-HAND-SIDE and/or RIGHT-HAND-SIDE are composed of macro
      arguments, as shown in the following example.  Be aware that
-     LEFT-HAND-SIDE may not contain unbalanced quotes or parentheses.
+     LEFT-HAND-SIDE may not expand to unbalanced quotes, although
+     quadrigraphs can be used.
 
           AC_DEFUN([MY_ARG_WITH],
             [AC_ARG_WITH(m4_translit([[$1]], [_], [-]),
@@ -14855,6 +15364,7 @@ with Autoconf.
 * Multiple Architectures::      Compiling for multiple architectures at once
 * Installation Names::          Installing in different directories
 * Optional Features::           Selecting optional features
+* Particular Systems::          Particular systems
 * System Type::                 Specifying the system type
 * Sharing Defaults::            Setting site-wide defaults for `configure'
 * Defining Variables::          Specifying the compiler etc.
@@ -14962,6 +15472,20 @@ architecture at a time in the source code directory.  After you have
 installed the package for one architecture, use `make distclean' before
 reconfiguring for another architecture.
 
+   On MacOS X 10.5 and later systems, you can create libraries and
+executables that work on multiple system types--known as "fat" or
+"universal" binaries--by specifying multiple `-arch' options to the
+compiler but only a single `-arch' option to the preprocessor.  Like
+this:
+
+     ./configure CC="gcc -arch i386 -arch x86_64 -arch ppc -arch ppc64" \
+                 CXX="g++ -arch i386 -arch x86_64 -arch ppc -arch ppc64" \
+                 CPP="gcc -E" CXXCPP="g++ -E"
+
+   This is not guaranteed to produce working output in all cases, you
+may have to build one architecture at a time and combine the results
+using the `lipo' tool if you have problems.
+
 
 File: autoconf.info,  Node: Installation Names,  Next: Optional Features,  Prev: Multiple Architectures,  Up: Running configure Scripts
 
@@ -14989,7 +15513,7 @@ with an extra prefix or suffix on their names by giving `configure' the
 option `--program-prefix=PREFIX' or `--program-suffix=SUFFIX'.
 
 
-File: autoconf.info,  Node: Optional Features,  Next: System Type,  Prev: Installation Names,  Up: Running configure Scripts
+File: autoconf.info,  Node: Optional Features,  Next: Particular Systems,  Prev: Installation Names,  Up: Running configure Scripts
 
 15.5 Optional Features
 ======================
@@ -15007,9 +15531,34 @@ you can use the `configure' options `--x-includes=DIR' and
 `--x-libraries=DIR' to specify their locations.
 
 
-File: autoconf.info,  Node: System Type,  Next: Sharing Defaults,  Prev: Optional Features,  Up: Running configure Scripts
+File: autoconf.info,  Node: Particular Systems,  Next: System Type,  Prev: Optional Features,  Up: Running configure Scripts
 
-15.6 Specifying the System Type
+15.6 Particular systems
+=======================
+
+On HP-UX, the default C compiler is not ANSI C compatible.  If GNU CC is
+not installed, it is recommended to use the following options in order
+to use an ANSI C compiler:
+
+     ./configure CC="cc -Ae"
+
+and if that doesn't work, install pre-built binaries of GCC for HP-UX.
+
+   On OSF/1 a.k.a. Tru64, some versions of the default C compiler cannot
+parse its `<wchar.h>' header file.  The option `-nodtk' can be used as
+a workaround.  If GNU CC is not installed, it is therefore recommended
+to try
+
+     ./configure CC="cc"
+
+and if that doesn't work, try
+
+     ./configure CC="cc -nodtk"
+
+
+File: autoconf.info,  Node: System Type,  Next: Sharing Defaults,  Prev: Particular Systems,  Up: Running configure Scripts
+
+15.7 Specifying the System Type
 ===============================
 
 There may be some features `configure' cannot figure out automatically,
@@ -15042,7 +15591,7 @@ eventually be run) with `--host=TYPE'.
 
 File: autoconf.info,  Node: Sharing Defaults,  Next: Defining Variables,  Prev: System Type,  Up: Running configure Scripts
 
-15.7 Sharing Defaults
+15.8 Sharing Defaults
 =====================
 
 If you want to set default values for `configure' scripts to share, you
@@ -15056,7 +15605,7 @@ A warning: not all `configure' scripts look for a site script.
 
 File: autoconf.info,  Node: Defining Variables,  Next: configure Invocation,  Prev: Sharing Defaults,  Up: Running configure Scripts
 
-15.8 Defining Variables
+15.9 Defining Variables
 =======================
 
 Variables not defined in a site shell script can be set in the
@@ -15078,14 +15627,21 @@ an Autoconf bug.  Until the bug is fixed you can use this workaround:
 
 File: autoconf.info,  Node: configure Invocation,  Prev: Defining Variables,  Up: Running configure Scripts
 
-15.9 `configure' Invocation
-===========================
+15.10 `configure' Invocation
+============================
 
 `configure' recognizes the following options to control how it operates.
 
 `--help'
 `-h'
-     Print a summary of the options to `configure', and exit.
+     Print a summary of all of the options to `configure', and exit.
+
+`--help=short'
+`--help=recursive'
+     Print a summary of the options unique to this package's
+     `configure', and exit.  The `short' variant lists options used
+     only in the top level, while the `recursive' variant lists options
+     also present in any nested packages.
 
 `--version'
 `-V'
@@ -15111,6 +15667,16 @@ File: autoconf.info,  Node: configure Invocation,  Prev: Defining Variables,  Up
 `--srcdir=DIR'
      Look for the package's source code in directory DIR.  Usually
      `configure' can determine that directory automatically.
+
+`--prefix=DIR'
+     Use DIR as the installation prefix.  *Note Installation Names::
+     for more details, including other options available for fine-tuning
+     the installation locations.
+
+`--no-create'
+`-n'
+     Run the configure checks, but stop before creating any output
+     files.
 
 `configure' also accepts some other, not widely useful, options.  Run
 `configure --help' for more details.
@@ -15389,6 +15955,11 @@ give `autoupdate' an argument, it reads that file instead of
 `-I DIR'
      Also look for input files in DIR.  Multiple invocations accumulate.
      Directories are browsed from last to first.
+
+`--prepend-include=DIR'
+`-B DIR'
+     Prepend directory DIR to the search path.  This is used to include
+     the language-specific files before any third-party macros.
 
 
 File: autoconf.info,  Node: Obsolete Macros,  Next: Autoconf 1,  Prev: autoupdate Invocation,  Up: Obsolete Constructs
@@ -15872,7 +16443,8 @@ and the description.
      configuration-time issue.
 
  -- Macro: AC_RETSIGTYPE
-     Replaced by `AC_TYPE_SIGNAL' (*note AC_TYPE_SIGNAL::).
+     Replaced by `AC_TYPE_SIGNAL' (*note AC_TYPE_SIGNAL::), which itself
+     is obsolete when assuming C89 or better.
 
  -- Macro: AC_RSH
      Removed because of limited usefulness.
@@ -16049,6 +16621,23 @@ and the description.
             [ACTION-IF-CROSS-COMPILING])
 
      *Note Runtime::.
+
+ -- Macro: AC_TYPE_SIGNAL
+     If `signal.h' declares `signal' as returning a pointer to a
+     function returning `void', define `RETSIGTYPE' to be `void';
+     otherwise, define it to be `int'.  These days, it is portable to
+     assume C89, and that signal handlers return `void', without
+     needing to use this macro or `RETSIGTYPE'.
+
+     When targetting older K&R C, it is possible to define signal
+     handlers as returning type `RETSIGTYPE', and omit a return
+     statement:
+
+          RETSIGTYPE
+          hup_handler ()
+          {
+          ...
+          }
 
  -- Macro: AC_UID_T
      Replaced by `AC_TYPE_UID_T' (*note AC_TYPE_UID_T::).
@@ -16894,7 +17483,8 @@ incompatible diagnostics.
      the same subshell.  It accepts a single argument, which holds a
      few words (no more than about 30 or 40 characters) quickly
      describing the purpose of the test group being started.
-     TEST-GROUP-NAME must not contain unbalanced quotes or parentheses.
+     TEST-GROUP-NAME must not expand to unbalanced quotes, although
+     quadrigraphs can be used.
 
  -- Macro: AT_KEYWORDS (KEYWORDS)
      Associate the space-separated list of KEYWORDS to the enclosing
@@ -17382,7 +17972,7 @@ are several means to achieve a similar goal:
 
    - Use `AC_DEFINE' but have `configure' compute the literal value of
      `datadir' and others.  Many people have wrapped macros to automate
-     this task.  For instance, the macro `AC_DEFINE_DIR' from the
+     this task; for an example, see the macro `AC_DEFINE_DIR' from the
      Autoconf Macro Archive (http://autoconf-archive.cryp.to/).
 
      This solution does not conform to the GNU Coding Standards.
@@ -18274,10 +18864,10 @@ checks.
                                                               (line 224)
 * SIMPLE_BACKUP_SUFFIX:                  autoupdate Invocation.
                                                               (line  16)
-* WARNINGS <1>:                          autoconf Invocation. (line  63)
+* WARNINGS <1>:                          autoconf Invocation. (line  62)
 * WARNINGS <2>:                          autom4te Invocation. (line  58)
 * WARNINGS <3>:                          autoheader Invocation.
-                                                              (line  84)
+                                                              (line  83)
 * WARNINGS:                              autoreconf Invocation.
                                                               (line  97)
 * XMKMF:                                 System Services.     (line  10)
@@ -18523,9 +19113,9 @@ use these names in `#if' or `#ifdef' directives.
  [index ]
 * Menu:
 
-* __CHAR_UNSIGNED__:                     C Compiler.          (line 267)
+* __CHAR_UNSIGNED__:                     C Compiler.          (line 269)
 * __EXTENSIONS__:                        Posix Variants.      (line  10)
-* __PROTOTYPES:                          C Compiler.          (line 317)
+* __PROTOTYPES:                          C Compiler.          (line 329)
 * _ALL_SOURCE <1>:                       Obsolete Macros.     (line  20)
 * _ALL_SOURCE:                           Posix Variants.      (line  10)
 * _FILE_OFFSET_BITS:                     System Services.     (line  49)
@@ -18534,12 +19124,12 @@ use these names in `#if' or `#ifdef' directives.
 * _LARGE_FILES:                          System Services.     (line  49)
 * _LARGEFILE_SOURCE:                     Particular Functions.
                                                               (line 116)
-* _MINIX <1>:                            Obsolete Macros.     (line 371)
-* _MINIX:                                Posix Variants.      (line  10)
+* _MINIX <1>:                            Posix Variants.      (line  10)
+* _MINIX:                                Obsolete Macros.     (line 371)
 * _OPENMP:                               Generic Compiler Characteristics.
                                                               (line  56)
-* _POSIX_1_SOURCE <1>:                   Posix Variants.      (line  10)
-* _POSIX_1_SOURCE:                       Obsolete Macros.     (line 371)
+* _POSIX_1_SOURCE <1>:                   Obsolete Macros.     (line 371)
+* _POSIX_1_SOURCE:                       Posix Variants.      (line  10)
 * _POSIX_PTHREAD_SEMANTICS:              Posix Variants.      (line  10)
 * _POSIX_SOURCE <1>:                     Obsolete Macros.     (line 371)
 * _POSIX_SOURCE:                         Posix Variants.      (line  10)
@@ -18553,7 +19143,7 @@ use these names in `#if' or `#ifdef' directives.
                                                               (line 130)
 * CLOSEDIR_VOID:                         Particular Functions.
                                                               (line  58)
-* const:                                 C Compiler.          (line 198)
+* const:                                 C Compiler.          (line 200)
 * CXX_NO_MINUS_C_MINUS_O:                C++ Compiler.        (line  44)
 * DGUX:                                  Particular Functions.
                                                               (line 130)
@@ -18567,20 +19157,20 @@ use these names in `#if' or `#ifdef' directives.
 * FC_FUNC_:                              Fortran Compiler.    (line 173)
 * FC_MAIN:                               Fortran Compiler.    (line 150)
 * FC_NO_MINUS_C_MINUS_O:                 Fortran Compiler.    (line  66)
-* FLEXIBLE_ARRAY_MEMBER:                 C Compiler.          (line 281)
+* FLEXIBLE_ARRAY_MEMBER:                 C Compiler.          (line 293)
 * GETGROUPS_T:                           Particular Types.    (line  14)
 * GETLOADAVG_PRIVILEGED:                 Particular Functions.
                                                               (line 130)
 * GETPGRP_VOID:                          Particular Functions.
                                                               (line 170)
-* gid_t:                                 Particular Types.    (line 112)
+* gid_t:                                 Particular Types.    (line  99)
 * GWINSZ_IN_SYS_IOCTL:                   Particular Headers.  (line 248)
 * HAVE__BOOL:                            Particular Headers.  (line  92)
 * HAVE_AGGREGATE_MEMBER:                 Generic Structures.  (line  25)
 * HAVE_ALLOCA_H:                         Particular Functions.
                                                               (line  10)
 * HAVE_C_BACKSLASH_A:                    C Compiler.          (line 159)
-* HAVE_C_VARARRAYS:                      C Compiler.          (line 305)
+* HAVE_C_VARARRAYS:                      C Compiler.          (line 317)
 * HAVE_CHOWN:                            Particular Functions.
                                                               (line  54)
 * HAVE_CONFIG_H:                         Configuration Headers.
@@ -18588,7 +19178,7 @@ use these names in `#if' or `#ifdef' directives.
 * HAVE_DECL_STRERROR_R:                  Particular Functions.
                                                               (line 311)
 * HAVE_DECL_SYMBOL:                      Generic Declarations.
-                                                              (line  25)
+                                                              (line  64)
 * HAVE_DECL_TZNAME:                      Particular Structures.
                                                               (line  40)
 * HAVE_DIRENT_H:                         Particular Headers.  (line  15)
@@ -18596,7 +19186,7 @@ use these names in `#if' or `#ifdef' directives.
                                                               (line 349)
 * HAVE_FSEEKO:                           Particular Functions.
                                                               (line 116)
-* HAVE_FUNCTION:                         Generic Functions.   (line 113)
+* HAVE_FUNCTION:                         Generic Functions.   (line  25)
 * HAVE_GETGROUPS:                        Particular Functions.
                                                               (line 124)
 * HAVE_GETMNTENT:                        Particular Functions.
@@ -18629,11 +19219,11 @@ use these names in `#if' or `#ifdef' directives.
 * HAVE_REALLOC:                          Particular Functions.
                                                               (line 262)
 * HAVE_RESOLV_H:                         Particular Headers.  (line  63)
-* HAVE_RESTARTABLE_SYSCALLS:             Obsolete Macros.     (line 547)
-* HAVE_ST_BLKSIZE:                       Obsolete Macros.     (line 520)
+* HAVE_RESTARTABLE_SYSCALLS:             Obsolete Macros.     (line 548)
+* HAVE_ST_BLKSIZE:                       Obsolete Macros.     (line 521)
 * HAVE_ST_BLOCKS:                        Particular Structures.
                                                               (line  26)
-* HAVE_ST_RDEV:                          Obsolete Macros.     (line 529)
+* HAVE_ST_RDEV:                          Obsolete Macros.     (line 530)
 * HAVE_STAT_EMPTY_STRING_BUG:            Particular Functions.
                                                               (line 293)
 * HAVE_STDBOOL_H:                        Particular Headers.  (line  92)
@@ -18643,7 +19233,7 @@ use these names in `#if' or `#ifdef' directives.
                                                               (line 311)
 * HAVE_STRFTIME:                         Particular Functions.
                                                               (line 321)
-* HAVE_STRINGIZE:                        C Compiler.          (line 271)
+* HAVE_STRINGIZE:                        C Compiler.          (line 283)
 * HAVE_STRNLEN:                          Particular Functions.
                                                               (line 338)
 * HAVE_STRTOLD:                          Particular Functions.
@@ -18652,10 +19242,10 @@ use these names in `#if' or `#ifdef' directives.
                                                               (line   9)
 * HAVE_STRUCT_DIRENT_D_TYPE:             Particular Structures.
                                                               (line  21)
-* HAVE_STRUCT_STAT_ST_BLKSIZE:           Obsolete Macros.     (line 520)
+* HAVE_STRUCT_STAT_ST_BLKSIZE:           Obsolete Macros.     (line 521)
 * HAVE_STRUCT_STAT_ST_BLOCKS:            Particular Structures.
                                                               (line  26)
-* HAVE_STRUCT_STAT_ST_RDEV:              Obsolete Macros.     (line 529)
+* HAVE_STRUCT_STAT_ST_RDEV:              Obsolete Macros.     (line 530)
 * HAVE_STRUCT_TM_TM_ZONE:                Particular Structures.
                                                               (line  40)
 * HAVE_SYS_DIR_H:                        Particular Headers.  (line  15)
@@ -18664,16 +19254,16 @@ use these names in `#if' or `#ifdef' directives.
 * HAVE_TM_ZONE:                          Particular Structures.
                                                               (line  40)
 * HAVE_TYPE:                             Generic Types.       (line  24)
-* HAVE_TYPEOF:                           C Compiler.          (line 311)
+* HAVE_TYPEOF:                           C Compiler.          (line 323)
 * HAVE_TZNAME:                           Particular Structures.
                                                               (line  40)
-* HAVE_UINT16_T:                         Particular Types.    (line 122)
-* HAVE_UINT32_T:                         Particular Types.    (line 125)
-* HAVE_UINT64_T:                         Particular Types.    (line 128)
-* HAVE_UINT8_T:                          Particular Types.    (line 116)
-* HAVE_UINTMAX_T:                        Particular Types.    (line 131)
-* HAVE_UINTPTR_T:                        Particular Types.    (line 136)
-* HAVE_UNSIGNED_LONG_LONG_INT:           Particular Types.    (line 141)
+* HAVE_UINT16_T:                         Particular Types.    (line 109)
+* HAVE_UINT32_T:                         Particular Types.    (line 112)
+* HAVE_UINT64_T:                         Particular Types.    (line 115)
+* HAVE_UINT8_T:                          Particular Types.    (line 103)
+* HAVE_UINTMAX_T:                        Particular Types.    (line 118)
+* HAVE_UINTPTR_T:                        Particular Types.    (line 123)
+* HAVE_UNSIGNED_LONG_LONG_INT:           Particular Types.    (line 128)
 * HAVE_UTIME_NULL:                       Particular Functions.
                                                               (line 342)
 * HAVE_VFORK_H:                          Particular Functions.
@@ -18685,7 +19275,7 @@ use these names in `#if' or `#ifdef' directives.
                                                               (line  94)
 * HAVE_WORKING_VFORK:                    Particular Functions.
                                                               (line  94)
-* inline:                                C Compiler.          (line 262)
+* inline:                                C Compiler.          (line 264)
 * int16_t:                               Particular Types.    (line  35)
 * int32_t:                               Particular Types.    (line  38)
 * int64_t:                               Particular Types.    (line  41)
@@ -18721,13 +19311,13 @@ use these names in `#if' or `#ifdef' directives.
                                                               (line  35)
 * PACKAGE_VERSION:                       Initializing configure.
                                                               (line  38)
-* PARAMS:                                C Compiler.          (line 317)
+* PARAMS:                                C Compiler.          (line 329)
 * pid_t:                                 Particular Types.    (line  87)
-* PROTOTYPES:                            C Compiler.          (line 317)
+* PROTOTYPES:                            C Compiler.          (line 329)
 * realloc:                               Particular Functions.
                                                               (line 262)
-* restrict:                              C Compiler.          (line 226)
-* RETSIGTYPE:                            Particular Types.    (line  91)
+* restrict:                              C Compiler.          (line 228)
+* RETSIGTYPE:                            Obsolete Macros.     (line 662)
 * SELECT_TYPE_ARG1:                      Particular Functions.
                                                               (line 270)
 * SELECT_TYPE_ARG234:                    Particular Functions.
@@ -18737,10 +19327,10 @@ use these names in `#if' or `#ifdef' directives.
 * SETPGRP_VOID:                          Particular Functions.
                                                               (line 281)
 * SETVBUF_REVERSED:                      Obsolete Macros.     (line 208)
-* size_t:                                Particular Types.    (line 104)
+* size_t:                                Particular Types.    (line  91)
 * SIZEOF_TYPE-OR-EXPR:                   Generic Compiler Characteristics.
                                                               (line   8)
-* ssize_t:                               Particular Types.    (line 108)
+* ssize_t:                               Particular Types.    (line  95)
 * STAT_MACROS_BROKEN:                    Particular Headers.  (line  83)
 * STDC_HEADERS:                          Particular Headers.  (line 120)
 * STRERROR_R_CHAR_P:                     Particular Functions.
@@ -18753,23 +19343,23 @@ use these names in `#if' or `#ifdef' directives.
 * TIME_WITH_SYS_TIME:                    Particular Headers.  (line 224)
 * TM_IN_SYS_TIME:                        Particular Structures.
                                                               (line  32)
-* typeof:                                C Compiler.          (line 311)
-* uid_t:                                 Particular Types.    (line 112)
-* uint16_t:                              Particular Types.    (line 122)
-* uint32_t:                              Particular Types.    (line 125)
-* uint64_t:                              Particular Types.    (line 128)
-* uint8_t:                               Particular Types.    (line 116)
-* uintmax_t:                             Particular Types.    (line 131)
-* uintptr_t:                             Particular Types.    (line 136)
+* typeof:                                C Compiler.          (line 323)
+* uid_t:                                 Particular Types.    (line  99)
+* uint16_t:                              Particular Types.    (line 109)
+* uint32_t:                              Particular Types.    (line 112)
+* uint64_t:                              Particular Types.    (line 115)
+* uint8_t:                               Particular Types.    (line 103)
+* uintmax_t:                             Particular Types.    (line 118)
+* uintptr_t:                             Particular Types.    (line 123)
 * UMAX:                                  Particular Functions.
                                                               (line 130)
 * UMAX4_3:                               Particular Functions.
                                                               (line 130)
-* USG:                                   Obsolete Macros.     (line 667)
+* USG:                                   Obsolete Macros.     (line 685)
 * VARIABLE:                              Defining Symbols.    (line  74)
 * vfork:                                 Particular Functions.
                                                               (line  94)
-* volatile:                              C Compiler.          (line 241)
+* volatile:                              C Compiler.          (line 243)
 * WORDS_BIGENDIAN:                       C Compiler.          (line 167)
 * X_DISPLAY_MISSING:                     System Services.     (line  30)
 * YYTEXT_POINTER:                        Particular Programs. (line  98)
@@ -18797,18 +19387,18 @@ This is an alphabetical list of the Autoconf macros.
 * AC_BEFORE:                             Suggested Ordering.  (line  28)
 * AC_C_BACKSLASH_A:                      C Compiler.          (line 159)
 * AC_C_BIGENDIAN:                        C Compiler.          (line 167)
-* AC_C_CHAR_UNSIGNED:                    C Compiler.          (line 267)
-* AC_C_CONST:                            C Compiler.          (line 198)
+* AC_C_CHAR_UNSIGNED:                    C Compiler.          (line 269)
+* AC_C_CONST:                            C Compiler.          (line 200)
 * AC_C_CROSS:                            Obsolete Macros.     (line  30)
-* AC_C_FLEXIBLE_ARRAY_MEMBER:            C Compiler.          (line 281)
-* AC_C_INLINE:                           C Compiler.          (line 262)
+* AC_C_FLEXIBLE_ARRAY_MEMBER:            C Compiler.          (line 293)
+* AC_C_INLINE:                           C Compiler.          (line 264)
 * AC_C_LONG_DOUBLE:                      Obsolete Macros.     (line  33)
-* AC_C_PROTOTYPES:                       C Compiler.          (line 317)
-* AC_C_RESTRICT:                         C Compiler.          (line 226)
-* AC_C_STRINGIZE:                        C Compiler.          (line 271)
-* AC_C_TYPEOF:                           C Compiler.          (line 311)
-* AC_C_VARARRAYS:                        C Compiler.          (line 305)
-* AC_C_VOLATILE:                         C Compiler.          (line 241)
+* AC_C_PROTOTYPES:                       C Compiler.          (line 329)
+* AC_C_RESTRICT:                         C Compiler.          (line 228)
+* AC_C_STRINGIZE:                        C Compiler.          (line 283)
+* AC_C_TYPEOF:                           C Compiler.          (line 323)
+* AC_C_VARARRAYS:                        C Compiler.          (line 317)
+* AC_C_VOLATILE:                         C Compiler.          (line 243)
 * AC_CACHE_CHECK:                        Caching Results.     (line  30)
 * AC_CACHE_LOAD:                         Cache Checkpointing. (line  13)
 * AC_CACHE_SAVE:                         Cache Checkpointing. (line  17)
@@ -18842,11 +19432,11 @@ This is an alphabetical list of the Autoconf macros.
 * AC_CHECK_SIZEOF:                       Generic Compiler Characteristics.
                                                               (line   8)
 * AC_CHECK_TARGET_TOOL:                  Generic Programs.    (line  44)
-* AC_CHECK_TARGET_TOOLS:                 Generic Programs.    (line  76)
+* AC_CHECK_TARGET_TOOLS:                 Generic Programs.    (line  75)
 * AC_CHECK_TOOL:                         Generic Programs.    (line  60)
-* AC_CHECK_TOOLS:                        Generic Programs.    (line  89)
-* AC_CHECK_TYPE <1>:                     Obsolete Macros.     (line  54)
-* AC_CHECK_TYPE:                         Generic Types.       (line  11)
+* AC_CHECK_TOOLS:                        Generic Programs.    (line  88)
+* AC_CHECK_TYPE <1>:                     Generic Types.       (line  11)
+* AC_CHECK_TYPE:                         Obsolete Macros.     (line  54)
 * AC_CHECK_TYPES:                        Generic Types.       (line  24)
 * AC_CHECKING:                           Obsolete Macros.     (line 101)
 * AC_COMPILE_CHECK:                      Obsolete Macros.     (line 109)
@@ -19110,7 +19700,7 @@ This is an alphabetical list of the Autoconf macros.
 * AC_PROG_FC:                            Fortran Compiler.    (line  39)
 * AC_PROG_FC_C_O:                        Fortran Compiler.    (line  66)
 * AC_PROG_FGREP:                         Particular Programs. (line  28)
-* AC_PROG_GCC_TRADITIONAL:               C Compiler.          (line 327)
+* AC_PROG_GCC_TRADITIONAL:               C Compiler.          (line 339)
 * AC_PROG_GREP:                          Particular Programs. (line  16)
 * AC_PROG_INSTALL:                       Particular Programs. (line  33)
 * AC_PROG_LEX:                           Particular Programs. (line  98)
@@ -19139,28 +19729,28 @@ This is an alphabetical list of the Autoconf macros.
 * AC_RESTARTABLE_SYSCALLS:               Obsolete Macros.     (line 474)
 * AC_RETSIGTYPE:                         Obsolete Macros.     (line 482)
 * AC_REVISION:                           Notices.             (line  18)
-* AC_RSH:                                Obsolete Macros.     (line 485)
+* AC_RSH:                                Obsolete Macros.     (line 486)
 * AC_RUN_IFELSE:                         Runtime.             (line  20)
-* AC_SCO_INTL:                           Obsolete Macros.     (line 488)
+* AC_SCO_INTL:                           Obsolete Macros.     (line 489)
 * AC_SEARCH_LIBS:                        Libraries.           (line  49)
-* AC_SET_MAKE:                           Obsolete Macros.     (line 502)
-* AC_SETVBUF_REVERSED:                   Obsolete Macros.     (line 497)
-* AC_SIZE_T:                             Obsolete Macros.     (line 508)
-* AC_SIZEOF_TYPE:                        Obsolete Macros.     (line 505)
-* AC_ST_BLKSIZE:                         Obsolete Macros.     (line 538)
-* AC_ST_BLOCKS:                          Obsolete Macros.     (line 541)
-* AC_ST_RDEV:                            Obsolete Macros.     (line 544)
-* AC_STAT_MACROS_BROKEN:                 Obsolete Macros.     (line 511)
-* AC_STDC_HEADERS:                       Obsolete Macros.     (line 514)
-* AC_STRCOLL:                            Obsolete Macros.     (line 517)
+* AC_SET_MAKE:                           Obsolete Macros.     (line 503)
+* AC_SETVBUF_REVERSED:                   Obsolete Macros.     (line 498)
+* AC_SIZE_T:                             Obsolete Macros.     (line 509)
+* AC_SIZEOF_TYPE:                        Obsolete Macros.     (line 506)
+* AC_ST_BLKSIZE:                         Obsolete Macros.     (line 539)
+* AC_ST_BLOCKS:                          Obsolete Macros.     (line 542)
+* AC_ST_RDEV:                            Obsolete Macros.     (line 545)
+* AC_STAT_MACROS_BROKEN:                 Obsolete Macros.     (line 512)
+* AC_STDC_HEADERS:                       Obsolete Macros.     (line 515)
+* AC_STRCOLL:                            Obsolete Macros.     (line 518)
 * AC_STRUCT_DIRENT_D_INO:                Particular Structures.
                                                               (line   9)
 * AC_STRUCT_DIRENT_D_TYPE:               Particular Structures.
                                                               (line  21)
-* AC_STRUCT_ST_BLKSIZE:                  Obsolete Macros.     (line 520)
+* AC_STRUCT_ST_BLKSIZE:                  Obsolete Macros.     (line 521)
 * AC_STRUCT_ST_BLOCKS:                   Particular Structures.
                                                               (line  26)
-* AC_STRUCT_ST_RDEV:                     Obsolete Macros.     (line 529)
+* AC_STRUCT_ST_RDEV:                     Obsolete Macros.     (line 530)
 * AC_STRUCT_TIMEZONE:                    Particular Structures.
                                                               (line  40)
 * AC_STRUCT_TM:                          Particular Structures.
@@ -19173,17 +19763,17 @@ This is an alphabetical list of the Autoconf macros.
 * AC_SYS_LARGEFILE:                      System Services.     (line  49)
 * AC_SYS_LONG_FILE_NAMES:                System Services.     (line  71)
 * AC_SYS_POSIX_TERMIOS:                  System Services.     (line  75)
-* AC_SYS_RESTARTABLE_SYSCALLS:           Obsolete Macros.     (line 547)
-* AC_SYS_SIGLIST_DECLARED:               Obsolete Macros.     (line 562)
-* AC_TEST_CPP:                           Obsolete Macros.     (line 567)
-* AC_TEST_PROGRAM:                       Obsolete Macros.     (line 571)
-* AC_TIME_WITH_SYS_TIME:                 Obsolete Macros.     (line 578)
-* AC_TIMEZONE:                           Obsolete Macros.     (line 575)
-* AC_TRY_COMPILE:                        Obsolete Macros.     (line 582)
-* AC_TRY_CPP:                            Obsolete Macros.     (line 601)
-* AC_TRY_LINK:                           Obsolete Macros.     (line 614)
-* AC_TRY_LINK_FUNC:                      Obsolete Macros.     (line 643)
-* AC_TRY_RUN:                            Obsolete Macros.     (line 650)
+* AC_SYS_RESTARTABLE_SYSCALLS:           Obsolete Macros.     (line 548)
+* AC_SYS_SIGLIST_DECLARED:               Obsolete Macros.     (line 563)
+* AC_TEST_CPP:                           Obsolete Macros.     (line 568)
+* AC_TEST_PROGRAM:                       Obsolete Macros.     (line 572)
+* AC_TIME_WITH_SYS_TIME:                 Obsolete Macros.     (line 579)
+* AC_TIMEZONE:                           Obsolete Macros.     (line 576)
+* AC_TRY_COMPILE:                        Obsolete Macros.     (line 583)
+* AC_TRY_CPP:                            Obsolete Macros.     (line 602)
+* AC_TRY_LINK:                           Obsolete Macros.     (line 615)
+* AC_TRY_LINK_FUNC:                      Obsolete Macros.     (line 644)
+* AC_TRY_RUN:                            Obsolete Macros.     (line 651)
 * AC_TYPE_GETGROUPS:                     Particular Types.    (line  14)
 * AC_TYPE_INT16_T:                       Particular Types.    (line  35)
 * AC_TYPE_INT32_T:                       Particular Types.    (line  38)
@@ -19198,33 +19788,33 @@ This is an alphabetical list of the Autoconf macros.
 * AC_TYPE_MODE_T:                        Particular Types.    (line  79)
 * AC_TYPE_OFF_T:                         Particular Types.    (line  83)
 * AC_TYPE_PID_T:                         Particular Types.    (line  87)
-* AC_TYPE_SIGNAL:                        Particular Types.    (line  91)
-* AC_TYPE_SIZE_T:                        Particular Types.    (line 104)
-* AC_TYPE_SSIZE_T:                       Particular Types.    (line 108)
-* AC_TYPE_UID_T:                         Particular Types.    (line 112)
-* AC_TYPE_UINT16_T:                      Particular Types.    (line 122)
-* AC_TYPE_UINT32_T:                      Particular Types.    (line 125)
-* AC_TYPE_UINT64_T:                      Particular Types.    (line 128)
-* AC_TYPE_UINT8_T:                       Particular Types.    (line 116)
-* AC_TYPE_UINTMAX_T:                     Particular Types.    (line 131)
-* AC_TYPE_UINTPTR_T:                     Particular Types.    (line 136)
-* AC_TYPE_UNSIGNED_LONG_LONG_INT:        Particular Types.    (line 141)
-* AC_UID_T:                              Obsolete Macros.     (line 661)
-* AC_UNISTD_H:                           Obsolete Macros.     (line 664)
+* AC_TYPE_SIGNAL:                        Obsolete Macros.     (line 662)
+* AC_TYPE_SIZE_T:                        Particular Types.    (line  91)
+* AC_TYPE_SSIZE_T:                       Particular Types.    (line  95)
+* AC_TYPE_UID_T:                         Particular Types.    (line  99)
+* AC_TYPE_UINT16_T:                      Particular Types.    (line 109)
+* AC_TYPE_UINT32_T:                      Particular Types.    (line 112)
+* AC_TYPE_UINT64_T:                      Particular Types.    (line 115)
+* AC_TYPE_UINT8_T:                       Particular Types.    (line 103)
+* AC_TYPE_UINTMAX_T:                     Particular Types.    (line 118)
+* AC_TYPE_UINTPTR_T:                     Particular Types.    (line 123)
+* AC_TYPE_UNSIGNED_LONG_LONG_INT:        Particular Types.    (line 128)
+* AC_UID_T:                              Obsolete Macros.     (line 679)
+* AC_UNISTD_H:                           Obsolete Macros.     (line 682)
 * AC_USE_SYSTEM_EXTENSIONS:              Posix Variants.      (line  10)
-* AC_USG:                                Obsolete Macros.     (line 667)
-* AC_UTIME_NULL:                         Obsolete Macros.     (line 672)
-* AC_VALIDATE_CACHED_SYSTEM_TUPLE:       Obsolete Macros.     (line 675)
-* AC_VERBOSE:                            Obsolete Macros.     (line 680)
-* AC_VFORK:                              Obsolete Macros.     (line 683)
-* AC_VPRINTF:                            Obsolete Macros.     (line 686)
-* AC_WAIT3:                              Obsolete Macros.     (line 689)
-* AC_WARN:                               Obsolete Macros.     (line 694)
+* AC_USG:                                Obsolete Macros.     (line 685)
+* AC_UTIME_NULL:                         Obsolete Macros.     (line 690)
+* AC_VALIDATE_CACHED_SYSTEM_TUPLE:       Obsolete Macros.     (line 693)
+* AC_VERBOSE:                            Obsolete Macros.     (line 698)
+* AC_VFORK:                              Obsolete Macros.     (line 701)
+* AC_VPRINTF:                            Obsolete Macros.     (line 704)
+* AC_WAIT3:                              Obsolete Macros.     (line 707)
+* AC_WARN:                               Obsolete Macros.     (line 712)
 * AC_WARNING:                            Reporting Messages.  (line  26)
-* AC_WITH:                               Obsolete Macros.     (line 697)
-* AC_WORDS_BIGENDIAN:                    Obsolete Macros.     (line 701)
-* AC_XENIX_DIR:                          Obsolete Macros.     (line 704)
-* AC_YYTEXT_POINTER:                     Obsolete Macros.     (line 721)
+* AC_WITH:                               Obsolete Macros.     (line 715)
+* AC_WORDS_BIGENDIAN:                    Obsolete Macros.     (line 719)
+* AC_XENIX_DIR:                          Obsolete Macros.     (line 722)
+* AC_YYTEXT_POINTER:                     Obsolete Macros.     (line 739)
 * AH_BOTTOM:                             Autoheader Macros.   (line  50)
 * AH_HEADER:                             Configuration Headers.
                                                               (line  54)
@@ -19271,7 +19861,7 @@ This is an alphabetical list of the M4, M4sugar, and M4sh macros.
 * m4_append_uniq:                        Text processing Macros.
                                                               (line  16)
 * m4_append_uniq_w:                      Text processing Macros.
-                                                              (line  61)
+                                                              (line  69)
 * m4_apply:                              Evaluation Macros.   (line  10)
 * m4_assert:                             Diagnostic Macros.   (line  11)
 * m4_bmatch:                             Conditional constructs.
@@ -19281,125 +19871,162 @@ This is an alphabetical list of the M4, M4sugar, and M4sh macros.
                                                               (line  18)
 * m4_bregexp:                            Redefined M4 Macros. (line  86)
 * m4_builtin:                            Redefined M4 Macros. (line   6)
-* m4_car:                                Looping constructs.  (line  15)
+* m4_car:                                Looping constructs.  (line  29)
 * m4_case:                               Conditional constructs.
-                                                              (line  32)
-* m4_cdr:                                Looping constructs.  (line  21)
+                                                              (line  33)
+* m4_cdr:                                Looping constructs.  (line  35)
 * m4_changecom:                          Redefined M4 Macros. (line   6)
 * m4_changequote:                        Redefined M4 Macros. (line   6)
 * m4_cmp:                                Number processing Macros.
                                                               (line  11)
 * m4_combine:                            Text processing Macros.
-                                                              (line  72)
+                                                              (line  80)
 * m4_cond:                               Conditional constructs.
-                                                              (line  41)
+                                                              (line  42)
 * m4_count:                              Evaluation Macros.   (line  26)
 * m4_debugfile:                          Redefined M4 Macros. (line   6)
 * m4_debugmode:                          Redefined M4 Macros. (line   6)
 * m4_decr:                               Redefined M4 Macros. (line   6)
 * m4_default:                            Conditional constructs.
-                                                              (line  69)
+                                                              (line  70)
 * m4_define:                             Redefined M4 Macros. (line   6)
 * m4_defn:                               Redefined M4 Macros. (line  91)
-* m4_divert:                             Redefined M4 Macros. (line  96)
+* m4_divert:                             Redefined M4 Macros. (line  99)
 * m4_divert_once:                        Diversion support.   (line  73)
 * m4_divert_pop:                         Diversion support.   (line  78)
 * m4_divert_push:                        Diversion support.   (line  84)
 * m4_divert_text:                        Diversion support.   (line  90)
 * m4_divnum:                             Redefined M4 Macros. (line   6)
 * m4_do:                                 Evaluation Macros.   (line  30)
-* m4_dquote:                             Evaluation Macros.   (line  35)
-* m4_dquote_elt:                         Evaluation Macros.   (line  40)
+* m4_dquote:                             Evaluation Macros.   (line  50)
+* m4_dquote_elt:                         Evaluation Macros.   (line  55)
 * m4_dumpdef:                            Redefined M4 Macros. (line   6)
-* m4_echo:                               Evaluation Macros.   (line  45)
+* m4_echo:                               Evaluation Macros.   (line  60)
 * m4_errprint:                           Redefined M4 Macros. (line   6)
 * m4_errprintn:                          Diagnostic Macros.   (line  16)
 * m4_esyscmd:                            Redefined M4 Macros. (line   6)
 * m4_eval:                               Redefined M4 Macros. (line   6)
-* m4_exit:                               Redefined M4 Macros. (line 103)
-* m4_expand:                             Evaluation Macros.   (line  49)
+* m4_exit:                               Redefined M4 Macros. (line 106)
+* m4_expand:                             Evaluation Macros.   (line  64)
 * m4_fatal:                              Diagnostic Macros.   (line  20)
 * m4_flatten:                            Text processing Macros.
-                                                              (line  92)
-* m4_for:                                Looping constructs.  (line  38)
-* m4_foreach:                            Looping constructs.  (line  45)
-* m4_foreach_w:                          Looping constructs.  (line  56)
+                                                              (line 100)
+* m4_for:                                Looping constructs.  (line  52)
+* m4_foreach:                            Looping constructs.  (line  62)
+* m4_foreach_w:                          Looping constructs.  (line  73)
 * m4_format:                             Redefined M4 Macros. (line   6)
-* m4_if:                                 Redefined M4 Macros. (line 108)
+* m4_if:                                 Redefined M4 Macros. (line 111)
 * m4_ifdef:                              Redefined M4 Macros. (line   6)
 * m4_ifndef:                             Conditional constructs.
-                                                              (line  74)
+                                                              (line  75)
 * m4_ifset:                              Conditional constructs.
-                                                              (line  78)
+                                                              (line  79)
 * m4_ifval:                              Conditional constructs.
-                                                              (line  84)
+                                                              (line  85)
 * m4_ifvaln:                             Conditional constructs.
-                                                              (line  89)
-* m4_ignore:                             Evaluation Macros.   (line  77)
-* m4_include:                            Redefined M4 Macros. (line 115)
+                                                              (line  90)
+* m4_ignore:                             Evaluation Macros.   (line 102)
+* m4_include:                            Redefined M4 Macros. (line 118)
 * m4_incr:                               Redefined M4 Macros. (line   6)
 * m4_index:                              Redefined M4 Macros. (line   6)
 * m4_indir:                              Redefined M4 Macros. (line   6)
 * m4_init:                               Diversion support.   (line  96)
 * m4_join:                               Text processing Macros.
-                                                              (line  97)
+                                                              (line 106)
+* m4_joinall:                            Text processing Macros.
+                                                              (line 106)
 * m4_len:                                Redefined M4 Macros. (line   6)
 * m4_list_cmp:                           Number processing Macros.
                                                               (line  16)
 * m4_location:                           Diagnostic Macros.   (line  24)
-* m4_make_list:                          Evaluation Macros.   (line  90)
-* m4_maketemp:                           Redefined M4 Macros. (line 119)
+* m4_make_list:                          Evaluation Macros.   (line 115)
+* m4_maketemp:                           Redefined M4 Macros. (line 122)
+* m4_map:                                Looping constructs.  (line  82)
+* m4_map_sep:                            Looping constructs.  (line  82)
+* m4_mapall:                             Looping constructs.  (line  82)
+* m4_mapall_sep:                         Looping constructs.  (line  82)
 * m4_max:                                Number processing Macros.
                                                               (line  38)
 * m4_min:                                Number processing Macros.
                                                               (line  42)
-* m4_mkstemp:                            Redefined M4 Macros. (line 119)
+* m4_mkstemp:                            Redefined M4 Macros. (line 122)
 * m4_n:                                  Conditional constructs.
-                                                              (line  93)
+                                                              (line  94)
 * m4_newline:                            Text processing Macros.
-                                                              (line 109)
+                                                              (line 121)
 * m4_normalize:                          Text processing Macros.
-                                                              (line 115)
+                                                              (line 127)
 * m4_pattern_allow:                      Forbidden Patterns.  (line  30)
 * m4_pattern_forbid:                     Forbidden Patterns.  (line  17)
-* m4_popdef:                             Redefined M4 Macros. (line 130)
+* m4_popdef:                             Redefined M4 Macros. (line 133)
 * m4_pushdef:                            Redefined M4 Macros. (line   6)
-* m4_quote:                              Evaluation Macros.   (line 109)
+* m4_quote:                              Evaluation Macros.   (line 134)
 * m4_re_escape:                          Text processing Macros.
-                                                              (line 121)
+                                                              (line 133)
+* m4_reverse:                            Evaluation Macros.   (line 140)
+* m4_set_add:                            Set manipulation Macros.
+                                                              (line  19)
+* m4_set_add_all:                        Set manipulation Macros.
+                                                              (line  25)
+* m4_set_contains:                       Set manipulation Macros.
+                                                              (line  29)
+* m4_set_contents:                       Set manipulation Macros.
+                                                              (line  49)
+* m4_set_delete:                         Set manipulation Macros.
+                                                              (line  79)
+* m4_set_difference:                     Set manipulation Macros.
+                                                              (line  86)
+* m4_set_dump:                           Set manipulation Macros.
+                                                              (line  49)
+* m4_set_empty:                          Set manipulation Macros.
+                                                              (line 109)
+* m4_set_foreach:                        Set manipulation Macros.
+                                                              (line 115)
+* m4_set_intersection:                   Set manipulation Macros.
+                                                              (line  86)
+* m4_set_list:                           Set manipulation Macros.
+                                                              (line 135)
+* m4_set_listc:                          Set manipulation Macros.
+                                                              (line 135)
+* m4_set_remove:                         Set manipulation Macros.
+                                                              (line 170)
+* m4_set_size:                           Set manipulation Macros.
+                                                              (line 181)
+* m4_set_union:                          Set manipulation Macros.
+                                                              (line  86)
 * m4_shift:                              Redefined M4 Macros. (line   6)
-* m4_shift2:                             Looping constructs.  (line  83)
-* m4_shift3:                             Looping constructs.  (line  83)
-* m4_shiftn:                             Looping constructs.  (line  83)
+* m4_shift2:                             Looping constructs.  (line 121)
+* m4_shift3:                             Looping constructs.  (line 121)
+* m4_shiftn:                             Looping constructs.  (line 121)
 * m4_sign:                               Number processing Macros.
                                                               (line  46)
-* m4_sinclude:                           Redefined M4 Macros. (line 115)
+* m4_sinclude:                           Redefined M4 Macros. (line 118)
 * m4_split:                              Text processing Macros.
-                                                              (line 125)
+                                                              (line 137)
 * m4_strip:                              Text processing Macros.
-                                                              (line 131)
+                                                              (line 143)
 * m4_substr:                             Redefined M4 Macros. (line   6)
 * m4_syscmd:                             Redefined M4 Macros. (line   6)
 * m4_sysval:                             Redefined M4 Macros. (line   6)
 * m4_text_box:                           Text processing Macros.
-                                                              (line 139)
+                                                              (line 151)
 * m4_text_wrap:                          Text processing Macros.
-                                                              (line 150)
+                                                              (line 165)
 * m4_tolower:                            Text processing Macros.
-                                                              (line 181)
+                                                              (line 196)
 * m4_toupper:                            Text processing Macros.
-                                                              (line 181)
+                                                              (line 196)
 * m4_traceoff:                           Redefined M4 Macros. (line   6)
 * m4_traceon:                            Redefined M4 Macros. (line   6)
 * m4_translit:                           Redefined M4 Macros. (line   6)
-* m4_undefine:                           Redefined M4 Macros. (line 135)
-* m4_undivert:                           Redefined M4 Macros. (line 144)
-* m4_unquote:                            Evaluation Macros.   (line 115)
+* m4_undefine:                           Redefined M4 Macros. (line 137)
+* m4_undivert:                           Redefined M4 Macros. (line 145)
+* m4_unquote:                            Evaluation Macros.   (line 149)
 * m4_version_compare:                    Number processing Macros.
                                                               (line  50)
 * m4_warn:                               Diagnostic Macros.   (line  28)
-* m4_wrap:                               Redefined M4 Macros. (line 152)
-* m4_wrap_lifo:                          Redefined M4 Macros. (line 152)
+* m4_wrap:                               Redefined M4 Macros. (line 153)
+* m4_wrap_lifo:                          Redefined M4 Macros. (line 153)
 
 
 File: autoconf.info,  Node: Autotest Macro Index,  Next: Program & Function Index,  Prev: M4 Macro Index,  Up: Indices
@@ -19413,16 +20040,26 @@ This is an alphabetical list of the Autotest macros.
 * Menu:
 
 * AT_BANNER:                             Writing Testsuites.  (line  46)
-* AT_CAPTURE_FILE:                       Writing Testsuites.  (line  75)
-* AT_CHECK:                              Writing Testsuites.  (line 100)
-* AT_CLEANUP:                            Writing Testsuites.  (line  88)
+* AT_CAPTURE_FILE:                       Writing Testsuites.  (line  76)
+* AT_CHECK:                              Writing Testsuites.  (line 101)
+* AT_CLEANUP:                            Writing Testsuites.  (line  89)
 * AT_COPYRIGHT:                          Writing Testsuites.  (line  23)
-* AT_DATA:                               Writing Testsuites.  (line  92)
+* AT_DATA:                               Writing Testsuites.  (line  93)
 * AT_INIT:                               Writing Testsuites.  (line  17)
-* AT_KEYWORDS:                           Writing Testsuites.  (line  63)
+* AT_KEYWORDS:                           Writing Testsuites.  (line  64)
+* AT_PACKAGE_BUGREPORT:                  Making testsuite Scripts.
+                                                              (line  12)
+* AT_PACKAGE_NAME:                       Making testsuite Scripts.
+                                                              (line  12)
+* AT_PACKAGE_STRING:                     Making testsuite Scripts.
+                                                              (line  12)
+* AT_PACKAGE_TARNAME:                    Making testsuite Scripts.
+                                                              (line  12)
+* AT_PACKAGE_VERSION:                    Making testsuite Scripts.
+                                                              (line  12)
 * AT_SETUP:                              Writing Testsuites.  (line  56)
 * AT_TESTED:                             Writing Testsuites.  (line  31)
-* AT_XFAIL_IF:                           Writing Testsuites.  (line  80)
+* AT_XFAIL_IF:                           Writing Testsuites.  (line  81)
 
 
 File: autoconf.info,  Node: Program & Function Index,  Next: Concept Index,  Prev: Autotest Macro Index,  Up: Indices
@@ -19453,15 +20090,15 @@ portability is discussed in this document.
 * basename:                              Limitations of Usual Tools.
                                                               (line 137)
 * break:                                 Limitations of Builtins.
-                                                              (line  62)
+                                                              (line  76)
 * case:                                  Limitations of Builtins.
-                                                              (line  65)
+                                                              (line  79)
 * cat:                                   Limitations of Usual Tools.
                                                               (line 141)
 * cc:                                    Limitations of Usual Tools.
                                                               (line 144)
 * cd:                                    Limitations of Builtins.
-                                                              (line 141)
+                                                              (line 162)
 * chmod:                                 Limitations of Usual Tools.
                                                               (line 177)
 * chown:                                 Particular Functions.
@@ -19481,41 +20118,45 @@ portability is discussed in this document.
 * dirname:                               Limitations of Usual Tools.
                                                               (line 262)
 * echo:                                  Limitations of Builtins.
-                                                              (line 161)
+                                                              (line 182)
 * egrep:                                 Limitations of Usual Tools.
                                                               (line 269)
 * error_at_line:                         Particular Functions.
                                                               (line  70)
 * eval:                                  Limitations of Builtins.
-                                                              (line 187)
-* exit <1>:                              Function Portability.
+                                                              (line 208)
+* exec:                                  Limitations of Builtins.
+                                                              (line 252)
+* exit <1>:                              Limitations of Builtins.
+                                                              (line 292)
+* exit:                                  Function Portability.
                                                               (line  12)
-* exit:                                  Limitations of Builtins.
-                                                              (line 231)
 * export:                                Limitations of Builtins.
-                                                              (line 256)
+                                                              (line 317)
 * expr:                                  Limitations of Usual Tools.
-                                                              (line 318)
+                                                              (line 293)
 * expr (|):                              Limitations of Usual Tools.
                                                               (line 299)
 * false:                                 Limitations of Builtins.
-                                                              (line 282)
+                                                              (line 353)
 * fgrep:                                 Limitations of Usual Tools.
                                                               (line 390)
 * find:                                  Limitations of Usual Tools.
                                                               (line 397)
 * float.h:                               Particular Headers.  (line 120)
 * fnmatch:                               Particular Functions.
-                                                              (line  74)
+                                                              (line  86)
 * fnmatch.h:                             Particular Functions.
                                                               (line 358)
 * for:                                   Limitations of Builtins.
-                                                              (line 286)
+                                                              (line 357)
 * fork:                                  Particular Functions.
                                                               (line  94)
 * free:                                  Function Portability.
                                                               (line  22)
 * fseeko:                                Particular Functions.
+                                                              (line 116)
+* ftello:                                Particular Functions.
                                                               (line 116)
 * getgroups:                             Particular Functions.
                                                               (line 124)
@@ -19530,7 +20171,7 @@ portability is discussed in this document.
 * grep:                                  Limitations of Usual Tools.
                                                               (line 411)
 * if:                                    Limitations of Builtins.
-                                                              (line 312)
+                                                              (line 383)
 * inttypes.h <1>:                        Header Portability.  (line  16)
 * inttypes.h:                            Particular Types.    (line   6)
 * isinf:                                 Function Portability.
@@ -19549,7 +20190,7 @@ portability is discussed in this document.
 * ls:                                    Limitations of Usual Tools.
                                                               (line 500)
 * lstat:                                 Particular Functions.
-                                                              (line 293)
+                                                              (line 190)
 * make:                                  Portable Make.       (line   6)
 * malloc <1>:                            Function Portability.
                                                               (line  73)
@@ -19578,17 +20219,17 @@ portability is discussed in this document.
                                                               (line 601)
 * pdksh:                                 Shellology.          (line  77)
 * printf:                                Limitations of Builtins.
-                                                              (line 341)
+                                                              (line 412)
 * putenv:                                Function Portability.
                                                               (line  80)
 * pwd:                                   Limitations of Builtins.
-                                                              (line 363)
+                                                              (line 434)
 * read:                                  Limitations of Builtins.
-                                                              (line 360)
-* realloc <1>:                           Function Portability.
-                                                              (line  96)
-* realloc:                               Particular Functions.
+                                                              (line 431)
+* realloc <1>:                           Particular Functions.
                                                               (line 262)
+* realloc:                               Function Portability.
+                                                              (line  96)
 * resolv.h:                              Particular Headers.  (line  63)
 * rm:                                    Limitations of Usual Tools.
                                                               (line 610)
@@ -19599,44 +20240,46 @@ portability is discussed in this document.
 * select:                                Particular Functions.
                                                               (line 270)
 * set:                                   Limitations of Builtins.
-                                                              (line 394)
+                                                              (line 465)
 * setpgrp:                               Particular Functions.
                                                               (line 281)
 * setvbuf:                               Obsolete Macros.     (line 208)
 * shift:                                 Limitations of Builtins.
-                                                              (line 448)
+                                                              (line 519)
+* sigaction:                             Function Portability.
+                                                              (line 101)
 * signal:                                Function Portability.
                                                               (line 101)
-* signal.h:                              Particular Types.    (line  91)
+* signal.h:                              Obsolete Macros.     (line 662)
 * snprintf:                              Function Portability.
-                                                              (line 112)
+                                                              (line 115)
 * source:                                Limitations of Builtins.
-                                                              (line 456)
+                                                              (line 527)
 * sprintf:                               Function Portability.
-                                                              (line 123)
+                                                              (line 126)
 * sscanf:                                Function Portability.
-                                                              (line 129)
+                                                              (line 132)
 * stat:                                  Particular Functions.
                                                               (line 293)
 * stdarg.h:                              Particular Headers.  (line 120)
 * stdbool.h:                             Particular Headers.  (line  92)
-* stdint.h <1>:                          Particular Types.    (line   6)
-* stdint.h:                              Header Portability.  (line  16)
-* stdlib.h <1>:                          Particular Headers.  (line 120)
-* stdlib.h <2>:                          Particular Types.    (line   6)
-* stdlib.h:                              Header Portability.  (line  72)
+* stdint.h <1>:                          Header Portability.  (line  16)
+* stdint.h:                              Particular Types.    (line   6)
+* stdlib.h <1>:                          Particular Types.    (line   6)
+* stdlib.h <2>:                          Header Portability.  (line  72)
+* stdlib.h:                              Particular Headers.  (line 120)
 * strcoll:                               Particular Functions.
                                                               (line 305)
 * strerror_r <1>:                        Particular Functions.
                                                               (line 311)
 * strerror_r:                            Function Portability.
-                                                              (line 137)
+                                                              (line 140)
 * strftime:                              Particular Functions.
                                                               (line 321)
 * string.h:                              Particular Headers.  (line 120)
 * strings.h:                             Particular Headers.  (line 137)
 * strnlen <1>:                           Function Portability.
-                                                              (line 143)
+                                                              (line 146)
 * strnlen:                               Particular Functions.
                                                               (line 338)
 * strtod:                                Particular Functions.
@@ -19652,40 +20295,42 @@ portability is discussed in this document.
 * sys/socket.h:                          Header Portability.  (line  82)
 * sys/stat.h:                            Particular Headers.  (line  83)
 * sys/sysmacros.h:                       Particular Headers.  (line  58)
-* sys/time.h <1>:                        Particular Headers.  (line 224)
-* sys/time.h:                            Particular Structures.
+* sys/time.h <1>:                        Particular Structures.
                                                               (line  32)
+* sys/time.h:                            Particular Headers.  (line 224)
 * sys/types.h:                           Particular Types.    (line   6)
 * sys/ucred.h:                           Header Portability.  (line  85)
 * sys/wait.h:                            Particular Headers.  (line 187)
 * sysconf:                               Function Portability.
-                                                              (line 158)
+                                                              (line 161)
 * system.h:                              Particular Headers.  (line  92)
 * termios.h:                             Particular Headers.  (line 248)
 * test:                                  Limitations of Builtins.
-                                                              (line 460)
-* time.h <1>:                            Particular Structures.
+                                                              (line 531)
+* time.h <1>:                            Particular Headers.  (line 224)
+* time.h:                                Particular Structures.
                                                               (line  32)
-* time.h:                                Particular Headers.  (line 224)
 * touch:                                 Limitations of Usual Tools.
                                                               (line 827)
+* tr:                                    Limitations of Usual Tools.
+                                                              (line 840)
 * trap:                                  Limitations of Builtins.
-                                                              (line 548)
+                                                              (line 619)
 * true:                                  Limitations of Builtins.
-                                                              (line 597)
+                                                              (line 668)
 * unistd.h:                              Particular Headers.  (line 208)
 * unlink:                                Function Portability.
-                                                              (line 162)
+                                                              (line 165)
 * unset:                                 Limitations of Builtins.
-                                                              (line 608)
+                                                              (line 679)
 * unsetenv:                              Function Portability.
-                                                              (line 168)
+                                                              (line 171)
 * utime:                                 Particular Functions.
                                                               (line 342)
 * va_copy:                               Function Portability.
-                                                              (line 173)
+                                                              (line 176)
 * va_list:                               Function Portability.
-                                                              (line 180)
+                                                              (line 183)
 * vfork:                                 Particular Functions.
                                                               (line  94)
 * vfork.h:                               Particular Functions.
@@ -19693,13 +20338,16 @@ portability is discussed in this document.
 * vprintf:                               Particular Functions.
                                                               (line 349)
 * vsnprintf:                             Function Portability.
-                                                              (line 112)
-* vsprintf:                              Function Portability.
-                                                              (line 123)
+                                                              (line 115)
+* vsprintf <1>:                          Function Portability.
+                                                              (line 126)
+* vsprintf:                              Particular Functions.
+                                                              (line 349)
+* wait3:                                 Obsolete Macros.     (line 216)
 * wchar.h:                               Particular Types.    (line  74)
 * X11/extensions/scrnsaver.h:            Header Portability.  (line  88)
 * {...}:                                 Limitations of Builtins.
-                                                              (line  43)
+                                                              (line  57)
 
 
 File: autoconf.info,  Node: Concept Index,  Prev: Program & Function Index,  Up: Indices
@@ -19714,8 +20362,8 @@ introduced in this document.
 * Menu:
 
 * "$@":                                  Shell Substitutions. (line  31)
-* $((EXPRESSION)):                       Shell Substitutions. (line 247)
-* $(COMMANDS):                           Shell Substitutions. (line 214)
+* $((EXPRESSION)):                       Shell Substitutions. (line 263)
+* $(COMMANDS):                           Shell Substitutions. (line 230)
 * $<, explicit rules, and VPATH:         $< in Explicit Rules.
                                                               (line   6)
 * ${#VAR}:                               Shell Substitutions. (line 176)
@@ -19727,7 +20375,7 @@ introduced in this document.
 * ${VAR=LITERAL}:                        Shell Substitutions. (line  96)
 * @&t@:                                  Quadrigraphs.        (line   6)
 * @S|@:                                  Quadrigraphs.        (line   6)
-* ^ quoting:                             Shell Substitutions. (line 251)
+* ^ quoting:                             Shell Substitutions. (line 302)
 * _m4_divert_diversion:                  New Macros.          (line   6)
 * `COMMANDS`:                            Shell Substitutions. (line 184)
 * absolute file names, detect:           File System Conventions.
@@ -19745,7 +20393,7 @@ introduced in this document.
 * Autoheader macros:                     Autoheader Macros.   (line   6)
 * Autom4te Library:                      autom4te Invocation. (line 225)
 * autom4te.cache:                        autom4te Invocation. (line 130)
-* autom4te.cfg:                          autom4te Invocation. (line 259)
+* autom4te.cfg:                          autom4te Invocation. (line 258)
 * Automake:                              Automake.            (line  19)
 * Automatic remaking:                    Automatic Remaking.  (line   6)
 * automatic rule rewriting and VPATH:    Automatic Rule Rewriting.
@@ -19761,7 +20409,7 @@ introduced in this document.
 * autoupdate:                            autoupdate Invocation.
                                                               (line   6)
 * Back trace <1>:                        autom4te Invocation. (line  86)
-* Back trace:                            autoconf Invocation. (line  88)
+* Back trace:                            autoconf Invocation. (line  87)
 * Bash:                                  Shellology.          (line  43)
 * Bash 2.05 and later:                   Shellology.          (line  49)
 * Bootstrap:                             Bootstrapping.       (line   6)
@@ -19775,8 +20423,10 @@ introduced in this document.
 * Cache variable:                        Cache Variable Names.
                                                               (line   6)
 * Cache, enabling:                       configure Invocation.
-                                                              (line  18)
+                                                              (line  25)
 * Canonical system type:                 Canonicalizing.      (line   6)
+* carriage return, deleting:             Limitations of Usual Tools.
+                                                              (line 840)
 * changequote:                           Changequote is Evil. (line   6)
 * Coding style:                          Coding Style.        (line   6)
 * Command Substitution:                  Shell Substitutions. (line 184)
@@ -19794,7 +20444,7 @@ introduced in this document.
 * config.h.top:                          acconfig Header.     (line   6)
 * config.status:                         config.status Invocation.
                                                               (line   6)
-* config.sub:                            Specifying Names.    (line  59)
+* config.sub:                            Specifying Names.    (line  56)
 * Configuration actions:                 Configuration Actions.
                                                               (line   6)
 * Configuration commands:                Configuration Commands.
@@ -19804,32 +20454,36 @@ introduced in this document.
                                                               (line   6)
 * Configuration Header Template:         Header Templates.    (line   6)
 * Configuration links:                   Configuration Links. (line   6)
-* configure <1>:                         Running configure Scripts.
+* configure <1>:                         Making configure Scripts.
                                                               (line   6)
-* configure:                             Making configure Scripts.
+* configure:                             Running configure Scripts.
                                                               (line   6)
 * Configure subdirectories:              Subdirectories.      (line   6)
 * configure.ac:                          Making configure Scripts.
                                                               (line  27)
 * configure.in:                          Making configure Scripts.
                                                               (line  27)
-* Copyright Notice <1>:                  Writing Testsuites.  (line  23)
-* Copyright Notice:                      Notices.             (line  10)
+* Copyright Notice <1>:                  Notices.             (line  10)
+* Copyright Notice:                      Writing Testsuites.  (line  23)
 * Creating configuration files:          Configuration Files. (line   6)
 * Creating temporary files:              Limitations of Usual Tools.
                                                               (line 545)
 * Cross compilation:                     Hosts and Cross-Compilation.
                                                               (line   6)
 * Darwin:                                Systemology.         (line  23)
+* Data structure, set:                   Set manipulation Macros.
+                                                              (line   6)
 * datarootdir:                           Changed Directory Variables.
                                                               (line   6)
 * Declaration, checking:                 Declarations.        (line   6)
 * Default includes:                      Default Includes.    (line   6)
+* deleting carriage return:              Limitations of Usual Tools.
+                                                              (line 840)
 * Dependencies between macros:           Dependencies Between Macros.
                                                               (line   6)
+* Descriptors:                           File Descriptors.    (line   6)
 * descriptors:                           File Descriptor Macros.
                                                               (line   6)
-* Descriptors:                           File Descriptors.    (line   6)
 * Directories, build:                    Build Directories.   (line   6)
 * Directories, installation:             Installation Directory Variables.
                                                               (line   6)
@@ -19849,9 +20503,9 @@ introduced in this document.
 * External software:                     External Software.   (line   6)
 * F77:                                   Fortran Compiler.    (line   6)
 * FHS:                                   Site Defaults.       (line  80)
+* File descriptors:                      File Descriptors.    (line   6)
 * file descriptors:                      File Descriptor Macros.
                                                               (line   6)
-* File descriptors:                      File Descriptors.    (line   6)
 * File system conventions:               File System Conventions.
                                                               (line   6)
 * File, checking:                        Files.               (line   6)
@@ -19884,11 +20538,11 @@ introduced in this document.
 * Instantiation:                         Output.              (line  13)
 * integer overflow <1>:                  Integer Overflow Basics.
                                                               (line   6)
-* integer overflow <2>:                  Integer Overflow.    (line   6)
-* integer overflow <3>:                  Signed Overflow Examples.
+* integer overflow <2>:                  Signed Overflow Examples.
                                                               (line   6)
-* integer overflow:                      Signed Overflow Advice.
+* integer overflow <3>:                  Signed Overflow Advice.
                                                               (line   6)
+* integer overflow:                      Integer Overflow.    (line   6)
 * Introduction:                          Introduction.        (line   6)
 * Korn shell:                            Shellology.          (line  57)
 * Ksh:                                   Shellology.          (line  57)
@@ -19915,7 +20569,7 @@ introduced in this document.
 * M4 quotation:                          M4 Quotation.        (line   6)
 * M4sugar:                               Programming in M4sugar.
                                                               (line   6)
-* Macro invocation stack <1>:            autoconf Invocation. (line  88)
+* Macro invocation stack <1>:            autoconf Invocation. (line  87)
 * Macro invocation stack:                autom4te Invocation. (line  86)
 * Macros, called once:                   One-Shot Macros.     (line   6)
 * Macros, obsoleting:                    Obsoleting Macros.   (line   6)
@@ -19959,10 +20613,10 @@ introduced in this document.
 * output, low-level:                     File Descriptor Macros.
                                                               (line   6)
 * Outputting files:                      Output.              (line   6)
-* overflow, signed integer <1>:          Signed Overflow Examples.
+* overflow, signed integer <1>:          Integer Overflow Basics.
                                                               (line   6)
 * overflow, signed integer <2>:          Integer Overflow.    (line   6)
-* overflow, signed integer <3>:          Integer Overflow Basics.
+* overflow, signed integer <3>:          Signed Overflow Examples.
                                                               (line   6)
 * overflow, signed integer:              Signed Overflow Advice.
                                                               (line   6)
@@ -19994,12 +20648,14 @@ introduced in this document.
                                                               (line   6)
 * QNX 4.25:                              Systemology.         (line  37)
 * quadrigraphs:                          Quadrigraphs.        (line   6)
-* quotation <1>:                         Autoconf Language.   (line   6)
-* quotation:                             M4 Quotation.        (line   6)
+* quotation <1>:                         M4 Quotation.        (line   6)
+* quotation:                             Autoconf Language.   (line   6)
 * Remaking automatically:                Automatic Remaking.  (line   6)
 * Revision:                              Notices.             (line  18)
 * Rule, Single Suffix Inference:         Single Suffix Rules. (line   6)
 * Separated Dependencies:                Single Suffix Rules. (line   9)
+* Set manipulation:                      Set manipulation Macros.
+                                                              (line   6)
 * SHELL and make:                        The Make Macro SHELL.
                                                               (line   6)
 * Shell assignments:                     Assignments.         (line   6)
@@ -20016,12 +20672,12 @@ introduced in this document.
 * Shell variables:                       Special Shell Variables.
                                                               (line   6)
 * Shellology:                            Shellology.          (line   6)
-* signed integer overflow <1>:           Signed Overflow Examples.
+* signed integer overflow <1>:           Integer Overflow.    (line   6)
+* signed integer overflow <2>:           Signed Overflow Examples.
                                                               (line   6)
-* signed integer overflow <2>:           Integer Overflow.    (line   6)
-* signed integer overflow <3>:           Integer Overflow Basics.
+* signed integer overflow <3>:           Signed Overflow Advice.
                                                               (line   6)
-* signed integer overflow:               Signed Overflow Advice.
+* signed integer overflow:               Integer Overflow Basics.
                                                               (line   6)
 * Single Suffix Inference Rule:          Single Suffix Rules. (line   6)
 * Site defaults:                         Site Defaults.       (line   6)
@@ -20037,22 +20693,24 @@ introduced in this document.
                                                               (line   6)
 * Symbolic links:                        Limitations of Usual Tools.
                                                               (line 488)
-* System type <1>:                       Specifying Names.    (line   6)
-* System type:                           Canonicalizing.      (line   6)
+* System type <1>:                       Canonicalizing.      (line   6)
+* System type:                           Specifying Names.    (line   6)
 * Systemology:                           Systemology.         (line   6)
 * termios Posix headers:                 System Services.     (line  75)
 * test group:                            testsuite Scripts.   (line  12)
-* testsuite <1>:                         testsuite Scripts.   (line   6)
-* testsuite:                             testsuite Invocation.
+* testsuite <1>:                         testsuite Invocation.
                                                               (line   6)
-* timestamp resolution <1>:              Limitations of Usual Tools.
+* testsuite:                             testsuite Scripts.   (line   6)
+* timestamp resolution <1>:              Timestamps and Make. (line   6)
+* timestamp resolution:                  Limitations of Usual Tools.
                                                               (line 827)
-* timestamp resolution:                  Timestamps and Make. (line   6)
 * Transforming program names:            Transforming Names.  (line   6)
 * Tru64:                                 Systemology.         (line  44)
 * Types:                                 Types.               (line   6)
 * undefined macro:                       New Macros.          (line   6)
 * Unix version 7:                        Systemology.         (line  49)
+* Unordered set manipulation:            Set manipulation Macros.
+                                                              (line   6)
 * Upgrading autoconf <1>:                Autoconf 1.          (line   6)
 * Upgrading autoconf:                    Autoconf 2.13.       (line   6)
 * V7:                                    Systemology.         (line  49)
@@ -20071,12 +20729,12 @@ introduced in this document.
 * VPATH, explicit rules, and $<:         $< in Explicit Rules.
                                                               (line   6)
 * VPATH, resolving target pathnames:     Make Target Lookup.  (line   6)
-* wraparound arithmetic <1>:             Integer Overflow.    (line   6)
-* wraparound arithmetic <2>:             Integer Overflow Basics.
+* wraparound arithmetic <1>:             Signed Overflow Advice.
                                                               (line   6)
-* wraparound arithmetic <3>:             Signed Overflow Advice.
+* wraparound arithmetic <2>:             Integer Overflow.    (line   6)
+* wraparound arithmetic <3>:             Signed Overflow Examples.
                                                               (line   6)
-* wraparound arithmetic:                 Signed Overflow Examples.
+* wraparound arithmetic:                 Integer Overflow Basics.
                                                               (line   6)
 * X Window System:                       System Services.     (line  10)
 * Zsh:                                   Shellology.          (line  97)
@@ -20084,341 +20742,343 @@ introduced in this document.
 
 
 Tag Table:
-Node: Top2281
-Node: Introduction20367
-Node: The GNU Build System26871
-Node: Automake27850
-Node: Gnulib29800
-Node: Libtool31109
-Node: Pointers32531
-Ref: Pointers-Footnote-133824
-Node: Making configure Scripts33984
-Node: Writing Autoconf Input37019
-Node: Shell Script Compiler38456
-Node: Autoconf Language40860
-Node: Autoconf Input Layout46735
-Node: autoscan Invocation48143
-Node: ifnames Invocation50649
-Node: autoconf Invocation51849
-Node: autoreconf Invocation57175
-Node: Setup61949
-Node: Initializing configure63271
-Ref: AC_INIT63553
-Node: Versioning65452
-Node: Notices66858
-Node: Input68033
-Ref: AC_CONFIG_SRCDIR68174
-Node: Output71121
-Ref: AC_OUTPUT71556
-Ref: AC_PROG_MAKE_SET73174
-Node: Configuration Actions73599
-Node: Configuration Files78409
-Ref: AC_CONFIG_FILES78670
-Node: Makefile Substitutions79889
-Node: Preset Output Variables81631
-Node: Installation Directory Variables89234
-Node: Changed Directory Variables96810
-Node: Build Directories99404
-Node: Automatic Remaking101169
-Node: Configuration Headers103328
-Node: Header Templates106630
-Node: autoheader Invocation108149
-Node: Autoheader Macros111792
-Node: Configuration Commands114057
-Ref: AC_CONFIG_COMMANDS114569
-Node: Configuration Links115853
-Ref: AC_CONFIG_LINKS116304
-Node: Subdirectories117277
-Node: Default Prefix119729
-Ref: AC_PREFIX_PROGRAM120620
-Node: Existing Tests121151
-Node: Common Behavior122953
-Node: Standard Symbols123592
-Node: Default Includes124173
-Node: Alternative Programs126427
-Node: Particular Programs127113
-Ref: AC_PROG_LEX132003
-Ref: AC_PROG_LN_S133906
-Node: Generic Programs135264
-Ref: AC_CHECK_PROG136235
-Ref: AC_CHECK_PROGS136830
-Ref: AC_PATH_PROG140683
-Ref: AC_PATH_PROGS140889
-Node: Files143738
-Node: Libraries144632
-Ref: AC_CHECK_LIB144869
-Ref: AC_SEARCH_LIBS147038
-Node: Library Functions147943
-Node: Function Portability148566
-Node: Particular Functions157476
-Ref: AC_FUNC_ALLOCA157807
-Ref: AC_FUNC_CLOSEDIR_VOID159858
-Ref: AC_FUNC_FORK161363
-Ref: AC_FUNC_GETLOADAVG163118
-Ref: AC_FUNC_GETMNTENT164683
-Ref: AC_FUNC_MMAP167901
-Ref: AC_FUNC_STRCOLL170229
-Ref: AC_FUNC_STRFTIME171020
-Ref: AC_FUNC_UTIME_NULL171883
-Ref: AC_FUNC_VPRINTF172150
-Node: Generic Functions173282
-Ref: AC_CHECK_FUNC173808
-Ref: AC_CHECK_FUNCS174363
-Node: Header Files178923
-Node: Header Portability179556
-Node: Particular Headers182425
-Ref: AC_HEADER_DIRENT182973
-Ref: AC_HEADER_MAJOR184503
-Ref: AC_HEADER_STAT185288
-Ref: AC_HEADER_STDC186464
-Ref: AC_HEADER_TIME191048
-Node: Generic Headers192363
-Ref: AC_CHECK_HEADER192763
-Ref: AC_CHECK_HEADERS193416
-Node: Declarations195743
-Node: Particular Declarations196339
-Node: Generic Declarations196563
-Ref: AC_CHECK_DECLS197550
-Node: Structures199792
-Node: Particular Structures200407
-Ref: AC_STRUCT_ST_BLOCKS201476
-Ref: AC_STRUCT_TIMEZONE202078
-Node: Generic Structures202407
-Ref: AC_CHECK_MEMBERS203233
-Node: Types204066
-Node: Particular Types204586
-Ref: AC_TYPE_GETGROUPS205029
-Ref: AC_TYPE_MODE_T207581
-Ref: AC_TYPE_OFF_T207692
-Ref: AC_TYPE_PID_T207801
-Ref: AC_TYPE_SIGNAL207910
-Ref: AC_TYPE_SIZE_T208253
-Ref: AC_TYPE_UID_T208477
-Node: Generic Types209958
-Node: Compilers and Preprocessors211933
-Node: Specific Compiler Characteristics213125
-Node: Generic Compiler Characteristics214230
-Ref: AC_CHECK_SIZEOF214470
-Node: C Compiler218490
-Ref: AC_PROG_CC_C_O222222
-Ref: AC_C_BIGENDIAN225765
-Ref: AC_C_CONST227494
-Ref: AC_C_INLINE230607
-Ref: AC_C_CHAR_UNSIGNED230830
-Ref: AC_PROG_GCC_TRADITIONAL233108
-Node: C++ Compiler233520
-Node: Objective C Compiler235719
-Node: Erlang Compiler and Interpreter237102
-Node: Fortran Compiler239145
-Node: System Services253618
-Ref: AC_PATH_X253863
-Ref: AC_PATH_XTRA254856
-Ref: AC_SYS_INTERPRETER255433
-Ref: AC_SYS_LONG_FILE_NAMES256815
-Node: Posix Variants257192
-Ref: AC_USE_SYSTEM_EXTENSIONS257492
-Node: Erlang Libraries258568
-Node: Writing Tests262022
-Node: Language Choice264046
-Ref: AC_LANG264543
-Ref: AC_LANG_PUSH265940
-Ref: Language Choice-Footnote-1267813
-Node: Writing Test Programs267969
-Node: Guidelines268547
-Node: Test Functions270806
-Node: Generating Sources272204
-Node: Running the Preprocessor276883
-Ref: AC_PREPROC_IFELSE277610
-Ref: AC_EGREP_HEADER279439
-Ref: AC_EGREP_CPP279768
-Node: Running the Compiler280193
-Node: Running the Linker281511
-Ref: AC_LINK_IFELSE282651
-Node: Runtime283423
-Ref: AC_RUN_IFELSE284198
-Node: Systemology288115
-Node: Multiple Cases290464
-Node: Results292047
-Node: Defining Symbols292866
-Node: Setting Output Variables297718
-Node: Special Chars in Variables303342
-Node: Caching Results304602
-Node: Cache Variable Names308316
-Node: Cache Files309878
-Node: Cache Checkpointing311856
-Node: Printing Messages313230
-Ref: AC_MSG_RESULT314744
-Ref: AC_MSG_NOTICE315251
-Ref: AC_MSG_ERROR315615
-Ref: AC_MSG_WARN316398
-Node: Programming in M4316821
-Node: M4 Quotation317699
-Node: Active Characters318600
-Ref: Active Characters-Footnote-1319987
-Node: One Macro Call320009
-Node: Quoting and Parameters321565
-Node: Quotation and Nested Macros323902
-Node: Changequote is Evil326912
-Node: Quadrigraphs329443
-Node: Quotation Rule Of Thumb331496
-Node: Using autom4te334385
-Ref: Using autom4te-Footnote-1335036
-Node: autom4te Invocation335085
-Node: Customizing autom4te343588
-Node: Programming in M4sugar344870
-Node: Redefined M4 Macros345993
-Node: Diagnostic Macros351405
-Ref: m4_fatal352158
-Ref: m4_warn352397
-Node: Diversion support353165
-Node: Conditional constructs357292
-Node: Looping constructs361721
-Ref: m4_foreach_w364272
-Node: Evaluation Macros365792
-Node: Text processing Macros372130
-Node: Number processing Macros380227
-Ref: m4_version_compare382174
-Node: Forbidden Patterns383891
-Node: Programming in M4sh385381
-Node: File Descriptor Macros389958
-Node: Writing Autoconf Macros392045
-Node: Macro Definitions392846
-Node: Macro Names394622
-Node: Reporting Messages398375
-Node: Dependencies Between Macros400217
-Node: Prerequisite Macros400910
-Node: Suggested Ordering403980
-Node: One-Shot Macros405521
-Node: Obsoleting Macros406445
-Ref: AU_DEFUN407197
-Node: Coding Style408226
-Node: Portable Shell415781
-Node: Shellology418633
-Node: Here-Documents423964
-Node: File Descriptors426607
-Node: File System Conventions430290
-Node: Shell Pattern Matching436092
-Node: Shell Substitutions436656
-Node: Assignments445523
-Node: Parentheses447412
-Node: Slashes448242
-Node: Special Shell Variables449094
-Node: Shell Functions458159
-Node: Limitations of Builtins459664
-Node: Limitations of Usual Tools484392
-Node: Portable Make518985
-Node: $< in Ordinary Make Rules520316
-Node: Failure in Make Rules520782
-Node: Special Chars in Names521863
-Node: Backslash-Newline-Newline522837
-Node: Backslash-Newline Comments523464
-Node: Long Lines in Makefiles524355
-Node: Macros and Submakes524731
-Node: The Make Macro MAKEFLAGS526841
-Node: The Make Macro SHELL527726
-Node: Comments in Make Rules529457
-Node: obj/ and Make529943
-Node: make -k Status530582
-Node: VPATH and Make531204
-Node: VPATH and Double-colon532455
-Node: $< in Explicit Rules532827
-Node: Automatic Rule Rewriting533294
-Node: Tru64 Directory Magic539223
-Node: Make Target Lookup540049
-Node: Single Suffix Rules544491
-Node: Timestamps and Make545837
-Node: Portable C and C++547051
-Node: Varieties of Unportability548692
-Node: Integer Overflow550789
-Node: Integer Overflow Basics551806
-Node: Signed Overflow Examples553554
-Node: Optimization and Wraparound557056
-Node: Signed Overflow Advice560018
-Node: Signed Integer Division562692
-Node: Preprocessor Arithmetic563303
-Node: Null Pointers564052
-Node: Buffer Overruns564686
-Node: Volatile Objects567475
-Node: Floating Point Portability573153
-Node: Exiting Portably573660
-Node: Manual Configuration575136
-Node: Specifying Names575969
-Node: Canonicalizing578918
-Node: Using System Type581175
-Node: Site Configuration583986
-Node: Help Formatting584958
-Node: External Software585902
-Ref: AC_ARG_WITH587448
-Node: Package Options591809
-Ref: AC_ARG_ENABLE593264
-Node: Pretty Help Strings594408
-Ref: AS_HELP_STRING594994
-Node: Option Checking597310
-Node: Site Details599038
-Node: Transforming Names600267
-Node: Transformation Options601349
-Node: Transformation Examples601826
-Node: Transformation Rules603547
-Node: Site Defaults605093
-Node: Running configure Scripts609746
-Node: Basic Installation610760
-Node: Compilers and Options613708
-Node: Multiple Architectures614362
-Node: Installation Names615250
-Node: Optional Features616473
-Node: System Type617257
-Node: Sharing Defaults618579
-Node: Defining Variables619217
-Node: configure Invocation620109
-Node: config.status Invocation621238
-Node: Obsolete Constructs625479
-Node: Obsolete config.status Use626442
-Node: acconfig Header628220
-Node: autoupdate Invocation630242
-Node: Obsolete Macros631938
-Ref: AC_FUNC_SETVBUF_REVERSED639580
-Node: Autoconf 1658454
-Node: Changed File Names659520
-Node: Changed Makefiles660270
-Node: Changed Macros661358
-Node: Changed Results662612
-Node: Changed Macro Writing664732
-Node: Autoconf 2.13666012
-Node: Changed Quotation667221
-Node: New Macros669139
-Node: Hosts and Cross-Compilation670934
-Node: AC_LIBOBJ vs LIBOBJS675233
-Node: AC_FOO_IFELSE vs AC_TRY_FOO676848
-Node: Using Autotest678851
-Node: Using an Autotest Test Suite681292
-Node: testsuite Scripts681583
-Node: Autotest Logs686001
-Node: Writing Testsuites688342
-Node: testsuite Invocation693964
-Node: Making testsuite Scripts697578
-Node: FAQ701697
-Node: Distributing702438
-Node: Why GNU M4703487
-Node: Bootstrapping704356
-Node: Why Not Imake704966
-Node: Defining Directories709711
-Node: Autom4te Cache711687
-Node: Present But Cannot Be Compiled713525
-Node: History717378
-Node: Genesis718176
-Node: Exodus719354
-Node: Leviticus722399
-Node: Numbers723927
-Node: Deuteronomy725842
-Node: GNU Free Documentation License728513
-Node: Indices750943
-Node: Environment Variable Index751594
-Node: Output Variable Index757451
-Node: Preprocessor Symbol Index773135
-Node: Autoconf Macro Index791193
-Node: M4 Macro Index823595
-Node: Autotest Macro Index834896
-Node: Program & Function Index835948
-Node: Concept Index854698
+Node: Top2286
+Node: Introduction20483
+Node: The GNU Build System26985
+Node: Automake27964
+Node: Gnulib29914
+Node: Libtool31223
+Node: Pointers32645
+Ref: Pointers-Footnote-133946
+Node: Making configure Scripts34106
+Node: Writing Autoconf Input37141
+Node: Shell Script Compiler38578
+Node: Autoconf Language40982
+Node: Autoconf Input Layout46858
+Node: autoscan Invocation48266
+Node: ifnames Invocation50822
+Node: autoconf Invocation52022
+Node: autoreconf Invocation57347
+Node: Setup62125
+Node: Initializing configure63447
+Ref: AC_INIT63729
+Node: Versioning65628
+Node: Notices67568
+Node: Input68743
+Ref: AC_CONFIG_SRCDIR68884
+Node: Output71831
+Ref: AC_OUTPUT72266
+Ref: AC_PROG_MAKE_SET73884
+Node: Configuration Actions74309
+Node: Configuration Files79119
+Ref: AC_CONFIG_FILES79380
+Node: Makefile Substitutions80599
+Node: Preset Output Variables82341
+Node: Installation Directory Variables89944
+Node: Changed Directory Variables97520
+Node: Build Directories100114
+Node: Automatic Remaking102057
+Node: Configuration Headers104216
+Node: Header Templates107518
+Node: autoheader Invocation110253
+Node: Autoheader Macros113895
+Node: Configuration Commands116160
+Ref: AC_CONFIG_COMMANDS116672
+Node: Configuration Links117956
+Ref: AC_CONFIG_LINKS118407
+Node: Subdirectories119380
+Node: Default Prefix121832
+Ref: AC_PREFIX_PROGRAM122723
+Node: Existing Tests123254
+Node: Common Behavior125056
+Node: Standard Symbols125695
+Node: Default Includes126276
+Node: Alternative Programs128530
+Node: Particular Programs129216
+Ref: AC_PROG_LEX134106
+Ref: AC_PROG_LN_S136009
+Node: Generic Programs137367
+Ref: AC_CHECK_PROG138338
+Ref: AC_CHECK_PROGS138933
+Ref: AC_PATH_PROG142850
+Ref: AC_PATH_PROGS143056
+Node: Files145980
+Node: Libraries146874
+Ref: AC_CHECK_LIB147111
+Ref: AC_SEARCH_LIBS149280
+Node: Library Functions150185
+Node: Function Portability150808
+Node: Particular Functions159842
+Ref: AC_FUNC_ALLOCA160173
+Ref: AC_FUNC_CLOSEDIR_VOID162224
+Ref: AC_FUNC_FORK163729
+Ref: AC_FUNC_GETLOADAVG165533
+Ref: AC_FUNC_GETMNTENT167098
+Ref: AC_FUNC_MMAP170316
+Ref: AC_FUNC_STRCOLL172644
+Ref: AC_FUNC_STRFTIME173435
+Ref: AC_FUNC_UTIME_NULL174298
+Ref: AC_FUNC_VPRINTF174565
+Node: Generic Functions175697
+Ref: AC_CHECK_FUNC176223
+Ref: AC_CHECK_FUNCS176778
+Node: Header Files181338
+Node: Header Portability181971
+Node: Particular Headers184840
+Ref: AC_HEADER_DIRENT185388
+Ref: AC_HEADER_MAJOR186918
+Ref: AC_HEADER_STAT187703
+Ref: AC_HEADER_STDC188879
+Ref: AC_HEADER_TIME193463
+Node: Generic Headers194778
+Ref: AC_CHECK_HEADER195178
+Ref: AC_CHECK_HEADERS195831
+Node: Declarations198158
+Node: Particular Declarations198754
+Node: Generic Declarations198978
+Ref: AC_CHECK_DECLS199965
+Node: Structures202207
+Node: Particular Structures202822
+Ref: AC_STRUCT_ST_BLOCKS203891
+Ref: AC_STRUCT_TIMEZONE204493
+Node: Generic Structures204822
+Ref: AC_CHECK_MEMBERS205648
+Node: Types206481
+Node: Particular Types207001
+Ref: AC_TYPE_GETGROUPS207444
+Ref: AC_TYPE_MODE_T209996
+Ref: AC_TYPE_OFF_T210107
+Ref: AC_TYPE_PID_T210216
+Ref: AC_TYPE_SIZE_T210325
+Ref: AC_TYPE_UID_T210549
+Node: Generic Types212030
+Node: Compilers and Preprocessors214005
+Node: Specific Compiler Characteristics215197
+Node: Generic Compiler Characteristics216302
+Ref: AC_CHECK_SIZEOF216542
+Node: C Compiler220562
+Ref: AC_PROG_CC_C_O224294
+Ref: AC_C_BIGENDIAN227837
+Ref: AC_C_CONST229678
+Ref: AC_C_INLINE232791
+Ref: AC_C_CHAR_UNSIGNED233014
+Ref: AC_PROG_GCC_TRADITIONAL235636
+Node: C++ Compiler236048
+Node: Objective C Compiler238247
+Node: Erlang Compiler and Interpreter239630
+Node: Fortran Compiler241673
+Node: System Services256146
+Ref: AC_PATH_X256391
+Ref: AC_PATH_XTRA257384
+Ref: AC_SYS_INTERPRETER257961
+Ref: AC_SYS_LONG_FILE_NAMES259373
+Node: Posix Variants259750
+Ref: AC_USE_SYSTEM_EXTENSIONS260050
+Node: Erlang Libraries261126
+Node: Writing Tests264580
+Node: Language Choice266604
+Ref: AC_LANG267101
+Ref: AC_LANG_PUSH268498
+Ref: Language Choice-Footnote-1270372
+Node: Writing Test Programs270528
+Node: Guidelines271106
+Node: Test Functions273365
+Node: Generating Sources274763
+Node: Running the Preprocessor279442
+Ref: AC_PREPROC_IFELSE280169
+Ref: AC_EGREP_HEADER281998
+Ref: AC_EGREP_CPP282327
+Node: Running the Compiler282752
+Node: Running the Linker284070
+Ref: AC_LINK_IFELSE285210
+Node: Runtime285982
+Ref: AC_RUN_IFELSE286757
+Node: Systemology290674
+Node: Multiple Cases293023
+Node: Results294606
+Node: Defining Symbols295425
+Node: Setting Output Variables300277
+Node: Special Chars in Variables305901
+Node: Caching Results307161
+Node: Cache Variable Names310875
+Node: Cache Files312437
+Node: Cache Checkpointing314415
+Node: Printing Messages315789
+Ref: AC_MSG_RESULT317303
+Ref: AC_MSG_NOTICE317810
+Ref: AC_MSG_ERROR318174
+Ref: AC_MSG_WARN318957
+Node: Programming in M4319380
+Node: M4 Quotation320258
+Node: Active Characters321159
+Ref: Active Characters-Footnote-1322546
+Node: One Macro Call322568
+Node: Quoting and Parameters324124
+Node: Quotation and Nested Macros326461
+Node: Changequote is Evil329471
+Node: Quadrigraphs332002
+Node: Quotation Rule Of Thumb334686
+Node: Using autom4te337575
+Ref: Using autom4te-Footnote-1338226
+Node: autom4te Invocation338275
+Node: Customizing autom4te346777
+Node: Programming in M4sugar348059
+Node: Redefined M4 Macros349237
+Node: Diagnostic Macros354669
+Ref: m4_fatal355422
+Ref: m4_warn355661
+Node: Diversion support356429
+Node: Conditional constructs360556
+Node: Looping constructs365048
+Ref: m4_foreach_w368300
+Node: Evaluation Macros370672
+Node: Text processing Macros378136
+Node: Number processing Macros386964
+Ref: m4_version_compare388916
+Node: Set manipulation Macros390633
+Node: Forbidden Patterns398346
+Node: Programming in M4sh399837
+Node: File Descriptor Macros404414
+Node: Writing Autoconf Macros406501
+Node: Macro Definitions407302
+Node: Macro Names409078
+Node: Reporting Messages412831
+Node: Dependencies Between Macros414673
+Node: Prerequisite Macros415366
+Node: Suggested Ordering418436
+Node: One-Shot Macros419977
+Node: Obsoleting Macros420901
+Ref: AU_DEFUN421653
+Node: Coding Style422682
+Node: Portable Shell430237
+Node: Shellology433115
+Node: Here-Documents438446
+Node: File Descriptors441089
+Node: File System Conventions445097
+Node: Shell Pattern Matching450899
+Node: Shell Substitutions451463
+Node: Assignments462162
+Node: Parentheses464051
+Node: Slashes464881
+Node: Special Shell Variables465733
+Node: Shell Functions474798
+Node: Limitations of Builtins476663
+Node: Limitations of Usual Tools504376
+Node: Portable Make539616
+Node: $< in Ordinary Make Rules540947
+Node: Failure in Make Rules541413
+Node: Special Chars in Names542494
+Node: Backslash-Newline-Newline543468
+Node: Backslash-Newline Comments544095
+Node: Long Lines in Makefiles544986
+Node: Macros and Submakes545362
+Node: The Make Macro MAKEFLAGS547472
+Node: The Make Macro SHELL548357
+Node: Comments in Make Rules550865
+Node: obj/ and Make551351
+Node: make -k Status551990
+Node: VPATH and Make552612
+Node: VPATH and Double-colon553863
+Node: $< in Explicit Rules554235
+Node: Automatic Rule Rewriting554702
+Node: Tru64 Directory Magic560631
+Node: Make Target Lookup561457
+Node: Single Suffix Rules565899
+Node: Timestamps and Make567245
+Node: Portable C and C++568459
+Node: Varieties of Unportability570100
+Node: Integer Overflow572197
+Node: Integer Overflow Basics573214
+Node: Signed Overflow Examples574962
+Node: Optimization and Wraparound578464
+Node: Signed Overflow Advice581426
+Node: Signed Integer Division584100
+Node: Preprocessor Arithmetic584711
+Node: Null Pointers585460
+Node: Buffer Overruns586094
+Node: Volatile Objects588883
+Node: Floating Point Portability594561
+Node: Exiting Portably595068
+Node: Manual Configuration596544
+Node: Specifying Names597377
+Node: Canonicalizing600191
+Node: Using System Type602448
+Node: Site Configuration605259
+Node: Help Formatting606231
+Node: External Software607175
+Ref: AC_ARG_WITH608721
+Node: Package Options613082
+Ref: AC_ARG_ENABLE614537
+Node: Pretty Help Strings615681
+Ref: AS_HELP_STRING616267
+Node: Option Checking618610
+Node: Site Details620338
+Node: Transforming Names621567
+Node: Transformation Options622649
+Node: Transformation Examples623126
+Node: Transformation Rules624847
+Node: Site Defaults626393
+Node: Running configure Scripts631046
+Node: Basic Installation632111
+Node: Compilers and Options635059
+Node: Multiple Architectures635713
+Node: Installation Names637258
+Node: Optional Features638481
+Node: Particular Systems639272
+Node: System Type640036
+Node: Sharing Defaults641359
+Node: Defining Variables641997
+Node: configure Invocation642889
+Node: config.status Invocation644595
+Node: Obsolete Constructs648836
+Node: Obsolete config.status Use649799
+Node: acconfig Header651577
+Node: autoupdate Invocation653599
+Node: Obsolete Macros655465
+Ref: AC_FUNC_SETVBUF_REVERSED663107
+Ref: AC_TYPE_SIGNAL679634
+Node: Autoconf 1682613
+Node: Changed File Names683679
+Node: Changed Makefiles684429
+Node: Changed Macros685517
+Node: Changed Results686771
+Node: Changed Macro Writing688891
+Node: Autoconf 2.13690171
+Node: Changed Quotation691380
+Node: New Macros693298
+Node: Hosts and Cross-Compilation695093
+Node: AC_LIBOBJ vs LIBOBJS699392
+Node: AC_FOO_IFELSE vs AC_TRY_FOO701007
+Node: Using Autotest703010
+Node: Using an Autotest Test Suite705451
+Node: testsuite Scripts705742
+Node: Autotest Logs710160
+Node: Writing Testsuites712501
+Node: testsuite Invocation718150
+Node: Making testsuite Scripts721764
+Node: FAQ725883
+Node: Distributing726624
+Node: Why GNU M4727673
+Node: Bootstrapping728542
+Node: Why Not Imake729152
+Node: Defining Directories733897
+Node: Autom4te Cache735878
+Node: Present But Cannot Be Compiled737716
+Node: History741569
+Node: Genesis742367
+Node: Exodus743545
+Node: Leviticus746590
+Node: Numbers748118
+Node: Deuteronomy750033
+Node: GNU Free Documentation License752704
+Node: Indices775134
+Node: Environment Variable Index775785
+Node: Output Variable Index781642
+Node: Preprocessor Symbol Index797326
+Node: Autoconf Macro Index815384
+Node: M4 Macro Index847786
+Node: Autotest Macro Index861675
+Node: Program & Function Index863427
+Node: Concept Index882939
 
 End Tag Table

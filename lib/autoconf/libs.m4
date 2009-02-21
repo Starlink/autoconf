@@ -130,7 +130,7 @@ AC_LINK_IFELSE([AC_LANG_CALL([], [$2])],
 	       [AS_VAR_SET([ac_Lib], [yes])],
 	       [AS_VAR_SET([ac_Lib], [no])])
 LIBS=$ac_check_lib_save_LIBS])
-AS_IF([test AS_VAR_GET([ac_Lib]) = yes],
+AS_VAR_IF([ac_Lib], [yes],
       [m4_default([$3], [AC_DEFINE_UNQUOTED(AS_TR_CPP(HAVE_LIB$1))
   LIBS="-l$1 $LIBS"
 ])],
@@ -217,7 +217,7 @@ _ACEOF
 	*) test -f "$ac_im_incroot/X11/Xos.h" && ac_x_includes=$ac_im_incroot;;
     esac
     case $ac_im_usrlibdir in
-	/usr/lib | /lib) ;;
+	/usr/lib | /usr/lib64 | /lib | /lib64) ;;
 	*) test -d "$ac_im_usrlibdir" && ac_x_libraries=$ac_im_usrlibdir ;;
     esac
   fi
@@ -353,7 +353,7 @@ if test "x$with_x" = xno; then
   have_x=disabled
 else
   case $x_includes,$x_libraries in #(
-    *\'*) AC_MSG_ERROR([Cannot use X directory names containing ']);; #(
+    *\'*) AC_MSG_ERROR([cannot use X directory names containing ']);; #(
     *,NONE | NONE,*) _AC_PATH_X;; #(
     *) have_x=yes;;
   esac

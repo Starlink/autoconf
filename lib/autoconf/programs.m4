@@ -211,9 +211,7 @@ AU_DEFUN([AC_CHECK_TOOL_PREFIX])
 AC_DEFUN([_AC_TOOL_WARN],
 [case $cross_compiling:$ac_tool_warned in
 yes:)
-AC_MSG_WARN([In the future, Autoconf will not detect cross-tools
-whose name does not start with the host triplet.  If you think this
-configuration is useful to you, please write to autoconf@gnu.org.])
+AC_MSG_WARN([using cross tools not prefixed with host triplet])
 ac_tool_warned=yes ;;
 esac])
 
@@ -291,10 +289,10 @@ fi
 
 
 # AC_PATH_TARGET_TOOL(VARIABLE, PROG-TO-CHECK-FOR, [VALUE-IF-NOT-FOUND], [PATH])
-# -----------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # (Use different variables $1 and ac_pt_$1 so that cache vars don't conflict.)
 AC_DEFUN([AC_PATH_TARGET_TOOL],
-[AC_BEFORE([$0], [AC_CANONICAL_TARGET])dnl
+[AC_REQUIRE([AC_CANONICAL_TARGET])dnl
 AC_PATH_PROG([$1], [$target_alias-$2], , [$4])
 if test -z "$ac_cv_path_$1"; then
   if test "$build" = "$target"; then
@@ -311,16 +309,16 @@ fi
 
 
 # AC_CHECK_TARGET_TOOL(VARIABLE, PROG-TO-CHECK-FOR, [VALUE-IF-NOT-FOUND], [PATH])
-# ------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # (Use different variables $1 and ac_ct_$1 so that cache vars don't conflict.)
 AC_DEFUN([AC_CHECK_TARGET_TOOL],
-[AC_BEFORE([$0], [AC_CANONICAL_TARGET])dnl
+[AC_REQUIRE([AC_CANONICAL_TARGET])dnl
 AC_CHECK_PROG([$1], [$target_alias-$2], [$target_alias-$2], , [$4])
 if test -z "$ac_cv_prog_$1"; then
   if test "$build" = "$target"; then
     ac_ct_$1=$$1
     _AC_CHECK_PROG([ac_ct_$1], [$2], [$2], [$3], [$4])
-    $1=ac_ct_$1
+    $1=$ac_ct_$1
   else
     $1="$3"
   fi
@@ -332,12 +330,12 @@ fi
 
 # AC_CHECK_TARGET_TOOLS(VARIABLE, PROGS-TO-CHECK-FOR, [VALUE-IF-NOT-FOUND],
 #	                [PATH])
-# ------------------------------------------------------------------
+# -------------------------------------------------------------------------
 # Check for each tool in PROGS-TO-CHECK-FOR with the cross prefix. If
 # none can be found with a cross prefix, then use the first one that
 # was found without the cross prefix.
 AC_DEFUN([AC_CHECK_TARGET_TOOLS],
-[AC_BEFORE([$0], [AC_CANONICAL_TARGET])dnl
+[AC_REQUIRE([AC_CANONICAL_TARGET])dnl
 for ac_prog in $2
 do
   AC_CHECK_PROG([$1],

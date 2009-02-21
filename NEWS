@@ -1,5 +1,71 @@
 GNU Autoconf NEWS - User visible changes.
 
+* Major changes in Autoconf 2.63 (2008-09-09) [stable]
+  Released by Eric Blake, based on git versions 2.62.*.
+
+** AC_C_BIGENDIAN does not mistakenly report "universal" for some
+   bigendian hosts, a regression introduced with universal binary
+   support in 2.62.
+
+** AC_PATH_X now includes /lib64 and /usr/lib64 in its list of default
+   library directories.
+
+** AC_USE_SYSTEM_EXTENSIONS no longer conflicts with an external
+   AC_DEFINE([__EXTENSIONS__]).  This fixes a regression introduced in
+   2.62 when using macros such as AC_AIX that were made obsolete in
+   favor of the more portable AC_USE_SYSTEM_EXTENSIONS.
+
+** AC_CHECK_TARGET_TOOLS is usable in the non-cross-compile case.
+
+** Newly obsolete macros
+   The following macro has been marked obsolete, since current porting
+   targets can safely assume C89 semantics that signal handlers return
+   void.  We have no current plans to remove the macro.
+
+     AC_TYPE_SIGNAL
+
+** The macros m4_map and m4_map_sep now ignore any list elements
+   consisting of just empty quotes, and m4_map_sep now expands its
+   separator.  This fixes a regression in 2.62 when these macros were
+   first documented, for the sake of clients expecting the semantics
+   that these macros had prior to that time.  The new macros m4_mapall
+   and m4_mapall_sep, along with extra quoting of the separator, can
+   be used to get the semantics that m4_map_sep had in 2.62.
+
+** Clients of m4_expand, such as AS_HELP_STRING and AT_SETUP, can now
+   handle properly quoted but otherwise unbalanced parentheses (for
+   some macros, this fixes a regression in 2.62).
+
+** Two new quadrigraphs have been introduced: @{:@ for (, and @:}@ for ),
+   allowing the output of unbalanced parentheses in more contexts.
+
+** The following m4sugar macros are new:
+   m4_joinall  m4_mapall  m4_mapall_sep  m4_reverse  m4_set_add
+   m4_set_add_all  m4_set_contains  m4_set_contents  m4_set_delete
+   m4_set_difference  m4_set_dump  m4_set_empty  m4_set_foreach
+   m4_set_intersection  m4_set_list  m4_set_listc  m4_set_remove
+   m4_set_size  m4_set_union
+
+** The following m4sugar macros now accept multiple arguments, as is the
+   case with underlying m4:
+   m4_defn  m4_popdef  m4_undefine
+
+** The following m4sugar macros now guarantee linear scaling; they
+   previously had linear scaling with m4 1.6 but quadratic scaling
+   when using m4 1.4.x.  All macros built on top of these also gain
+   the scaling improvements.
+   m4_bmatch  m4_bpatsubsts  m4_case  m4_cond  m4_do  m4_dquote_elt
+   m4_foreach  m4_join  m4_list_cmp  m4_map  m4_map_sep  m4_max
+   m4_min  m4_shiftn
+
+** AT_KEYWORDS once again performs expansion on its argument, such that
+   AT_KEYWORDS([m4_if([$1], [], [default])]) no longer complains about
+   the possibly unexpanded m4_if [regression introduced in 2.62].
+
+** Config header templates `#undef UNDEFINED /* comment */' do not lead to
+   nested comments any more; regression introduced in 2.62.
+
+
 * Major changes in Autoconf 2.62 (2008-04-05) [stable]
   Released by Eric Blake, based on git versions 2.61a.*.
 
@@ -181,6 +247,7 @@ GNU Autoconf NEWS - User visible changes.
    when running `configure'.  We have no current plans to remove these
    macros.
 
+
 * Major changes in Autoconf 2.61a (2006-12-11)
 
 ** AC_FUNC_FSEEKO was broken in 2.61; it didn't make fseeko and ftello visible
@@ -214,12 +281,14 @@ GNU Autoconf NEWS - User visible changes.
    not be a problem, since Autoconf-generated scripts in practice
    invariably find a more-modern shell these days.
 
+
 * Major changes in Autoconf 2.61 (2006-11-17)
 
 ** New macros AC_C_FLEXIBLE_ARRAY_MEMBER, AC_C_VARARRAYS.
 
 ** AC_ARG_ENABLE and AC_ARG_WITH now allow '.' in feature and package names.
 
+
 * Major changes in Autoconf 2.60b (2006-10-22)
 
 ** BIN_SH

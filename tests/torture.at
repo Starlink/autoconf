@@ -43,6 +43,23 @@ AT_CHECK_AUTOCONF([], 1, [], [ignore])
 AT_CLEANUP
 
 
+## ------------------------------- ##
+## parameterized AC_CONFIG_FILES.  ##
+## ------------------------------- ##
+
+AT_SETUP([Parameterized AC_CONFIG_FILES])
+
+AT_CONFIGURE_AC([[
+files="foo
+bar"
+AC_CONFIG_FILES([$files])]])
+AT_CHECK_AUTOCONF([], [], [], [ignore])
+touch foo.in bar.in config.hin
+AT_CHECK_CONFIGURE
+
+AT_CLEANUP
+
+
 
 ## ------------ ##
 ## AC_ARG_VAR.  ##
@@ -497,6 +514,8 @@ AT_DATA([config.hin],
 #define str(define) \
 #define
 #define stringify(arg) str(arg)
+#undef aaa /* with comments */
+#undef not_substed /* with comments */
 ]])
 
 AT_CHECK_AUTOCONF
@@ -527,6 +546,8 @@ ARG1
 #define str(define) \
 #define
 #define stringify(arg) str(arg)
+#define aaa AAA
+/* #undef not_substed */
 ]])
 AT_CHECK([cat config.h], 0, expout)
 
@@ -1275,6 +1296,9 @@ AT_DATA([inner/innermost/configure.in],
 AC_ARG_VAR([INNERMOST], [an innermost variable])
 AC_CONFIG_HEADERS(config.h:config.hin)
 AC_DEFINE_UNQUOTED([INNERMOST], [$INNERMOST], [an innermost variable])
+if test -n "$innermost_error"; then
+  AC_MSG_FAILURE([error in $PACKAGE_NAME])
+fi
 AC_OUTPUT
 ]])
 
@@ -1323,6 +1347,14 @@ AT_CHECK_CONFIGURE([INNERMOST=tsomrenni])
 AT_CHECK([grep INNERMOST inner/innermost/config.h], 0,
 [[#define INNERMOST tsomrenni
 ]])
+
+# Ensure we point to the right config.log file for errors.
+AT_CHECK_CONFIGURE([innermost_error=:], [1], [], [stderr])
+AT_CHECK([grep 'inner/innermost' stderr], [], [ignore])
+cd inner
+AT_CHECK_CONFIGURE([innermost_error=:], [1], [], [stderr])
+AT_CHECK([grep 'innermost' stderr], [], [ignore])
+cd ..
 
 # The same, but from a builddir.
 AS_MKDIR_P([builddir])

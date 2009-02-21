@@ -414,7 +414,7 @@ AC_SUBST([PACKAGE_BUGREPORT],
 
 m4_divert_pop([DEFAULTS])dnl
 m4_wrap([m4_divert_text([DEFAULTS],
-[ac_subst_vars='m4_ifdef([_AC_SUBST_VARS],  [m4_defn([_AC_SUBST_VARS])])'
+[ac_subst_vars='m4_set_dump([_AC_SUBST_VARS], m4_newline)'
 ac_subst_files='m4_ifdef([_AC_SUBST_FILES], [m4_defn([_AC_SUBST_FILES])])'
 ac_user_opts='
 enable_option_checking
@@ -479,7 +479,7 @@ AC_DEFUN([_AC_INIT_DIRCHECK],
 ac_pwd=`pwd` && test -n "$ac_pwd" &&
 ac_ls_di=`ls -di .` &&
 ac_pwd_ls_di=`cd "$ac_pwd" && ls -di .` ||
-  AC_MSG_ERROR([Working directory cannot be determined])
+  AC_MSG_ERROR([working directory cannot be determined])
 test "X$ac_ls_di" = "X$ac_pwd_ls_di" ||
   AC_MSG_ERROR([pwd does not report name of working directory])
 
@@ -894,8 +894,8 @@ fi
 if test -n "$ac_unrecognized_opts"; then
   case $enable_option_checking in
     no) ;;
-    fatal) AC_MSG_ERROR([Unrecognized options: $ac_unrecognized_opts]) ;;
-    *)     AC_MSG_WARN( [Unrecognized options: $ac_unrecognized_opts]) ;;
+    fatal) AC_MSG_ERROR([unrecognized options: $ac_unrecognized_opts]) ;;
+    *)     AC_MSG_WARN( [unrecognized options: $ac_unrecognized_opts]) ;;
   esac
 fi
 
@@ -1576,6 +1576,7 @@ for ac_var in $ac_precious_vars; do
   fi
 done
 if $ac_cache_corrupted; then
+  AS_MESSAGE([error: in `$ac_pwd':], 2)
   AS_MESSAGE([error: changes in the environment can compromise the build], 2)
   AS_ERROR([run `make distclean' and/or `rm $cache_file' and start over])
 fi])dnl
@@ -1894,7 +1895,7 @@ m4_define([_AC_CACHE_DUMP],
     case $ac_val in #(
     *${as_nl}*)
       case $ac_var in #(
-      *_cv_*) AC_MSG_WARN([Cache variable $ac_var contains a newline.]) ;;
+      *_cv_*) AC_MSG_WARN([cache variable $ac_var contains a newline]) ;;
       esac
       case $ac_var in #(
       _ | IFS | as_nl) ;; #(
@@ -2095,8 +2096,7 @@ m4_define([AC_SUBST],
 AC_SUBST_TRACE([$1])dnl
 m4_pattern_allow([^$1$])dnl
 m4_ifvaln([$2], [$1=$2])[]dnl
-m4_append_uniq([_AC_SUBST_VARS], [$1], [
-])dnl
+m4_set_add([_AC_SUBST_VARS], [$1])dnl
 ])# AC_SUBST
 
 
@@ -2166,8 +2166,9 @@ m4_copy([AS_WARN],    [AC_MSG_WARN])
 m4_copy([AS_MESSAGE], [AC_MSG_NOTICE])
 m4_copy([AS_ERROR],   [AC_MSG_ERROR])
 m4_define([AC_MSG_FAILURE],
-[AC_MSG_ERROR([$1
-See `config.log' for more details.], [$2])])
+[{ AS_MESSAGE([error: in `$ac_pwd':], 2)
+AC_MSG_ERROR([$1
+See `config.log' for more details.], [$2]); }])
 
 
 # _AC_MSG_LOG_CONFTEST
@@ -2613,7 +2614,7 @@ if test -r "$1"; then
 else
   AS_VAR_SET([ac_File], [no])
 fi])
-AS_IF([test AS_VAR_GET([ac_File]) = yes], [$2], [$3])[]dnl
+AS_VAR_IF([ac_File], [yes], [$2], [$3])[]dnl
 AS_VAR_POPDEF([ac_File])dnl
 ])# AC_CHECK_FILE
 
@@ -2650,7 +2651,7 @@ AC_CACHE_CHECK([whether $1 is declared], [ac_Symbol],
 ])],
 		   [AS_VAR_SET([ac_Symbol], [yes])],
 		   [AS_VAR_SET([ac_Symbol], [no])])])
-AS_IF([test AS_VAR_GET([ac_Symbol]) = yes], [$2], [$3])[]dnl
+AS_VAR_IF([ac_Symbol], [yes], [$2], [$3])[]dnl
 AS_VAR_POPDEF([ac_Symbol])dnl
 ])# AC_CHECK_DECL
 

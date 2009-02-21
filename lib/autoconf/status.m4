@@ -419,7 +419,8 @@ for ac_last_try in false false false false false :; do
     AC_MSG_ERROR([could not make $CONFIG_STATUS])
 
 dnl Do not use grep on conf$$subs.awk, since AIX grep has a line length limit.
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.awk | grep -c X` = $ac_delim_num; then
+  ac_delim_n=`sed -n "s/.*$ac_delim\$/X/p" conf$$subs.awk | grep -c X`
+  if test $ac_delim_n = $ac_delim_num; then
     break
   elif $ac_last_try; then
     AC_MSG_ERROR([could not make $CONFIG_STATUS])
@@ -832,9 +833,9 @@ cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
   }
   split(mac1, mac2, "(") #)
   macro = mac2[1]
+  prefix = substr(line, 1, index(line, defundef) - 1)
   if (D_is_set[macro]) {
     # Preserve the white space surrounding the "#".
-    prefix = substr(line, 1, index(line, defundef) - 1)
     print prefix "define", macro P[macro] D[macro]
     next
   } else {
@@ -842,7 +843,7 @@ cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
     # in the case of _POSIX_SOURCE, which is predefined and required
     # on some systems where configure will not decide to define it.
     if (defundef == "undef") {
-      print "/*", line, "*/"
+      print "/*", prefix defundef, macro, "*/"
       next
     }
   }
@@ -961,7 +962,7 @@ m4_define([_AC_OUTPUT_LINK],
   #
 
   if test "$ac_source" = "$ac_file" && test "$srcdir" = '.'; then
-    AC_MSG_WARN([not linking $ac_source to itself])
+    :
   else
     # Prefer the file from the source tree if names are identical.
     if test "$ac_source" = "$ac_file" || test ! -r "$ac_source"; then
@@ -1303,7 +1304,7 @@ fi
 dnl config.status should not do recursion.
 AC_PROVIDE_IFELSE([AC_CONFIG_SUBDIRS], [_AC_OUTPUT_SUBDIRS()])dnl
 if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
-  AC_MSG_WARN([Unrecognized options: $ac_unrecognized_opts])
+  AC_MSG_WARN([unrecognized options: $ac_unrecognized_opts])
 fi
 ])# AC_OUTPUT
 
@@ -1357,6 +1358,18 @@ on `(hostname || uname -n) 2>/dev/null | sed 1q`
 
 _ACEOF
 
+dnl remove any newlines from these variables.
+m4_ifdef([_AC_SEEN_CONFIG(FILES)],
+[case $ac_config_files in *"
+"*) set x $ac_config_files; shift; ac_config_files=$[*];;
+esac
+])
+m4_ifdef([_AC_SEEN_CONFIG(HEADERS)],
+[case $ac_config_headers in *"
+"*) set x $ac_config_headers; shift; ac_config_headers=$[*];;
+esac
+])
+
 cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
 # Files that config.status was made for.
 m4_ifdef([_AC_SEEN_CONFIG(FILES)],
@@ -1379,19 +1392,20 @@ ac_cs_usage="\
 \`$as_me' instantiates files from templates according to the
 current configuration.
 
-Usage: $[0] [[OPTIONS]] [[FILE]]...
+Usage: $[0] [[OPTION]]... [[FILE]]...
 
   -h, --help       print this help, then exit
   -V, --version    print version number and configuration settings, then exit
-  -q, --quiet      do not print progress messages
+  -q, --quiet, --silent
+[]                   do not print progress messages
   -d, --debug      don't remove temporary files
       --recheck    update $as_me by reconfiguring in the same conditions
 m4_ifdef([_AC_SEEN_CONFIG(FILES)],
-  [AS_HELP_STRING([[--file=FILE[:TEMPLATE]]],
+  [AS_HELP_STRING([[    --file=FILE[:TEMPLATE]]],
     [instantiate the configuration file FILE], [                   ])
 ])dnl
 m4_ifdef([_AC_SEEN_CONFIG(HEADERS)],
-  [AS_HELP_STRING([[--header=FILE[:TEMPLATE]]],
+  [AS_HELP_STRING([[    --header=FILE[:TEMPLATE]]],
     [instantiate the configuration header FILE], [                   ])
 ])dnl
 
@@ -1630,7 +1644,7 @@ do
   esac
   case $ac_mode$ac_tag in
   :[[FHL]]*:*);;
-  :L* | :C*:*) AC_MSG_ERROR([Invalid tag $ac_tag.]);;
+  :L* | :C*:*) AC_MSG_ERROR([invalid tag $ac_tag]);;
   :[[FH]]-) ac_tag=-:-;;
   :[[FH]]*) ac_tag=$ac_tag:$ac_tag.in;;
   esac

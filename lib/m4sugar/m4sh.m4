@@ -453,16 +453,15 @@ m4_defun([AS_PREPARE],
 # | *) DEFAULT ;;
 # | esac
 m4_define([_AS_CASE],
-[m4_if([$#], 0, [m4_fatal([$0: too few arguments: $#])],
-       [$#], 1, [  *) $1 ;;],
-       [$#], 2, [  $1) m4_default([$2], [:]) ;;],
-       [  $1) m4_default([$2], [:]) ;;
-$0(m4_shift2($@))])dnl
+[  $1[)] m4_default([$2], [:]) ;;
+])
+m4_define([_AS_CASE_DEFAULT],
+[  *[)] $1 ;;
 ])
 m4_defun([AS_CASE],
 [m4_ifval([$2$3],
 [case $1 in
-_AS_CASE(m4_shift($@))
+m4_transform_pair([_$0], [_$0_DEFAULT], m4_shift($@))dnl
 esac
 ])dnl
 ])# AS_CASE
@@ -496,20 +495,18 @@ m4_define([AS_EXIT],
 # with simplifications if IF-TRUE1 and/or IF-FALSE is empty.
 #
 m4_define([_AS_IF],
-[m4_ifval([$2$3],
 [elif $1; then
   m4_default([$2], [:])
-m4_ifval([$3], [$0(m4_shift2($@))])],
+])
+m4_define([_AS_IF_ELSE],
 [m4_ifvaln([$1],
 [else
-  $1])dnl
-])dnl
-])# _AS_IF
+  $1])])
 m4_defun([AS_IF],
 [m4_ifval([$2$3],
 [if $1; then
   m4_default([$2], [:])
-m4_ifval([$3], [_$0(m4_shift2($@))])[]dnl
+m4_transform_pair([_$0], [_$0_ELSE], m4_shift2($@))dnl
 fi
 ])dnl
 ])# AS_IF
@@ -1577,6 +1574,17 @@ m4_define([AS_VAR_TEST_SET],
 # or not.  Polymorphic.
 m4_define([AS_VAR_SET_IF],
 [AS_IF([AS_VAR_TEST_SET([$1])], [$2], [$3])])
+
+
+# AS_VAR_IF(VARIABLE, VALUE, IF-TRUE, IF-FALSE)
+# ---------------------------------------------
+# Implement a shell `if test $VARIABLE = VALUE; then-else'.
+# Polymorphic, and avoids sh expansion error upon interrupt or term signal.
+m4_define([AS_VAR_IF],
+[AS_LITERAL_IF([$1],
+  [AS_IF([test "x$$1" = x""$2], [$3], [$4])],
+  [as_val=AS_VAR_GET([$1])
+   AS_IF([test "x$as_val" = x""$2], [$3], [$4])])])
 
 
 # AS_VAR_PUSHDEF and AS_VAR_POPDEF

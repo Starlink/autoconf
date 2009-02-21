@@ -10,12 +10,12 @@
 @end ifnothtml
 @finalout
 
-@c @ovar(ARG, DEFAULT)
-@c -------------------
+@c @ovar(ARG)
+@c ----------
 @c The ARG is an optional argument.  To be used for macro arguments in
 @c their documentation (@defmac).
 @macro ovar{varname}
-@r{[}@var{\varname\}@r{]}
+@r{[}@var{\varname\}@r{]}@c
 @end macro
 
 @c @dvar(ARG, DEFAULT)
@@ -23,7 +23,7 @@
 @c The ARG is an optional argument, defaulting to DEFAULT.  To be used
 @c for macro arguments in their documentation (@defmac).
 @macro dvar{varname, default}
-@r{[}@var{\varname\} = @samp{\default\}@r{]}
+@r{[}@var{\varname\} = @samp{\default\}@r{]}@c
 @end macro
 
 @c Handling the indexes with Texinfo yields several different problems.
@@ -177,8 +177,8 @@
 
 @copying
 
-This manual is for @acronym{GNU} Autoconf
-(version @value{VERSION}, @value{UPDATED}),
+This manual (@value{UPDATED}) is for @acronym{GNU} Autoconf
+(version @value{VERSION}),
 a package for creating scripts to configure source code packages using
 templates and an M4 macro package.
 
@@ -456,6 +456,7 @@ Programming in M4sugar
 * Evaluation Macros::           More quotation and evaluation control
 * Text processing Macros::      String manipulation in M4
 * Number processing Macros::    Arithmetic computation in M4
+* Set manipulation Macros::     Set manipulation in M4
 * Forbidden Patterns::          Catching unexpanded macros
 
 Writing Autoconf Macros
@@ -556,6 +557,7 @@ Running @command{configure} Scripts
 * Multiple Architectures::      Compiling for multiple architectures at once
 * Installation Names::          Installing in different directories
 * Optional Features::           Selecting optional features
+* Particular Systems::          Particular systems
 * System Type::                 Specifying the system type
 * Sharing Defaults::            Setting site-wide defaults for @command{configure}
 * Defining Variables::          Specifying the compiler etc.
@@ -641,10 +643,10 @@ A physicist, an engineer, and a computer scientist were discussing the
 nature of God.  ``Surely a Physicist,'' said the physicist, ``because
 early in the Creation, God made Light; and you know, Maxwell's
 equations, the dual nature of electromagnetic waves, the relativistic
-consequences@dots{}'' ``An Engineer!,'' said the engineer, ``because
+consequences@enddots{}'' ``An Engineer!,'' said the engineer, ``because
 before making Light, God split the Chaos into Land and Water; it takes a
 hell of an engineer to handle that big amount of mud, and orderly
-separation of solids from liquids@dots{}'' The computer scientist
+separation of solids from liquids@enddots{}'' The computer scientist
 shouted: ``And the Chaos, where do you think it was coming from, hmm?''
 
 ---Anonymous
@@ -724,17 +726,17 @@ required.
 @xref{History}, for the story of Autoconf's development.  @xref{FAQ},
 for answers to some common questions about Autoconf.
 
-See the @uref{http://www.gnu.org/software/autoconf/,
+See the @uref{http://@/www.gnu.org/@/software/@/autoconf/,
 Autoconf web page} for up-to-date information, details on the mailing
 lists, pointers to a list of known bugs, etc.
 
 Mail suggestions to @email{autoconf@@gnu.org, the Autoconf mailing
 list}.  Past suggestions are
-@uref{http://lists.gnu.org/archive/html/autoconf/, archived}.
+@uref{http://@/lists.gnu.org/@/archive/@/html/@/autoconf/, archived}.
 
 Mail bug reports to @email{bug-autoconf@@gnu.org, the
 Autoconf Bugs mailing list}.  Past bug reports are
-@uref{http://lists.gnu.org/archive/html/bug-autoconf/, archived}.
+@uref{http://@/lists.gnu.org/@/archive/@/html/@/bug-autoconf/, archived}.
 
 If possible, first check that your bug is
 not already solved in current development versions, and that it has not
@@ -742,25 +744,25 @@ been reported yet.  Be sure to include all the needed information and a
 short @file{configure.ac} that demonstrates the problem.
 
 Autoconf's development tree is accessible via @command{git}; see the
-@uref{http://savannah.gnu.org/projects/autoconf/, Autoconf
+@uref{http://@/savannah.gnu.org/@/projects/@/autoconf/, Autoconf
 Summary} for details, or view
-@uref{http://git.sv.gnu.org/gitweb/?p=autoconf.git, the actual
+@uref{http://@/git.sv.gnu.org/@/gitweb/@/?p=autoconf.git, the actual
 repository}.  Anonymous @acronym{CVS} access is also available, see
 @file{README} for more details.  Patches relative to the
 current @command{git} version can be sent for review to the
-@email{autoconf-patches@@gnu.org, Autoconf Patches mailing list}.
-Discussions on past patches are
-@uref{http://lists.gnu.org/@/archive/@/html/@/autoconf-patches/,
-archived}, and all commits are archived in the read-only
+@email{autoconf-patches@@gnu.org, Autoconf Patches mailing list}, with
+discussion on prior patches
+@uref{http://@/lists.gnu.org/@/archive/@/html/@/autoconf-@/patches/,
+archived}; and all commits are posted in the read-only
 @email{autoconf-commit@@gnu.org, Autoconf Commit mailing list}, which is
-also @uref{http://lists.gnu.org/@/archive/@/html/@/autoconf-commit/,
+also @uref{http://@/lists.gnu.org/@/archive/@/html/@/autoconf-commit/,
 archived}.
 
 Because of its mission, the Autoconf package itself
 includes only a set of often-used
 macros that have already demonstrated their usefulness.  Nevertheless,
 if you wish to share your macros, or find existing ones, see the
-@uref{http://autoconf-archive.cryp.to/, Autoconf Macro
+@uref{http://@/autoconf-archive.cryp.to/, Autoconf Macro
 Archive}, which is kindly run by @email{simons@@cryp.to,
 Peter Simons}.
 
@@ -802,15 +804,15 @@ to the quirks of @command{make} on many systems.  On top of all this is the
 manual labor required to implement the many standard targets that users
 have come to expect (@code{make install}, @code{make distclean},
 @code{make uninstall}, etc.).  Since you are, of course, using Autoconf,
-you also have to insert repetitive code in your @code{Makefile.in} to
+you also have to insert repetitive code in your @file{Makefile.in} to
 recognize @code{@@CC@@}, @code{@@CFLAGS@@}, and other substitutions
 provided by @command{configure}.  Into this mess steps @dfn{Automake}.
 @cindex Automake
 
-Automake allows you to specify your build needs in a @code{Makefile.am}
+Automake allows you to specify your build needs in a @file{Makefile.am}
 file with a vastly simpler and more powerful syntax than that of a plain
-makefile, and then generates a portable @code{Makefile.in} for
-use with Autoconf.  For example, the @code{Makefile.am} to build and
+makefile, and then generates a portable @file{Makefile.in} for
+use with Autoconf.  For example, the @file{Makefile.am} to build and
 install a simple ``Hello world'' program might look like:
 
 @example
@@ -819,7 +821,7 @@ hello_SOURCES = hello.c
 @end example
 
 @noindent
-The resulting @code{Makefile.in} (~400 lines) automatically supports all
+The resulting @file{Makefile.in} (~400 lines) automatically supports all
 the standard targets, the substitutions provided by Autoconf, automatic
 dependency tracking, @code{VPATH} building, and so on.  @command{make}
 builds the @code{hello} program, and @code{make install} installs it
@@ -901,11 +903,11 @@ the @acronym{GNU} build tools.
 
 @item Web
 
-The home pages for
-@uref{http://www.gnu.org/@/software/@/autoconf/, Autoconf},
-@uref{http://www.gnu.org/@/software/@/automake/, Automake},
-@uref{http://www.gnu.org/@/software/@/gnulib/, Gnulib}, and
-@uref{http://www.gnu.org/@/software/@/libtool/, Libtool}.
+The project home pages for
+@uref{http://@/www@/.gnu@/.org/@/software/@/autoconf/, Autoconf},
+@uref{http://@/www@/.gnu@/.org/@/software/@/automake/, Automake},
+@uref{http://@/www@/.gnu@/.org/@/software/@/gnulib/, Gnulib}, and
+@uref{http://@/www@/.gnu@/.org/@/software/@/libtool/, Libtool}.
 
 @item Automake Manual
 
@@ -919,7 +921,7 @@ Libtool}@footnote{@cite{@acronym{GNU} Autoconf, Automake and Libtool},
 by G. V. Vaughan, B. Elliston, T. Tromey, and I. L. Taylor.  SAMS (originally
 New Riders), 2000, ISBN 1578701902.} describes the complete @acronym{GNU}
 build environment.  You can also find
-@uref{http://sources.redhat.com/@/autobook/, the entire book on-line}.
+@uref{http://@/sources.redhat.com/@/autobook/, the entire book on-line}.
 
 @end itemize
 
@@ -1187,7 +1189,7 @@ AC_MSG_WARN([[AC_DC stinks  --Iron Maiden]])
 @end example
 
 You are now able to understand one of the constructs of Autoconf that
-has been continually misunderstood@dots{}  The rule of thumb is that
+has been continually misunderstood@enddots{}  The rule of thumb is that
 @emph{whenever you expect macro expansion, expect quote expansion};
 i.e., expect one level of quotes to be lost.  For instance:
 
@@ -1333,12 +1335,16 @@ Print the version number of Autoconf and exit.
 Print the names of the files it examines and the potentially interesting
 symbols it finds in them.  This output can be voluminous.
 
+@item --debug
+@itemx -d
+Don't remove temporary files.
+
 @item --include=@var{dir}
 @itemx -I @var{dir}
 Append @var{dir} to the include path.  Multiple invocations accumulate.
 
 @item --prepend-include=@var{dir}
-@item -B @var{dir}
+@itemx -B @var{dir}
 Prepend @var{dir} to the include path.  Multiple invocations accumulate.
 @end table
 
@@ -1426,7 +1432,7 @@ Remake @file{configure} even if newer than its input files.
 Append @var{dir} to the include path.  Multiple invocations accumulate.
 
 @item --prepend-include=@var{dir}
-@item -B @var{dir}
+@itemx -B @var{dir}
 Prepend @var{dir} to the include path.  Multiple invocations accumulate.
 
 @item --output=@var{file}
@@ -1609,6 +1615,7 @@ Print a summary of the command line options and exit.
 Print the version number of Autoconf and exit.
 
 @item --verbose
+@itemx -V
 Print the name of each directory @command{autoreconf} examines and the
 commands it runs.  If given two or more times, pass @option{--verbose}
 to subordinate tools that support it.
@@ -1653,7 +1660,7 @@ Append @var{dir} to the include path.  Multiple invocations accumulate.
 Passed on to @command{autoconf} and @command{autoheader} internally.
 
 @item --prepend-include=@var{dir}
-@item -B @var{dir}
+@itemx -B @var{dir}
 Prepend @var{dir} to the include path.  Multiple invocations accumulate.
 Passed on to @command{autoconf} and @command{autoheader} internally.
 
@@ -1839,6 +1846,16 @@ conditional fallbacks based on when a feature was added to Autoconf,
 rather than using @code{AC_PREREQ} to require the newer version of
 Autoconf.  However, remember that the Autoconf philosophy favors feature
 checks over version checks.
+
+You should not expand this macro directly; use
+@samp{m4_defn([AC_AUTOCONF_VERSION])} instead.  This is because some
+users might
+have a beta version of Autoconf installed, with arbitrary letters
+included in its version string.  This means it is possible for the
+version string to contain the name of a defined macro, such that
+expanding @code{AC_AUTOCONF_VERSION} would trigger the expansion of that
+macro during rescanning, and change the version string to be different
+than what you intended to check.
 @end defmac
 
 @node Notices
@@ -1872,9 +1889,9 @@ without @acronym{RCS} or @acronym{CVS} changing it when you check in
 
 For example, this line in @file{configure.ac}:
 
-@c The asis prevents RCS from changing the example in the manual.
+@c The @w prevents RCS from changing the example in the manual.
 @example
-AC_REVISION([$@asis{Revision: 1.30 }$])
+AC_REVISION([@w{$}Revision: 1.30 $])
 @end example
 
 @noindent
@@ -1943,7 +1960,7 @@ either absolute or relative to @file{@var{srcdir}}.  The default is
 @file{install-sh}.  The other files are not checked for, so that using
 @code{AC_PROG_INSTALL} does not automatically require distributing the
 other auxiliary files.  It checks for @file{install.sh} also, but that
-name is obsolete because some @code{make} have a rule that creates
+name is obsolete because some @command{make} have a rule that creates
 @file{install} from it if there is no makefile.
 
 The auxiliary directory is commonly named @file{build-aux}.
@@ -2009,7 +2026,7 @@ are honored.
 
 The location of your @code{AC_OUTPUT} invocation is the exact point
 where configuration actions are taken: any code afterwards is
-executed by @code{configure} once @command{config.status} was run.  If
+executed by @command{configure} once @command{config.status} was run.  If
 you want to bind actions to @command{config.status} itself
 (independently of whether @command{configure} is being run), see
 @ref{Configuration Commands, , Running Arbitrary Configuration
@@ -2022,7 +2039,7 @@ Historically, the usage of @code{AC_OUTPUT} was somewhat different.
 
 
 If you run @command{make} in subdirectories, you should run it using the
-@code{make} variable @code{MAKE}.  Most versions of @command{make} set
+@command{make} variable @code{MAKE}.  Most versions of @command{make} set
 @code{MAKE} to the name of the @command{make} program plus any options it
 was given.  (But many do not include in it the values of any variables
 set on the command line, so those are not passed on automatically.)
@@ -2041,7 +2058,7 @@ Otherwise, define @code{SET_MAKE} to a macro definition that sets
 @end defmac
 
 If you use this macro, place a line like this in each @file{Makefile.in}
-that runs @code{MAKE} on other directories:
+that runs @command{MAKE} on other directories:
 
 @example
 @@SET_MAKE@@
@@ -2879,8 +2896,11 @@ recommend @acronym{GNU} @command{make} (@pxref{VPATH and Make}).  Older
 @command{make} programs do not support @code{VPATH}; when using them, the
 source code must be in the same directory as the object files.
 
-To support @code{VPATH}, each @file{Makefile.in} should contain two
-lines that look like:
+If you are using @acronym{GNU} Automake, the remaining details in this
+section are already covered for you, based on the contents of your
+@file{Makefile.am}.  But if you are using Autoconf in isolation, then
+supporting @code{VPATH} requires the following in your
+@file{Makefile.in}:
 
 @example
 srcdir = @@srcdir@@
@@ -2894,7 +2914,7 @@ variable substitutions on the value of @code{VPATH}.
 @command{configure} substitutes the correct value for @code{srcdir} when
 it produces @file{Makefile}.
 
-Do not use the @code{make} variable @code{$<}, which expands to the
+Do not use the @command{make} variable @code{$<}, which expands to the
 file name of the file in the source directory (found with @code{VPATH}),
 except in implicit rules.  (An implicit rule is one such as @samp{.c.o},
 which tells how to create a @file{.o} file from a @file{.c} file.)  Some
@@ -3072,10 +3092,9 @@ AC_CHECK_HEADERS([unistd.h])
 @end example
 
 @noindent
-Then you could have code like the following in @file{conf.h.in}.  On
-systems that have @file{unistd.h}, @command{configure} defines
-@samp{HAVE_UNISTD_H} to 1.  On other systems, the whole line is
-commented out (in case the system predefines that symbol).
+Then you could have code like the following in @file{conf.h.in}.
+The @file{conf.h} created by @command{configure} defines @samp{HAVE_UNISTD_H}
+to 1, if and only if the system has @file{unistd.h}.
 
 @example
 @group
@@ -3084,29 +3103,52 @@ commented out (in case the system predefines that symbol).
 @end group
 @end example
 
-Pay attention that @samp{#undef} is in the first column, and there is
-nothing after @samp{HAVE_UNISTD_H}, not even white space.  You can
-then decode the configuration header using the preprocessor directives:
+The format of the template file is stricter than what the C preprocessor
+is required to accept.  A directive line should contain only whitespace,
+@samp{#undef}, and @samp{HAVE_UNISTD_H}.  The use of @samp{#define}
+instead of @samp{#undef}, or of comments on the same line as
+@samp{#undef}, is strongly discouraged.  Each hook should only be listed
+once.  Other preprocessor lines, such as @samp{#ifdef} or
+@samp{#include}, are copied verbatim from the template into the
+generated header.
+
+Since it is a tedious task to keep a template header up to date, you may
+use @command{autoheader} to generate it, see @ref{autoheader Invocation}.
+
+During the instantiation of the header, each @samp{#undef} line in the
+template file for each symbol defined by @samp{AC_DEFINE} is changed to an
+appropriate @samp{#define}. If the corresponding @samp{AC_DEFINE} has not
+been executed during the @command{configure} run, the @samp{#undef} line is
+commented out.  (This is important, e.g., for @samp{_POSIX_SOURCE}:
+on many systems, it can be implicitly defined by the compiler, and
+undefining it in the header would then break compilation of subsequent
+headers.)
+
+Currently, @emph{all} remaining @samp{#undef} lines in the header
+template are commented out, whether or not there was a corresponding
+@samp{AC_DEFINE} for the macro name; but this behavior is not guaranteed
+for future releases of Autoconf.
+
+Generally speaking, since you should not use @samp{#define}, and you
+cannot guarantee whether a @samp{#undef} directive in the header
+template will be converted to a @samp{#define} or commented out in the
+generated header file, the template file cannot be used for conditional
+definition effects.  Consequently, if you need to use the construct
 
 @example
 @group
-#include <conf.h>
-
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#else
-/* We are in trouble.  */
+#ifdef THIS
+# define THAT
 #endif
 @end group
 @end example
 
-The use of old form templates, with @samp{#define} instead of
-@samp{#undef} is strongly discouraged.  Similarly with old templates
-with comments on the same line as the @samp{#undef}.  Anyway, putting
-comments in preprocessor macros has never been a good idea.
-
-Since it is a tedious task to keep a template header up to date, you may
-use @command{autoheader} to generate it, see @ref{autoheader Invocation}.
+@noindent
+you must place it outside of the template.
+If you absolutely need to hook it to the config header itself, please put
+the directives to a separate file, and @samp{#include} that file from the
+config header template.  If you are using @command{autoheader}, you would
+probably use @samp{AH_BOTTOM} to append the @samp{#include} directive.
 
 
 @node autoheader Invocation
@@ -3189,7 +3231,7 @@ Remake the template file even if newer than its input files.
 Append @var{dir} to the include path.  Multiple invocations accumulate.
 
 @item --prepend-include=@var{dir}
-@item -B @var{dir}
+@itemx -B @var{dir}
 Prepend @var{dir} to the include path.  Multiple invocations accumulate.
 
 @item --warnings=@var{category}
@@ -3995,8 +4037,8 @@ sets @code{RANLIB} to @file{i386-gnu-ranlib} if that program exists in
 @var{path}, or otherwise to @samp{ranlib} if that program exists in
 @var{path}, or to @samp{:} if neither program exists.
 
-In the future, when cross-compiling this macro will @emph{only}
-accept program names that are prefixed with the host type.
+When cross-compiling, this macro will issue a warning if no program
+prefixed with the host type could be found.
 For more information, see @ref{Specifying Names, , Specifying the
 system type}.
 @end defmac
@@ -4029,8 +4071,10 @@ the list are found, set @var{variable} to @var{value-if-not-found}; if
 @var{value-if-not-found} is not specified, the value of @var{variable}
 is not changed.  Calls @code{AC_SUBST} for @var{variable}.
 
-In the future, when cross-compiling this macro will @emph{not}
-accept program names that are not prefixed with the host type.
+When cross-compiling, this macro will issue a warning if no program
+prefixed with the host type could be found.
+For more information, see @ref{Specifying Names, , Specifying the
+system type}.
 @end defmac
 
 @anchor{AC_PATH_PROG}
@@ -4106,8 +4150,10 @@ name of the program if it is found.
 Like @code{AC_CHECK_TOOL}, but set @var{variable} to the absolute
 name of the program if it is found.
 
-In the future, when cross-compiling this macro will @emph{not}
-accept program names that are not prefixed with the host type.
+When cross-compiling, this macro will issue a warning if no program
+prefixed with the host type could be found.
+For more information, see @ref{Specifying Names, , Specifying the
+system type}.
 @end defmac
 
 
@@ -4342,6 +4388,7 @@ NextStep).
 @item @code{signal} handler
 @c @fuindex signal
 @prindex @code{signal}
+@prindex @code{sigaction}
 Normally @code{signal} takes a handler function with a return type of
 @code{void}, but some old systems required @code{int} instead.  Any
 actual @code{int} value returned is not used; this is only a
@@ -4349,8 +4396,12 @@ difference in the function prototype demanded.
 
 All systems we know of in current use return @code{void}.  The
 @code{int} was to support K&R C, where of course @code{void} is not
-available.  @code{AC_TYPE_SIGNAL} (@pxref{Particular Types}) can be
-used to establish the correct type in all cases.
+available.  The obsolete macro @code{AC_TYPE_SIGNAL}
+(@pxref{AC_TYPE_SIGNAL}) can be used to establish the correct type in
+all cases.
+
+In most cases, it is more robust to use @code{sigaction} when it is
+available, rather than @code{signal}.
 
 @item @code{snprintf}
 @c @fuindex snprintf
@@ -4651,12 +4702,14 @@ yourself in new code:
 @cvindex HAVE_FSEEKO
 @c @fuindex fseeko
 @prindex @code{fseeko}
+@c @fuindex ftello
+@prindex @code{ftello}
 If the @code{fseeko} function is available, define @code{HAVE_FSEEKO}.
 Define @code{_LARGEFILE_SOURCE} if necessary to make the prototype
 visible on some systems (e.g., glibc 2.2).  Otherwise linkage problems
 may occur when compiling with @code{AC_SYS_LARGEFILE} on
 largefile-sensitive systems where @code{off_t} does not default to a
-64bit entity.
+64bit entity.  All systems with @code{fseeko} also supply @code{ftello}.
 @end defmac
 
 @defmac AC_FUNC_GETGROUPS
@@ -5043,6 +5096,8 @@ that behaves this way.  New programs need not use this macro.
 @cvindex HAVE_DOPRNT
 @c @fuindex vprintf
 @prindex @code{vprintf}
+@c @fuindex vsprintf
+@prindex @code{vsprintf}
 If @code{vprintf} is found, define @code{HAVE_VPRINTF}.  Otherwise, if
 @code{_doprnt} is found, define @code{HAVE_DOPRNT}.  (If @code{vprintf}
 is available, you may assume that @code{vfprintf} and @code{vsprintf}
@@ -6212,28 +6267,6 @@ Define @code{pid_t} to a suitable type, if standard headers do not
 define it.
 @end defmac
 
-@anchor{AC_TYPE_SIGNAL}
-@defmac AC_TYPE_SIGNAL
-@acindex{TYPE_SIGNAL}
-@cvindex RETSIGTYPE
-@hdrindex{signal.h}
-If @file{signal.h} declares @code{signal} as returning a pointer to a
-function returning @code{void}, define @code{RETSIGTYPE} to be
-@code{void}; otherwise, define it to be @code{int}.
-
-Define signal handlers as returning type @code{RETSIGTYPE}:
-
-@example
-@group
-RETSIGTYPE
-hup_handler ()
-@{
-@dots{}
-@}
-@end group
-@end example
-@end defmac
-
 @anchor{AC_TYPE_SIZE_T}
 @defmac AC_TYPE_SIZE_T
 @acindex{TYPE_SIZE_T}
@@ -6501,7 +6534,7 @@ etc.).
 @ovindex OPENMP_CXXFLAGS
 @ovindex OPENMP_FFLAGS
 @ovindex OPENMP_FCFLAGS
-OpenMP (@url{http://www.openmp.org/}) specifies extensions of C, C++,
+OpenMP (@url{http://@/www.openmp.org/}) specifies extensions of C, C++,
 and Fortran that simplify optimization of shared memory parallelism,
 which is a common problem on multicore CPUs.
 
@@ -6765,9 +6798,10 @@ The default for @var{action-if-true} is to define
 @samp{WORDS_BIGENDIAN}.  The default for @var{action-if-false} is to do
 nothing.  The default for @var{action-if-unknown} is to
 abort configure and tell the installer how to bypass this test.
-And finally, the default for @var{action-if-universal} is to define
-@samp{WORDS_BIGENDIAN} or not, depending on the architecture that the
-code is being generated for.
+And finally, the default for @var{action-if-universal} is to ensure that
+@samp{WORDS_BIGENDIAN} is defined if and only if a universal build is
+detected and the current code is big-endian; this default works only if
+@command{autoheader} is used (@pxref{autoheader Invocation}).
 
 If you use this macro without specifying @var{action-if-universal}, you
 should also use @code{AC_CONFIG_HEADERS}; otherwise
@@ -6868,6 +6902,17 @@ if it accepts one of those, otherwise define @code{inline} to be empty.
 @cvindex __CHAR_UNSIGNED__
 If the C type @code{char} is unsigned, define @code{__CHAR_UNSIGNED__},
 unless the C compiler predefines it.
+
+These days, using this macro is not necessary.  The same information can
+be determined by this portable alternative, thus avoiding the use of
+preprocessor macros in the namespace reserved for the implementation.
+
+@example
+#include <limits.h>
+#if CHAR_MIN == 0
+# define CHAR_UNSIGNED 1
+#endif
+@end example
 @end defmac
 
 @defmac AC_C_STRINGIZE
@@ -7552,8 +7597,8 @@ if the system supports @samp{#!}, @samp{no} if not.
 @ovindex CC
 @cindex Large file support
 @cindex LFS
-Arrange for
-@uref{http://www.unix-systems.org/@/version2/@/whatsnew/@/lfs20mar.html,
+Arrange for 64-bit file offsets, known as
+@uref{http://@/www.unix-systems@/.org/@/version2/@/whatsnew/@/lfs20mar.html,
 large-file support}.  On some hosts, one must use special compiler
 options to build programs that can access large files.  Append any such
 options to the output variable @code{CC}.  Define
@@ -7866,7 +7911,7 @@ therefore as much as possible you ought to avoid using them to wrap
 your code, rather, require from the user to run the macro with a
 correct current language, and check it with @code{AC_LANG_ASSERT}.
 And anyway, that may help the user understand she is running a Fortran
-macro while expecting a result about her Fortran 77 compiler@dots{}
+macro while expecting a result about her Fortran 77 compiler@enddots{}
 @end defmac
 
 
@@ -8427,17 +8472,17 @@ This section aims at presenting some systems and pointers to
 documentation.  It may help you addressing particular problems reported
 by users.
 
-@uref{http://www.opengroup.org/susv3, Posix-conforming systems} are
-derived from the @uref{http://www.bell-labs.com/history/unix/, Unix
+@uref{http://@/www.opengroup.org/@/susv3, Posix-conforming systems} are
+derived from the @uref{http://@/www.bell-labs.com/@/history/@/unix/, Unix
 operating system}.
 
-The @uref{http://bhami.com/rosetta.html, Rosetta Stone for Unix}
+The @uref{http://@/bhami.com/@/rosetta.html, Rosetta Stone for Unix}
 contains a table correlating the features of various Posix-conforming
-systems.  @uref{http://www.levenez.com/unix/, Unix History} is a
+systems.  @uref{http://@/www.levenez.com/@/unix/, Unix History} is a
 simplified diagram of how many Unix systems were derived from each
 other.
 
-@uref{http://heirloom.sourceforge.net/, The Heirloom Project}
+@uref{http://@/heirloom.sourceforge.net/, The Heirloom Project}
 provides some variants of traditional implementations of Unix utilities.
 
 @table @asis
@@ -8465,11 +8510,11 @@ tree on the UFS).
 meant to be scalable from the small embedded systems to the hundred
 processor super-computer.  It claims to be Posix certified.  More
 information is available on the
-@uref{http://www.qnx.com/, @acronym{QNX} home page}.
+@uref{http://@/www.qnx.com/, @acronym{QNX} home page}.
 
 @item Tru64
 @cindex Tru64
-@uref{http://h30097.www3.hp.com/@/docs/,
+@uref{http://@/h30097.www3.hp.com/@/docs/,
 Documentation of several versions of Tru64} is available in different
 formats.
 
@@ -8479,7 +8524,7 @@ formats.
 Officially this was called the ``Seventh Edition'' of ``the @sc{unix}
 time-sharing system'' but we use the more-common name ``Unix version 7''.
 Documentation is available in the
-@uref{http://plan9.bell-labs.com/@/7thEdMan/, Unix Seventh Edition Manual}.
+@uref{http://@/plan9.bell-labs.com/@/7thEdMan/, Unix Seventh Edition Manual}.
 Previous versions of Unix are called ``Unix version 6'', etc., but
 they were not as widely used.
 @end table
@@ -8721,7 +8766,7 @@ substitution replaces the whole line, including the spaces, tabs, and
 the terminating newline.
 
 This macro is useful for inserting makefile fragments containing
-special dependencies or other @code{make} directives for particular host
+special dependencies or other @command{make} directives for particular host
 or target types into makefiles.  For example, @file{configure.ac}
 could contain:
 
@@ -9610,6 +9655,8 @@ the one they were implemented with.
 @c @cindex @samp{@@<:@@}
 @c @cindex @samp{@@:>@@}
 @c @cindex @samp{@@%:@@}
+@c @cindex @samp{@@@{:@@}
+@c @cindex @samp{@@:@}@@}
 
 When writing an Autoconf macro you may occasionally need to generate
 special characters that are difficult to express with the standard
@@ -9618,7 +9665,13 @@ expression @samp{[^[]}, which matches any character other than @samp{[}.
 This expression contains unbalanced brackets so it cannot be put easily
 into an M4 macro.
 
-You can work around this problem by using one of the following
+Additionally, there are a few m4sugar macros (such as @code{m4_split}
+and @code{m4_expand}) which internally use special markers in addition
+to the regular quoting characters.  If the arguments to these macros
+contain the literal strings @samp{-=<@{(} or @samp{)@}>=-}, the macros
+might behave incorrectly.
+
+You can work around these problems by using one of the following
 @dfn{quadrigraphs}:
 
 @table @samp
@@ -9630,6 +9683,10 @@ You can work around this problem by using one of the following
 @samp{$}
 @item @@%:@@
 @samp{#}
+@item @@@{:@@
+@samp{(}
+@item @@:@}@@
+@samp{)}
 @item @@&t@@
 Expands to nothing.
 @end table
@@ -9646,9 +9703,18 @@ The empty quadrigraph can be used:
 
 Trailing spaces are smashed by @command{autom4te}.  This is a feature.
 
-@item to produce other quadrigraphs
+@item to produce quadrigraphs and other strings reserved by m4sugar
 
-For instance @samp{@@<@@&t@@:@@} produces @samp{@@<:@@}.
+For instance @samp{@@<@@&t@@:@@} produces @samp{@@<:@@}.  For a more
+contrived example:
+
+@example
+m4_define([a], [A])m4_define([b], [B])m4_define([c], [C])dnl
+m4_split([a )@}>=- b -=<@{( c])
+@result{}[a], [], [B], [], [c]
+m4_split([a )@}@@&t@@>=- b -=<@@&t@@@{( c])
+@result{}[a], [)@}>=-], [b], [-=<@{(], [c]
+@end example
 
 @item to escape @emph{occurrences} of forbidden patterns
 
@@ -9935,7 +10001,7 @@ m4 --reload-state=4.m4f input.m4
 @end example
 
 @item --freeze
-@itemx -f
+@itemx -F
 Produce a frozen state file.  @command{autom4te} freezing is stricter
 than M4's: it must produce no warnings, and no output other than empty
 lines (a line with white space is @emph{not} empty) and comments
@@ -10097,7 +10163,7 @@ additionally reads @file{aclocal.m4}.
 @end table
 
 @item --prepend-include=@var{dir}
-@item -B @var{dir}
+@itemx -B @var{dir}
 Prepend directory @var{dir} to the search path.  This is used to include
 the language-specific files before any third-party macros.
 
@@ -10182,6 +10248,7 @@ define your own macros into these namespaces.
 * Evaluation Macros::           More quotation and evaluation control
 * Text processing Macros::      String manipulation in M4
 * Number processing Macros::    Arithmetic computation in M4
+* Set manipulation Macros::     Set manipulation in M4
 * Forbidden Patterns::          Catching unexpanded macros
 @end menu
 
@@ -10287,12 +10354,14 @@ is kept for future versions of M4sugar, once @acronym{GNU} M4 2.0 is
 released and supports extended regular expression syntax.
 @end defmac
 
-@defmac m4_defn (@var{macro})
+@defmac m4_defn (@var{macro}@dots{})
 @msindex{defn}
-Unlike the M4 builtin, this macro fails if @var{macro} is not
-defined.  Also, while newer M4 can concatenate multiple definitions,
-this version currently only supports a single @var{macro}.  See
-@code{m4_undefine}.
+This macro fails if @var{macro} is not defined, even when using older
+versions of M4 that did not warn.  See @code{m4_undefine}.
+Unfortunately, in order to support these older versions of M4, there are
+some situations involving unbalanced quotes where concatenating multiple
+macros together will work in newer M4 but not in m4sugar; use
+quadrigraphs to work around this.
 @end defmac
 
 @defmac m4_divert (@var{diversion})
@@ -10344,26 +10413,23 @@ and both have the secure semantics regardless of which macro the
 underlying M4 provides.
 @end defmac
 
-@defmac m4_popdef (@var{macro})
+@defmac m4_popdef (@var{macro}@dots{})
 @msindex{popdef}
-Unlike the M4 builtin, this macro fails if @var{macro} is not
-defined.  Also, while newer M4 can pop multiple definitions at once,
-this version currently only supports a single @var{macro}.  See
-@code{m4_undefine}.
+This macro fails if @var{macro} is not defined, even when using older
+versions of M4 that did not warn.  See @code{m4_undefine}.
 @end defmac
 
-@defmac m4_undefine (@var{macro})
+@defmac m4_undefine (@var{macro}@dots{})
 @msindex{undefine}
-Unlike the M4 builtin, this macro fails if @var{macro} is not
-defined.  Also, while newer M4 can undefine multiple definitions at
-once, this version currently only supports a single @var{macro}.  Use
+This macro fails if @var{macro} is not defined, even when using older
+versions of M4 that did not warn.  Use
 
 @example
 m4_ifdef([@var{macro}], [m4_undefine([@var{macro}])])
 @end example
 
 @noindent
-to recover the behavior of the builtin.
+if you are not sure whether @var{macro} is defined.
 @end defmac
 
 @defmac m4_undivert (@var{diversion})
@@ -10598,7 +10664,8 @@ macro over-quotes @var{string}; this behavior is intentional, so that
 the result of each step of the recursion remains as a quoted string.
 However, it means that anchors (@samp{^} and @samp{$} in the @var{regex}
 will line up with the extra quotations, and not the characters of the
-original string.
+original string.  The overquoting is removed after the final
+substitution.
 @end defmac
 
 @defmac m4_case (@var{string}, @var{value-1}, @var{if-value-1}, @
@@ -10706,6 +10773,22 @@ It is common to see lists with unquoted elements when those elements are
 not likely to be macro names, as in @samp{[fputc_unlocked,
 fgetc_unlocked]}.
 
+Although not generally recommended, it is possible for quoted lists to
+have side effects; all side effects are expanded only once, and prior to
+visiting any list element.  On the other hand, the fact that unquoted
+macros are expanded exactly once means that macros without side effects
+can be used to generate lists.  For example,
+
+@example
+m4_foreach([i], [[1], [2], [3]m4_errprintn([hi])], [i])
+@error{}hi
+@result{}123
+m4_define([list], [[1], [2], [3]])
+@result{}
+m4_foreach([i], [list], [i])
+@result{}123
+@end example
+
 @defmac m4_car (@var{list})
 @msindex{car}
 Expands to the quoted first element of the comma-separated quoted
@@ -10742,7 +10825,9 @@ including bounds by increments of @var{step}.  For each iteration,
 expand @var{expression} with the numeric value assigned to @var{var}.
 If @var{step} is omitted, it defaults to @samp{1} or @samp{-1} depending
 on the order of the limits.  If given, @var{step} has to match this
-order.
+order.  The number of iterations is determined independently from
+definition of @var{var}; iteration cannot be short-circuited or
+lengthened by modifying @var{var} from within @var{expression}.
 @end defmac
 
 @defmac m4_foreach (@var{var}, @var{list}, @var{expression})
@@ -10771,24 +10856,49 @@ The deprecated macro @code{AC_FOREACH} is an alias of
 @end defmac
 
 @defmac m4_map (@var{macro}, @var{list})
+@defmacx m4_mapall (@var{macro}, @var{list})
 @defmacx m4_map_sep (@var{macro}, @var{separator}, @var{list})
+@defmacx m4_mapall_sep (@var{macro}, @var{separator}, @var{list})
+@msindex{map}
+@msindex{mapall}
+@msindex{map_sep}
+@msindex{mapall_sep}
 Loop over the comma separated quoted list of argument descriptions in
 @var{list}, and invoke @var{macro} with the arguments.  An argument
 description is in turn a comma-separated quoted list of quoted elements,
-suitable for @code{m4_apply}, making it possible to invoke @var{macro}
-without arguments if an argument description is empty.
-@code{m4_map_sep} additionally outputs @var{separator} between macro
-invocations, with no additional expansion of the separator.
+suitable for @code{m4_apply}.  The macros @code{m4_map} and
+@code{m4_map_sep} ignore empty argument descriptions, while
+@code{m4_mapall} and @code{m4_mapall_sep} invoke @var{macro} with no
+arguments.  The macros @code{m4_map_sep} and @code{m4_mapall_sep}
+additionally expand @var{separator} between invocations of @var{macro}.
+
+Note that @var{separator} is expanded, unlike in @code{m4_join}.  When
+separating output with commas, this means that the map result can be
+used as a series of arguments, by using a single-quoted comma as
+@var{separator}, or as a single string, by using a double-quoted comma.
+
 @example
 m4_map([m4_count], [])
 @result{}
 m4_map([ m4_count], [[],
                      [[1]],
                      [[1], [2]]])
+@result{} 1 2
+m4_mapall([ m4_count], [[],
+                        [[1]],
+                        [[1], [2]]])
 @result{} 0 1 2
 m4_map_sep([m4_eval], [,], [[[1+2]],
                             [[10], [16]]])
 @result{}3,a
+m4_map_sep([m4_echo], [,], [[[a]], [[b]]])
+@result{}a,b
+m4_count(m4_map_sep([m4_echo], [,], [[[a]], [[b]]]))
+@result{}2
+m4_map_sep([m4_echo], [[,]], [[[a]], [[b]]])
+@result{}a,b
+m4_count(m4_map_sep([m4_echo], [[,]], [[[a]], [[b]]]))
+@result{}1
 @end example
 @end defmac
 
@@ -10814,7 +10924,7 @@ The following macros give some control over the order of the evaluation
 by adding or removing levels of quotes.
 
 @defmac m4_apply (@var{macro}, @var{list})
-@msindex apply
+@msindex{apply}
 Apply the elements of the quoted, comma-separated @var{list} as the
 arguments to @var{macro}.  If @var{list} is empty, invoke @var{macro}
 without arguments.  Note the difference between @code{m4_indir}, which
@@ -10843,7 +10953,24 @@ passed.
 @msindex{do}
 This macro loops over its arguments and expands each @var{arg} in
 sequence.  Its main use is for readability; it allows the use of
-indentation and fewer @code{dnl} to result in the same expansion.
+indentation and fewer @code{dnl} to result in the same expansion.  This
+macro guarantees that no expansion will be concatenated with subsequent
+text; to achieve full concatenation, use @code{m4_unquote(m4_join([],
+@var{arg@dots{}}))}.
+
+@example
+m4_define([ab],[1])m4_define([bc],[2])m4_define([abc],[3])dnl
+m4_do([a],[b])c
+@result{}abc
+m4_unquote(m4_join([],[a],[b]))c
+@result{}3
+m4_define([a],[A])m4_define([b],[B])m4_define([c],[C])dnl
+m4_define([AB],[4])m4_define([BC],[5])m4_define([ABC],[6])dnl
+m4_do([a],[b])c
+@result{}ABC
+m4_unquote(m4_join([],[a],[b]))c
+@result{}3
+@end example
 @end defmac
 
 @defmac m4_dquote (@var{arg}, @dots{})
@@ -10878,12 +11005,6 @@ collection rules discard the whitespace.  However, with @code{m4_expand},
 whitespace is preserved, even after the expansion of macros contained in
 @var{arg}.
 
-Note that @code{m4_expand} cannot parse everything.  The expansion of
-@var{arg} must not contain unbalanced quotes (although quadrigraphs can
-get around this), nor unbalanced parentheses (portable shell @code{case}
-statements are a major culprit here, but creative shell comments can get
-around this).
-
 @example
 m4_define([active], [ACT, IVE])dnl
 m4_define([active2], [[ACT, IVE]])dnl
@@ -10895,6 +11016,24 @@ m4_quote(active2, active2)
 @result{}ACT, IVE,ACT, IVE
 m4_expand([active2, active2])
 @result{}ACT, IVE, ACT, IVE
+@end example
+
+Note that @code{m4_expand} cannot handle an @var{arg} that expands to
+literal unbalanced quotes, but that quadrigraphs can be used when
+unbalanced output is necessary.  Likewise, unbalanced parentheses must
+be supplied with double quoting or a quadrigraph.
+
+@example
+m4_define([pattern], [[!@@<:@@]])dnl
+m4_define([bar], [BAR])dnl
+m4_expand([case $foo in
+  m4_defn([pattern])@@:@}@@ bar ;;
+  *[)] blah ;;
+esac])
+@result{}case $foo in
+@result{}  [![]) BAR ;;
+@result{}  *) blah ;;
+@result{}esac
 @end example
 @end defmac
 
@@ -10946,6 +11085,19 @@ m4_foreach([number], m4_make_list(zero, [one], [[two]]), [ number])
 Return the arguments as a single entity, i.e., wrap them into a pair of
 quotes.  This effectively collapses multiple arguments into one,
 although it loses whitespace after unquoted commas in the process.
+@end defmac
+
+@defmac m4_reverse (@var{arg}, @dots{})
+@msindex{reverse}
+Outputs each argument with the same level of quoting, but in reverse
+order, and with space following each comma for readability.
+
+@example
+m4_define([active], [ACT,IVE])
+@result{}
+m4_reverse(active, [active])
+@result{}active, IVE, ACT
+@end example
 @end defmac
 
 @defmac m4_unquote (@var{arg}, @dots{})
@@ -11029,6 +11181,13 @@ to grow strings without duplicating substrings.  Additionally,
 Also, @code{m4_append_uniq} warns if @var{separator} is not empty, but
 occurs within @var{string}, since that can lead to duplicates.
 
+Note that @code{m4_append} can scale linearly in the length of the final
+string, depending on the quality of the underlying M4 implementation,
+while @code{m4_append_uniq} has an inherent quadratic scaling factor.
+If an algorithm can tolerate duplicates in the final string, use the
+former for speed.  If duplicates must be avoided, consider using
+@code{m4_set_add} instead (@pxref{Set manipulation Macros}).
+
 @example
 m4_define([active], [ACTIVE])dnl
 m4_append([sentence], [This is an])dnl
@@ -11109,14 +11268,19 @@ still a quoted string.
 @end defmac
 
 @defmac m4_join (@ovar{separator}, @var{args}@dots{})
+@defmacx m4_joinall (@ovar{separator}, @var{args}@dots{})
 @msindex{join}
-Concatenate each @var{arg}, separated by @var{separator}, with the
-exception that no back-to-back separators are issued for empty
-arguments.  The result is a quoted string.
+@msindex{joinall}
+Concatenate each @var{arg}, separated by @var{separator}.
+@code{joinall} uses every argument, while @code{join} omits empty
+arguments so that there are no back-to-back separators in the output.
+The result is a quoted string.
 @example
 m4_define([active], [ACTIVE])dnl
 m4_join([|], [one], [], [active], [two])
 @result{}one|active|two
+m4_joinall([|], [one], [], [active], [two])
+@result{}one||active|two
 @end example
 
 Note that if all you intend to do is join @var{args} with commas between
@@ -11174,6 +11338,9 @@ m4_text_box([macro])
 @result{}## abc ##
 @result{}## --- ##
 @end example
+
+The @var{message} must contain balanced quotes and parentheses, although
+quadrigraphs can be used to work around this.
 @end defmac
 
 @defmac m4_text_wrap (@var{string}, @ovar{prefix}, @
@@ -11319,6 +11486,229 @@ m4_version_compare([2.61a], [2.61a-248-dc51])
 m4_version_compare([2.61b], [2.61a-248-dc51])
 @result{}1
 @end example
+@end defmac
+
+
+@node Set manipulation Macros
+@subsection Set manipulation in M4
+@cindex Set manipulation
+@cindex Data structure, set
+@cindex Unordered set manipulation
+
+Sometimes, it is necessary to track a set of data, where the order does
+not matter and where there are no duplicates in the set.  The following
+macros facilitate set manipulations.  Each set is an opaque object,
+which can only be accessed via these basic operations.  The underlying
+implementation guarantees linear scaling for set creation, which is more
+efficient than using the quadratic @code{m4_append_uniq}.  Both set
+names and values can be arbitrary strings, except for unbalanced quotes.
+This implementation ties up memory for removed elements until the next
+operation that must traverse all the elements of a set; and although
+that may slow down some operations until the memory for removed elements
+is pruned, it still guarantees linear performance.
+
+@defmac m4_set_add (@var{set}, @var{value}, @ovar{if-uniq}, @ovar{if-dup})
+@msindex{set_add}
+Adds the string @var{value} as a member of set @var{set}.  Expand
+@var{if-uniq} if the element was added, or @var{if-dup} if it was
+previously in the set.  Operates in amortized constant time, so that set
+creation scales linearly.
+@end defmac
+
+@defmac m4_set_add_all (@var{set}, @var{value}@dots{})
+@msindex{set_add_all}
+Adds each @var{value} to the set @var{set}.  This is slightly more
+efficient than repeatedly invoking @code{m4_set_add}.
+@end defmac
+
+@defmac m4_set_contains (@var{set}, @var{value}, @ovar{if-present}, @
+ @ovar{if-absent})
+@msindex{set_contains}
+Expands @var{if-present} if the string @var{value} is a member of
+@var{set}, otherwise @var{if-absent}.
+
+@example
+m4_set_contains([a], [1], [yes], [no])
+@result{}no
+m4_set_add([a], [1], [added], [dup])
+@result{}added
+m4_set_add([a], [1], [added], [dup])
+@result{}dup
+m4_set_contains([a], [1], [yes], [no])
+@result{}yes
+m4_set_remove([a], [1], [removed], [missing])
+@result{}removed
+m4_set_contains([a], [1], [yes], [no])
+@result{}no
+m4_set_remove([a], [1], [removed], [missing])
+@result{}missing
+@end example
+@end defmac
+
+@defmac m4_set_contents (@var{set}, @ovar{sep})
+@defmacx m4_set_dump (@var{set}, @ovar{sep})
+@msindex{set_contents}
+@msindex{set_dump}
+Expands to a single string consisting of all the members of the set
+@var{set}, each separated by @var{sep}, which is not expanded.
+@code{m4_set_contents} leaves the elements in @var{set} but reclaims any
+memory occupied by removed elements, while @code{m4_set_dump} is a
+faster one-shot action that also deletes the set.  No provision is made
+for disambiguating members that contain a non-empty @var{sep} as a
+substring; use @code{m4_set_empty} to distinguish between an empty set
+and the set containing only the empty string.  The order of the output
+is unspecified; in the current implementation, part of the speed of
+@code{m4_set_dump} results from using a different output order than
+@code{m4_set_contents}.  These macros scale linearly in the size of the
+set before memory pruning, and @code{m4_set_contents([@var{set}],
+[@var{sep}])} is faster than
+@code{m4_joinall([@var{sep}]m4_set_listc([@var{set}]))}.
+
+@example
+m4_set_add_all([a], [1], [2], [3])
+@result{}
+m4_set_contents([a], [-])
+@result{}1-2-3
+m4_joinall([-]m4_set_listc([a]))
+@result{}1-2-3
+m4_set_dump([a], [-])
+@result{}3-2-1
+m4_set_contents([a])
+@result{}
+m4_set_add([a], [])
+@result{}
+m4_set_contents([a], [-])
+@result{}
+@end example
+@end defmac
+
+@defmac m4_set_delete (@var{set})
+@msindex{set_delete}
+Delete all elements and memory associated with @var{set}.  This is
+linear in the set size, and faster than removing one element at a time.
+@end defmac
+
+@defmac m4_set_difference (@var{seta}, @var{setb})
+@defmacx m4_set_intersection (@var{seta}, @var{setb})
+@defmacx m4_set_union (@var{seta}, @var{setb})
+@msindex{set_difference}
+@msindex{set_intersection}
+@msindex{set_union}
+Compute the relation between @var{seta} and @var{setb}, and output the
+result as a list of quoted arguments without duplicates and with a
+leading comma.  Set difference selects the elements in @var{seta} but
+not @var{setb}, intersection selects only elements in both sets, and
+union selects elements in either set.  These actions are linear in the
+sum of the set sizes.  The leading comma is necessary to distinguish
+between no elements and the empty string as the only element.
+
+@example
+m4_set_add_all([a], [1], [2], [3])
+@result{}
+m4_set_add_all([b], [3], [], [4])
+@result{}
+m4_set_difference([a], [b])
+@result{},1,2
+m4_set_difference([b], [a])
+@result{},,4
+m4_set_intersection([a], [b])
+@result{},3
+m4_set_union([a], [b])
+@result{},1,2,3,,4
+@end example
+@end defmac
+
+@defmac m4_set_empty (@var{set}, @ovar{if-empty}, @ovar{if-elements})
+@msindex{set_empty}
+Expand @var{if-empty} if the set @var{set} has no elements, otherwise
+expand @var{if-elements}.  This macro operates in constant time.  Using
+this macro can help disambiguate output from @code{m4_set_contents} or
+@code{m4_set_list}.
+@end defmac
+
+@defmac m4_set_foreach (@var{set}, @var{variable}, @var{action})
+@msindex{set_foreach}
+For each element in the set @var{set}, expand @var{action} with the
+macro @var{variable} defined as the set element.  Behavior is
+unspecified if @var{action} recursively lists the contents of @var{set}
+(although listing other sets is acceptable), or if it modifies the set
+in any way other than removing the element currently contained in
+@var{variable}.  This macro is faster than the corresponding
+@code{m4_foreach([@var{variable}],
+m4_indir([m4_dquote]m4_set_listc([@var{set}])), [@var{action}])}.
+
+@example
+m4_set_add_all([a]m4_for([i], [1], [5], [], [,i]))
+@result{}
+m4_set_contents([a])
+@result{}12345
+m4_set_foreach([a], [i],
+  [m4_if(m4_eval(i&1), [0], [m4_set_remove([a], i, [i])])])
+@result{}24
+m4_set_contents([a])
+@result{}135
+@end example
+@end defmac
+
+@defmac m4_set_list (@var{set})
+@defmacx m4_set_listc (@var{set})
+@msindex{set_list}
+@msindex{set_listc}
+Produce a list of arguments, where each argument is a quoted element
+from the set @var{set}.  The variant @code{m4_set_listc} is unambiguous,
+by adding a leading comma if there are any set elements, whereas the
+variant @code{m4_set_list} cannot distinguish between an empty set and a
+set containing only the empty string.  These can be directly used in
+macros that take multiple arguments, such as @code{m4_join} or
+@code{m4_set_add_all}, or wrapped by @code{m4_dquote} for macros that
+take a quoted list, such as @code{m4_map} or @code{m4_foreach}.  Any
+memory occupied by removed elements is reclaimed during these macros.
+
+@example
+m4_set_add_all([a], [1], [2], [3])
+@result{}
+m4_set_list([a])
+@result{}1,2,3
+m4_set_list([b])
+@result{}
+m4_set_listc([b])
+@result{}
+m4_count(m4_set_list([b]))
+@result{}1
+m4_set_empty([b], [0], [m4_count(m4_set_list([b]))])
+@result{}0
+m4_set_add([b], [])
+@result{}
+m4_set_list([b])
+@result{}
+m4_set_listc([b])
+@result{},
+m4_count(m4_set_list([b]))
+@result{}1
+m4_set_empty([b], [0], [m4_count(m4_set_list([b]))])
+@result{}1
+@end example
+@end defmac
+
+@defmac m4_set_remove (@var{set}, @var{value}, @ovar{if-present}, @
+ @ovar{if-absent})
+@msindex{set_remove}
+If @var{value} is an element in the set @var{set}, then remove it and
+expand @var{if-present}.  Otherwise expand @var{if-absent}.  This macro
+operates in constant time so that multiple removals will scale linearly
+rather than quadratically; but when used outside of
+@code{m4_set_foreach}, it leaves memory occupied until the set is later
+compacted by @code{m4_set_contents} or @code{m4_set_list}.  Several
+other set operations are then less efficient between the time of element
+removal and subsequent memory compaction, but still maintain their
+guaranteed scaling performance.
+@end defmac
+
+@defmac m4_set_size (@var{set})
+@msindex{set_size}
+Expand to the size of the set @var{set}.  This implementation operates
+in constant time, and is thus more efficient than
+@code{m4_eval(m4_count(m4_set_listc([set])) - 1)}.
 @end defmac
 
 
@@ -11474,7 +11864,7 @@ Also see the @code{AC_PROG_MKDIR_P} macro (@pxref{Particular Programs}).
 
 @defmac AS_SHELL_SANITIZE
 @asindex{SHELL_SANITIZE}
-Initialize the shell suitably for @code{configure} scripts.  This has
+Initialize the shell suitably for @command{configure} scripts.  This has
 the effect of @code{AS_BOURNE_COMPATIBLE}, and sets some other
 environment variables for predictable results from configuration tests.
 For example, it sets @env{LC_ALL} to change to the default C locale.
@@ -12251,7 +12641,7 @@ by all shells!
 
 Shell functions are considered portable nowadays, though Autoconf still
 does not use them (Autotest does).  However, some pitfalls have to be
-avoided for portable use of shell functions.
+avoided for portable use of shell functions (@pxref{Shell Functions}).
 
 Some ancient systems have quite
 small limits on the length of the @samp{#!} line; for instance, 32
@@ -12272,10 +12662,10 @@ Some of these external utilities have a portable subset of features; see
 
 There are other sources of documentation about shells.  The
 specification for the Posix
-@uref{http://www.opengroup.org/@/susv3/@/utilities/@/xcu_chap02.html, Shell
+@uref{http://@/www.opengroup.org/@/susv3/@/utilities/@/xcu_chap02@/.html, Shell
 Command Language}, though more generous than the restrictive shell
 subset described above, is fairly portable nowadays.  Also please see
-@uref{http://www.faqs.org/@/faqs/@/unix-faq/@/shell/, the Shell FAQs}.
+@uref{http://@/www.faqs.org/@/faqs/@/unix-faq/@/shell/, the Shell FAQs}.
 
 @menu
 * Shellology::                  A zoology of shells
@@ -12300,7 +12690,7 @@ subset described above, is fairly portable nowadays.  Also please see
 There are several families of shells, most prominently the Bourne family
 and the C shell family which are deeply incompatible.  If you want to
 write portable shell scripts, avoid members of the C shell family.  The
-@uref{http://www.faqs.org/@/faqs/@/unix-faq/@/shell/@/shell-differences/, the
+@uref{http://@/www.faqs.org/@/faqs/@/unix-faq/@/shell/@/shell-differences/, the
 Shell difference FAQ} includes a small history of Posix shells, and a
 comparison between several of them.
 
@@ -12652,6 +13042,19 @@ $
 Within the process which runs the @samp{descrips} script, file
 descriptor 5 is closed.
 
+Don't rely on redirection to a closed file descriptor to cause an
+error.  With Solaris @command{/bin/sh}, when the redirection fails, the
+output goes to the original file descriptor.
+
+@example
+$ @kbd{bash -c 'echo hi >&3' 3>&-; echo $?}
+bash: 3: Bad file descriptor
+1
+$ @kbd{/bin/sh -c 'echo hi >&3' 3>&-; echo $?}
+hi
+0
+@end example
+
 @acronym{DOS} variants cannot rename or remove open files, such as in
 @samp{mv foo bar >foo} or @samp{rm foo >foo}, even though this is
 perfectly portable among Posix hosts.
@@ -12746,7 +13149,7 @@ that are Posixy enough to run @command{autoconf} (such as @acronym{DJGPP})
 are usually able to handle long file names properly, there are still
 limitations that can seriously break packages.  Several of these issues
 can be easily detected by the
-@uref{ftp://ftp.gnu.org/gnu/non-gnu/doschk/doschk-1.1.tar.gz, doschk}
+@uref{ftp://@/ftp.gnu.org/@/gnu/@/non-gnu/@/doschk/@/doschk-1.1.tar.gz, doschk}
 package.
 
 A short overview follows; problems are marked with @sc{sfn}/@sc{lfn} to
@@ -13110,6 +13513,26 @@ $ @kbd{echo "`printf 'foo\r\n'`"" bar" | cmp - broken}
 - broken differ: char 4, line 1
 @end example
 
+Upon interrupt or SIGTERM, some shells may abort a command substitution,
+replace it with a null string, and wrongly evaluate the enclosing
+command before entering the trap or ending the script.  This can lead to
+spurious errors:
+
+@example
+$ @kbd{sh -c 'if test `sleep 5; echo hi` = hi; then echo yes; fi'}
+$ @kbd{^C}
+sh: test: hi: unexpected operator/operand
+@end example
+
+@noindent
+You can avoid this by assigning the command substitution to a temporary
+variable:
+
+@example
+$ @kbd{sh -c 'res=`sleep 5; echo hi`
+         if test "x$res" = xhi; then echo yes; fi'}
+$ @kbd{^C}
+@end example
 
 @item $(@var{commands})
 @cindex $(@var{commands})
@@ -13158,6 +13581,44 @@ echo $(case x in x) echo hello;; esac)
 Arithmetic expansion is not portable as some shells (most
 notably Solaris 10 @command{/bin/sh}) don't support it.
 
+Among shells that do support @samp{$(( ))}, not all of them obey the
+Posix rule that octal and hexadecimal constants must be recognized:
+
+@example
+$ @kbd{bash -c 'echo $(( 010 + 0x10 ))'}
+24
+$ @kbd{zsh -c 'echo $(( 010 + 0x10 ))'}
+26
+$ @kbd{zsh -c 'emulate sh; echo $(( 010 + 0x10 ))'}
+24
+$ @kbd{pdksh -c 'echo $(( 010 + 0x10 ))'}
+pdksh:  010 + 0x10 : bad number `0x10'
+$ @kbd{pdksh -c 'echo $(( 010 ))'}
+10
+@end example
+
+When it is available, using arithmetic expansion provides a noticeable
+speedup in script execution; but testing for support requires
+@command{eval} to avoid syntax errors.  If shell function support has
+also been detected, then this construct can be used to assign @samp{foo}
+to an arithmetic result, provided all numeric arguments are provided in
+decimal and without a leading zero:
+
+@example
+if ( eval 'test $(( 1 + 1 )) = 2' ) 2>/dev/null; then
+  eval 'func_arith ()
+  @{
+    func_arith_result=$(( $* ))
+  @}'
+else
+  func_arith ()
+  @{
+    func_arith_result=`expr "$@@"`
+  @}
+fi
+func_arith 1 + 1
+foo=$func_arith_result
+@end example
 
 
 @item ^
@@ -13620,6 +14081,19 @@ subshell if the last command of that subshell was @code{exit} or
 find a shell that does not exhibit the bug, zsh might be the only shell
 present on the user's machine.
 
+Likewise, the state of @samp{$?} is not reliable when entering a shell
+function.  This has the effect that using a function as the first
+command in a @command{trap} handler can cause problems.
+
+@example
+$ @kbd{bash -c 'foo()@{ echo $?; @}; trap foo 0; (exit 2); exit 2'; echo $?}
+2
+2
+$ @kbd{ash -c 'foo()@{ echo $?; @}; trap foo 0; (exit 2); exit 2'; echo $?}
+0
+2
+@end example
+
 Shell variables and functions may share the same namespace, for example
 with Solaris 10 @command{/bin/sh}:
 
@@ -13678,6 +14152,22 @@ must use @samp{. ./foo}.
 The Unix version 7 shell did not support
 negating the exit status of commands with @command{!}, and this feature
 is still absent from some shells (e.g., Solaris @command{/bin/sh}).
+Other shells, such as FreeBSD @command{/bin/sh} or @command{ash}, have
+bugs when using @command{!}:
+
+@example
+$ @kbd{sh -c '! : | :'; echo $?}
+1
+$ @kbd{ash -c '! : | :'; echo $?}
+0
+$ @kbd{sh -c '! @{ :; @}'; echo $?}
+1
+$ @kbd{ash -c '! @{ :; @}'; echo $?}
+@{: not found
+Syntax error: "@}" unexpected
+2
+@end example
+
 Shell code like this:
 
 @example
@@ -13745,13 +14235,32 @@ parentheses like this:
 
 @example
 case $file_name in
-(*.c) echo "C source code";;
+  (*.c) echo "C source code";;
 esac
 @end example
 
 @noindent
 but the @code{(} in this example is not portable to many Bourne
-shell implementations.  It can be omitted safely.
+shell implementations, which is a pity for those of us using tools that
+rely on balanced parentheses.  For instance, with Solaris
+@command{/bin/sh}:
+
+@example
+$ @kbd{case foo in (foo) echo foo;; esac}
+@error{}syntax error: `(' unexpected
+@end example
+
+@noindent
+The leading @samp{(} can be omitted safely.  In contexts where
+unbalanced parentheses cause other problems, such as when using a case
+statement as an argument to an Autoconf macro, you can also resort to
+creative shell comments to supply the balance:
+
+@example
+case $file_name in #(
+  *.c) echo "C source code";;
+esac
+@end example
 
 Zsh handles pattern fragments derived from parameter expansions or
 command substitutions as though quoted:
@@ -13821,15 +14330,6 @@ ash-0.3.8 $ @kbd{case foo in esac;}
 @error{}Syntax error: ";" unexpected (expecting ")")
 @end example
 
-Many shells still do not support parenthesized cases, which is a pity
-for those of us using tools that rely on balanced parentheses.  For
-instance, Solaris @command{/bin/sh}:
-
-@example
-$ @kbd{case foo in (foo) echo foo;; esac}
-@error{}syntax error: `(' unexpected
-@end example
-
 
 @item @command{cd}
 @c ---------------
@@ -13845,7 +14345,7 @@ assume neither behavior is the default.  This can be a bit tricky,
 since the Posix default behavior means that, for example,
 @samp{ls ..} and @samp{cd ..} may refer to different directories if
 the current logical directory is a symbolic link.  It is safe to use
-@command{cd @var{dir}} if @var{dir} contains no @file{..} components.
+@code{cd @var{dir}} if @var{dir} contains no @file{..} components.
 Also, Autoconf-generated scripts check for this problem when computing
 variables like @code{ac_top_srcdir} (@pxref{Configuration Actions}),
 so it is safe to @command{cd} to these variables.
@@ -13936,6 +14436,54 @@ but portable scripts should not rely on this.
 You should not rely on @code{LINENO} within @command{eval}.
 @xref{Special Shell Variables}.
 
+@item @command{exec}
+@c -----------------
+@prindex @command{exec}
+Posix describes several categories of shell built-ins.  Special
+built-ins (such as @command{exit}) must impact the environment of the
+current shell, and need not be available through @command{exec}.  All
+other built-ins are regular, and must not propagate variable assignments
+to the environment of the current shell.  However, the group of regular
+built-ins is further distinguished by commands that do not require a
+@env{PATH} search (such as @command{cd}), in contrast to built-ins that
+are offered as a more efficient version of something that must still be
+found in a @env{PATH} search (such as @command{echo}).  Posix is not
+clear on whether @command{exec} must work with the list of 17 utilities
+that are invoked without a @env{PATH} search, and many platforms lack an
+executable for some of those built-ins:
+
+@example
+$ @kbd{sh -c 'exec cd /tmp'}
+sh: line 0: exec: cd: not found
+@end example
+
+All other built-ins that provide utilities specified by Posix must have
+a counterpart executable that exists on @env{PATH}, although Posix
+allows @command{exec} to use the built-in instead of the executable.
+For example, contrast @command{bash} 3.2 and @command{pdksh} 5.2.14:
+
+@example
+$ @kbd{bash -c 'pwd --version' | head -n1}
+bash: line 0: pwd: --: invalid option
+pwd: usage: pwd [-LP]
+$ @kbd{bash -c 'exec pwd --version' | head -n1}
+pwd (GNU coreutils) 6.10
+$ @kbd{pdksh -c 'exec pwd --version' | head -n1}
+pdksh: pwd: --: unknown option
+@end example
+
+When it is desired to avoid a regular shell built-in, the workaround is
+to use some other forwarding command, such as @command{env} or
+@command{nice}, that will ensure a path search:
+
+@example
+$ @kbd{pdksh -c 'exec true --version' | head -n1}
+$ @kbd{pdksh -c 'nice true --version' | head -n1}
+true (GNU coreutils) 6.10
+$ @kbd{pdksh -c 'env true --version' | head -n1}
+true (GNU coreutils) 6.10
+@end example
+
 @item @command{exit}
 @c -----------------
 @prindex @command{exit}
@@ -13996,8 +14544,18 @@ alternately @samp{foo} and @samp{bar}, although they should print only
 @samp{foo} and then a sequence of @samp{bar}s.
 
 Therefore you should @command{export} again each environment variable
-that you update.
+that you update; the export can occur before or after the assignment.
 
+Posix is not clear on whether the @command{export} of an undefined
+variable causes the variable to be defined with the value of an empty
+string, or merely marks any future definition of a variable by that name
+for export.  Various shells behave differently in this regard:
+
+@example
+$ @kbd{sh -c 'export foo; env | grep foo'}
+$ @kbd{ash -c 'export foo; env | grep foo'}
+foo=
+@end example
 
 @item @command{false}
 @c ------------------
@@ -14561,7 +15119,7 @@ Traditional Awk does not support multidimensional arrays or user-defined
 functions.
 
 Traditional Awk does not support the @option{-v} option.  You can use
-assignments after the program instead, e.g., @command{$AWK '@{print v
+assignments after the program instead, e.g., @code{$AWK '@{print v
 $1@}' v=x}; however, don't forget that such assignments are not
 evaluated until they are encountered (e.g., after any @code{BEGIN}
 action).
@@ -14701,7 +15259,7 @@ newline encoding.
 Avoid the @option{-r} option, since Posix 1003.1-2004 marks it as
 obsolescent and its behavior on special files is implementation-defined.
 Use @option{-R} instead.  On @acronym{GNU} hosts the two options
-are equivalent, but on Solaris hosts (for example) @command{cp -r}
+are equivalent, but on Solaris hosts (for example) @code{cp -r}
 reads from pipes instead of replicating them.
 
 Some @command{cp} implementations (e.g., @acronym{BSD/OS} 4.2) do not allow
@@ -15504,6 +16062,28 @@ fails to work on SunOS 4.1.3 when the empty file is on an
 @acronym{NFS}-mounted 4.2 volume.
 However, these problems are no longer of practical concern.
 
+@item @command{tr}
+@c ---------------
+@prindex @command{tr}
+@cindex carriage return, deleting
+@cindex deleting carriage return
+Not all versions of @command{tr} handle all backslash character escapes.
+For example, Solaris 10 @command{/usr/ucb/tr} falls over, even though
+Solaris contains more modern @command{tr} in other locations.
+Therefore, it is more portable to use octal escapes, even though this
+ties the result to @acronym{ASCII}, when using @command{tr} to delete
+newlines or carriage returns.
+
+@example
+$ @kbd{@{ echo moon; echo light; @} | /usr/ucb/tr -d '\n' ; echo}
+moo
+light
+$ @kbd{@{ echo moon; echo light; @} | /usr/bin/tr -d '\n' ; echo}
+moonlight
+$ @kbd{@{ echo moon; echo light; @} | /usr/ucb/tr -d '\012' ; echo}
+moonlight
+@end example
+
 @end table
 
 
@@ -15780,13 +16360,22 @@ your makefiles.  If you use Autoconf, do
 SHELL = @@SHELL@@
 @end example
 
+@noindent
+If you use Automake, this is done for you.
+
 Do not force @code{SHELL = /bin/sh} because that is not correct
-everywhere.  For instance @acronym{DJGPP} lacks @code{/bin/sh}, and when
-its @acronym{GNU} @code{make} port sees such a setting it enters a special
-emulation mode where features like pipes and redirections are emulated
-on top of DOS's @command{command.com}.  Unfortunately this emulation is
-incomplete; for instance it does not handle command substitutions.
-On @acronym{DJGPP} @code{SHELL} should point to Bash.
+everywhere.  Remember, @file{/bin/sh} is not Posix compliant on many
+systems, such as FreeBSD 4, NetBSD 3, AIX 3, Solaris 10, or Tru64.
+Additionally, @acronym{DJGPP} lacks @code{/bin/sh}, and when its
+@acronym{GNU} @command{make} port sees such a setting it enters a
+special emulation mode where features like pipes and redirections are
+emulated on top of DOS's @command{command.com}.  Unfortunately this
+emulation is incomplete; for instance it does not handle command
+substitutions.  Using @code{@@SHELL@@} means that your makefile will
+benefit from the same improved shell, such as @command{bash} or
+@command{ksh}, that was discovered during @command{configure}, so that
+you aren't fighting two different sets of shell bugs between the two
+contexts.
 
 Posix-compliant @command{make} should never acquire the value of
 $(SHELL) from the environment, even when @code{make -e} is used
@@ -15810,6 +16399,23 @@ bar
 $ @kbd{env SHELL=/bin/tcsh FOO=bar gmake -e}  # GNU make
 /bin/sh
 bar
+@end example
+
+Conversely, @command{make} is not supposed to export any changes to the
+macro @code{SHELL} to child processes.  Again, many implementations
+break this rule:
+
+@example
+$ @kbd{cat Makefile}
+all:
+        @@echo $(SHELL)
+        @@printenv SHELL
+$ @kbd{env SHELL=sh make -e SHELL=/bin/ksh}   # BSD Make, GNU make 3.80
+/bin/ksh
+/bin/ksh
+$ @kbd{env SHELL=sh gmake -e SHELL=/bin/ksh}  # GNU make 3.81
+/bin/ksh
+sh
 @end example
 
 @node Comments in Make Rules
@@ -16446,7 +17052,7 @@ of systems.  @xref{Standards, , Language Standards Supported by
 @acronym{GCC}, gcc, Using the @acronym{GNU} Compiler Collection
 (@acronym{GCC})}, for a list of C-related
 standards.  Many programs also assume the
-@uref{http://www.opengroup.org/susv3, Posix standard}.
+@uref{http://@/www.opengroup.org/@/susv3, Posix standard}.
 
 Some old code is written to be portable to K&R C, which predates any C
 standard.  K&R C compilers are no longer of practical interest, though,
@@ -16876,7 +17482,7 @@ reliable in general, and it is usually easy enough to avoid the
 potential portability problem, e.g., by allocating an extra unused array
 element at the start or end.
 
-@uref{http://valgrind.org/, Valgrind} can catch many overruns.
+@uref{http://@/valgrind.org/, Valgrind} can catch many overruns.
 @acronym{GCC}
 users might also consider using the @option{-fmudflap} option to catch
 overruns.
@@ -17030,7 +17636,7 @@ alleviates some symptoms of a bug while not fixing the bug in general.
 Almost all modern systems use IEEE-754 floating point, and it is safe to
 assume IEEE-754 in most portable code these days.  For more information,
 please see David Goldberg's classic paper
-@uref{http://www.validlab.com/goldberg/paper.pdf, What Every Computer
+@uref{http://@/www.validlab.com/@/goldberg/@/paper.pdf, What Every Computer
 Scientist Should Know About Floating-Point Arithmetic}.
 
 @node Exiting Portably
@@ -17136,17 +17742,15 @@ example, configuring as follows fails:
 ./configure CC=m68k-coff-gcc
 @end example
 
-In the future, when cross-compiling Autoconf will @emph{not}
-accept tools (compilers, linkers, assemblers) whose name is not
-prefixed with the host type.  The only case when this may be
-useful is when you really are not cross-compiling, but only
-building for a least-common-denominator architecture: an example
-is building for @code{i386-pc-linux-gnu} while running on an
-@code{i686-pc-linux-gnu} architecture.  In this case, some particular
-pairs might be similar enough to let you get away with the system
-compilers, but in general the compiler might make bogus assumptions
-on the host: if you know what you are doing, please create symbolic
-links from the host compiler to the build compiler.
+When cross-compiling, @command{configure} will warn about any tools
+(compilers, linkers, assemblers) whose name is not prefixed with the
+host type.  This is an aid to users performing cross-compilation.
+Continuing the example above, if a cross-compiler named @command{cc} is
+used with a native @command{pkg-config}, then libraries found by
+@command{pkg-config} will likely cause subtle build failures; but using
+the names @command{m68k-coff-cc} and @command{m68k-coff-pkg-config}
+avoids any confusion.  Avoiding the warning is as simple as creating the
+correct symlinks naming the cross tools.
 
 @cindex @command{config.sub}
 @command{configure} recognizes short aliases for many system types; for
@@ -17633,7 +18237,8 @@ Since it is not expanded, it should not be double quoted.
 The @code{AS_HELP_STRING} macro is particularly helpful when the
 @var{left-hand-side} and/or @var{right-hand-side} are composed of macro
 arguments, as shown in the following example.  Be aware that
-@var{left-hand-side} may not contain unbalanced quotes or parentheses.
+@var{left-hand-side} may not expand to unbalanced quotes,
+although quadrigraphs can be used.
 
 @example
 AC_DEFUN([MY_ARG_WITH],
@@ -17687,8 +18292,8 @@ Even a warning message is undesirable here, so @code{AC_CONFIG_SUBDIRS}
 automatically disables the warnings.
 
 This default behavior may be modified in two ways.  First, the installer
-can invoke @command{configure --disable-option-checking} to disable
-these warnings, or invoke @command{configure --enable-option-checking=fatal}
+can invoke @code{configure --disable-option-checking} to disable
+these warnings, or invoke @code{configure --enable-option-checking=fatal}
 options to turn them into fatal errors, respectively.  Second, the
 maintainer can use @code{AC_DISABLE_OPTION_CHECKING}.
 
@@ -17940,7 +18545,7 @@ Another use of @file{config.site} is for priming the directory variables
 in a manner consistent with the Filesystem Hierarchy Standard
 (@acronym{FHS}).  Once the following file is installed at
 @file{/usr/share/config.site}, a user can execute simply
-@command{./configure --prefix=/usr} to get all the directories chosen in
+@code{./configure --prefix=/usr} to get all the directories chosen in
 the locations recommended by @acronym{FHS}.
 
 @example
@@ -17971,6 +18576,7 @@ may use comes with Autoconf.
 * Multiple Architectures::      Compiling for multiple architectures at once
 * Installation Names::          Installing in different directories
 * Optional Features::           Selecting optional features
+* Particular Systems::          Particular systems
 * System Type::                 Specifying the system type
 * Sharing Defaults::            Setting site-wide defaults for @command{configure}
 * Defining Variables::          Specifying the compiler etc.
@@ -18189,7 +18795,7 @@ Makefile: Makefile.in config.status
 
 @noindent
 (If @file{configure.ac} does not call @code{AC_CONFIG_HEADERS}, there is
-no need to set @code{CONFIG_HEADERS} in the @code{make} rules.  Equally
+no need to set @code{CONFIG_HEADERS} in the @command{make} rules.  Equally
 for @code{CONFIG_COMMANDS}, etc.)
 
 
@@ -18294,6 +18900,11 @@ Force the update even if the file has not changed.  Disregard the cache.
 @itemx -I @var{dir}
 Also look for input files in @var{dir}.  Multiple invocations accumulate.
 Directories are browsed from last to first.
+
+@item --prepend-include=@var{dir}
+@itemx -B @var{dir}
+Prepend directory @var{dir} to the search path.  This is used to include
+the language-specific files before any third-party macros.
 @end table
 
 @node Obsolete Macros
@@ -18599,6 +19210,8 @@ is no longer needed.
 @defmac AC_FUNC_WAIT3
 @acindex{FUNC_WAIT3}
 @cvindex HAVE_WAIT3
+@c @fuindex wait3
+@prindex @code{wait3}
 If @code{wait3} is found and fills in the contents of its third argument
 (a @samp{struct rusage *}), which @acronym{HP-UX} does not do, define
 @code{HAVE_WAIT3}.
@@ -19003,7 +19616,8 @@ issue.
 
 @defmac AC_RETSIGTYPE
 @acindex{RETSIGTYPE}
-Replaced by @code{AC_TYPE_SIGNAL} (@pxref{AC_TYPE_SIGNAL}).
+Replaced by @code{AC_TYPE_SIGNAL} (@pxref{AC_TYPE_SIGNAL}), which itself
+is obsolete when assuming C89 or better.
 @end defmac
 
 @defmac AC_RSH
@@ -19263,6 +19877,31 @@ AC_RUN_IFELSE(
 @xref{Runtime}.
 @end defmac
 
+@anchor{AC_TYPE_SIGNAL}
+@defmac AC_TYPE_SIGNAL
+@acindex{TYPE_SIGNAL}
+@cvindex RETSIGTYPE
+@hdrindex{signal.h}
+If @file{signal.h} declares @code{signal} as returning a pointer to a
+function returning @code{void}, define @code{RETSIGTYPE} to be
+@code{void}; otherwise, define it to be @code{int}.  These days, it is
+portable to assume C89, and that signal handlers return @code{void},
+without needing to use this macro or @code{RETSIGTYPE}.
+
+When targetting older K&R C, it is possible to define signal handlers as
+returning type @code{RETSIGTYPE}, and omit a return statement:
+
+@example
+@group
+RETSIGTYPE
+hup_handler ()
+@{
+@dots{}
+@}
+@end group
+@end example
+@end defmac
+
 @defmac AC_UID_T
 @acindex{UID_T}
 Replaced by @code{AC_TYPE_UID_T} (@pxref{AC_TYPE_UID_T}).
@@ -19392,7 +20031,7 @@ in a particular package's source directory), you must rename it to
 @file{acsite.m4}.  @xref{autoconf Invocation}.
 
 If you distribute @file{install.sh} with your package, rename it to
-@file{install-sh} so @code{make} builtin rules don't inadvertently
+@file{install-sh} so @command{make} builtin rules don't inadvertently
 create a file called @file{install} from it.  @code{AC_PROG_INSTALL}
 looks for the script under both names, but it is best to use the new name.
 
@@ -20222,8 +20861,8 @@ isolation.
 This macro starts a group of related tests, all to be executed in the
 same subshell.  It accepts a single argument, which holds a few words
 (no more than about 30 or 40 characters) quickly describing the purpose
-of the test group being started.  @var{test-group-name} must not contain
-unbalanced quotes or parentheses.
+of the test group being started.  @var{test-group-name} must not expand
+to unbalanced quotes, although quadrigraphs can be used.
 @end defmac
 
 @defmac AT_KEYWORDS (@var{keywords})
@@ -20437,6 +21076,11 @@ check list of things to do.
 
 @item
 @cindex @file{package.m4}
+@atindex{PACKAGE_STRING}
+@atindex{PACKAGE_BUGREPORT}
+@atindex{PACKAGE_NAME}
+@atindex{PACKAGE_TARNAME}
+@atindex{PACKAGE_VERSION}
 Make sure to create the file @file{package.m4}, which defines the
 identity of the package.  It must define @code{AT_PACKAGE_STRING}, the
 full signature of the package, and @code{AT_PACKAGE_BUGREPORT}, the
@@ -20794,8 +21438,8 @@ myprog-paths.h: Makefile
 @item
 Use @code{AC_DEFINE} but have @command{configure} compute the literal
 value of @code{datadir} and others.  Many people have wrapped macros to
-automate this task.  For instance, the macro @code{AC_DEFINE_DIR} from
-the @uref{http://autoconf-archive.cryp.to/, Autoconf Macro
+automate this task; for an example, see the macro @code{AC_DEFINE_DIR} from
+the @uref{http://@/autoconf-archive@/.cryp.to/, Autoconf Macro
 Archive}.
 
 This solution does not conform to the @acronym{GNU} Coding Standards.
@@ -20865,7 +21509,7 @@ result, incompatibilities between headers went unnoticed during
 configuration, and maintainers finally had to deal with this issue
 elsewhere.
 
-As of Autoconf 2.56 both checks are performed, and @code{configure}
+As of Autoconf 2.56 both checks are performed, and @command{configure}
 complains loudly if the compiler and the preprocessor do not agree.
 For the time being the result used is that of the preprocessor, to give
 maintainers time to adjust their @file{configure.ac}, but in the

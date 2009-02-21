@@ -56,7 +56,7 @@ DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	build-aux/mdate-sh build-aux/missing build-aux/texinfo.tex
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/m4.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/make-case.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
@@ -194,9 +194,9 @@ EXTRA_DIST = ChangeLog.0 ChangeLog.1 ChangeLog.2 \
 	     build-aux/announce-gen build-aux/gnupload \
 	     .prev-version .version
 
-MAINTAINERCLEANFILES = $(srcdir)/INSTALL
 pkgdata_DATA = $(srcdir)/INSTALL
 AM_MAKEINFOFLAGS = --no-headers --no-validate --no-split
+@MAKE_CASE_SENSITIVE_TRUE@MAINTAINERCLEANFILES = $(srcdir)/INSTALL
 WGET = wget
 WGETFLAGS = -C off
 automake_gitweb = \
@@ -674,9 +674,9 @@ uninstall-am: uninstall-pkgdataDATA
 	mostlyclean-generic pdf pdf-am ps ps-am tags tags-recursive \
 	uninstall uninstall-am uninstall-pkgdataDATA
 
-$(srcdir)/INSTALL: $(top_srcdir)/doc/install.texi
-	$(MAKEINFO) $(AM_MAKEINFOFLAGS) $(MAKEINFOFLAGS) -o $@ \
-	  $(top_srcdir)/doc/install.texi
+@MAKE_CASE_SENSITIVE_TRUE@$(srcdir)/INSTALL: $(top_srcdir)/doc/install.texi
+@MAKE_CASE_SENSITIVE_TRUE@	$(MAKEINFO) $(AM_MAKEINFOFLAGS) $(MAKEINFOFLAGS) --plaintext -o $@ \
+@MAKE_CASE_SENSITIVE_TRUE@	  $(top_srcdir)/doc/install.texi
 
 maintainer-check: maintainer-check-tests
 maintainer-check-tests: all
