@@ -220,8 +220,8 @@ if test -n "$at_top_srcdir"; then
   builddir=../..
   for at_dir in srcdir top_srcdir top_build_prefix
   do
-    at_val=AS_VAR_GET(at_$at_dir)
-    AS_VAR_SET($at_dir, $at_val/../..)
+    at_val=AS_VAR_GET([at_$at_dir])
+    AS_VAR_SET([$at_dir], [$at_val/../..])
   done
 fi
 
@@ -279,7 +279,7 @@ at_groups_all='AT_groups_all'
 # numerical order.
 at_format='m4_bpatsubst(m4_defn([AT_ordinal]), [.], [?])'
 # Description of all the test groups.
-at_help_all='AT_help_all'])])dnl
+at_help_all="AS_ESCAPE(m4_defn([AT_help_all]))"])])dnl
 m4_divert_push([PARSE_ARGS])dnl
 
 at_prev=
@@ -1176,9 +1176,9 @@ m4_append([AT_groups_all], [ ]m4_defn([AT_ordinal]))
 m4_divert_push([TESTS])dnl
   AT_ordinal ) @%:@ AT_ordinal. m4_defn([AT_line]): $1
     at_setup_line='m4_defn([AT_line])'
-    at_desc='$1'
+    at_desc="AS_ESCAPE([$1])"
     $at_quiet $ECHO_N "m4_format([%3d: %-]m4_eval(47 - m4_qdelta([$1]))[s],
-	               AT_ordinal, [[$1]])[]$ECHO_C"
+	               AT_ordinal, AS_ESCAPE([[$1]]))[]$ECHO_C"
 m4_divert_push([TEST_SCRIPT])dnl
 ])
 

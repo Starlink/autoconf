@@ -61,11 +61,12 @@ Report bugs to <bug-autoconf@gnu.org>."]
 
 version=["\
 autoconf (@PACKAGE_NAME@) @VERSION@
-Written by David J. MacKenzie and Akim Demaille.
-
 Copyright (C) 2006 Free Software Foundation, Inc.
-This is free software; see the source for copying conditions.  There is NO
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."]
+This is free software.  You may redistribute copies of it under the terms of
+the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.
+There is NO WARRANTY, to the extent permitted by law.
+
+Written by David J. MacKenzie and Akim Demaille."]
 
 help="\
 Try \`$as_me --help' for more information."
@@ -106,8 +107,8 @@ while test $# -gt 0 ; do
        autom4te_options="$autom4te_options '$1'"; shift ;;
 
     # Options with separated arg passed as is to autom4te.
-    --include | -I | \
-    --prepend-include | -B | \
+    --include  | -I | \
+    --prepend-include  | -B | \
     --warnings | -W )
        test $# = 1 && eval "$exit_missing_arg"
        autom4te_options="$autom4te_options $option '$2'"
@@ -177,5 +178,5 @@ test -z "$outfile" && outfile=-
 eval set x $autom4te_options \
   --language=autoconf --output=\$outfile "$traces" \$infile
 shift
-$verbose "$as_me: running $*" >&2
+$verbose "$as_me: running $AUTOM4TE $*" >&2
 exec "$AUTOM4TE" "$@"

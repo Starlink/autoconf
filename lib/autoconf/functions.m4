@@ -66,11 +66,11 @@
 # -----------------------------------------------------------------
 AC_DEFUN([AC_CHECK_FUNC],
 [AS_VAR_PUSHDEF([ac_var], [ac_cv_func_$1])dnl
-AC_CACHE_CHECK([for $1], ac_var,
+AC_CACHE_CHECK([for $1], [ac_var],
 [AC_LINK_IFELSE([AC_LANG_FUNC_LINK_TRY([$1])],
-		[AS_VAR_SET(ac_var, yes)],
-		[AS_VAR_SET(ac_var, no)])])
-AS_IF([test AS_VAR_GET(ac_var) = yes], [$2], [$3])dnl
+		[AS_VAR_SET([ac_var], [yes])],
+		[AS_VAR_SET([ac_var], [no])])])
+AS_IF([test AS_VAR_GET([ac_var]) = yes], [$2], [$3])dnl
 AS_VAR_POPDEF([ac_var])dnl
 ])# AC_CHECK_FUNC
 
@@ -370,7 +370,7 @@ AC_CACHE_CHECK([for alloca], ac_cv_func_alloca_works,
 #  include <malloc.h>
 #  define alloca _alloca
 # else
-#  if HAVE_ALLOCA_H
+#  ifdef HAVE_ALLOCA_H
 #   include <alloca.h>
 #  else
 #   ifdef _AIX
@@ -472,8 +472,8 @@ AN_FUNCTION([error_at_line], [AC_FUNC_ERROR_AT_LINE])
 AC_DEFUN([AC_FUNC_ERROR_AT_LINE],
 [AC_LIBSOURCES([error.h, error.c])dnl
 AC_CACHE_CHECK([for error_at_line], ac_cv_lib_error_at_line,
-[AC_LINK_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT],
-				 [error_at_line (0, 0, "", 0, "");])],
+[AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <error.h>],
+				 [error_at_line (0, 0, "", 0, "an error occurred");])],
 		[ac_cv_lib_error_at_line=yes],
 		[ac_cv_lib_error_at_line=no])])
 if test $ac_cv_lib_error_at_line = no; then
@@ -589,17 +589,13 @@ AC_DEFUN([AC_FUNC_FSEEKO],
 [_AC_SYS_LARGEFILE_MACRO_VALUE(_LARGEFILE_SOURCE, 1,
    [ac_cv_sys_largefile_source],
    [Define to 1 to make fseeko visible on some hosts (e.g. glibc 2.2).],
-   [@%:@include <stdio.h>], [return !fseeko;])
+   [@%:@include <stdio.h>],
+   [[return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);]])
 
 # We used to try defining _XOPEN_SOURCE=500 too, to work around a bug
 # in glibc 2.1.3, but that breaks too many other things.
 # If you want fseeko and ftello with glibc, upgrade to a fixed glibc.
-AC_CACHE_CHECK([for fseeko], [ac_cv_func_fseeko],
-[AC_LINK_IFELSE([AC_LANG_PROGRAM([@%:@include <stdio.h>],
-				 [[return fseeko && fseeko (stdin, 0, 0);]])],
-		[ac_cv_func_fseeko=yes],
-		[ac_cv_func_fseeko=no])])
-if test $ac_cv_func_fseeko = yes; then
+if test $ac_cv_sys_largefile_source != unknown; then
   AC_DEFINE(HAVE_FSEEKO, 1,
     [Define to 1 if fseeko (and presumably ftello) exists and is declared.])
 fi
@@ -801,8 +797,11 @@ AN_FUNCTION([getmntent], [AC_FUNC_GETMNTENT])
 AC_DEFUN([AC_FUNC_GETMNTENT],
 [# getmntent is in the standard C library on UNICOS, in -lsun on Irix 4,
 # -lseq on Dynix/PTX, -lgen on Unixware.
-AC_SEARCH_LIBS(getmntent, [sun seq gen])
-AC_CHECK_FUNCS(getmntent)
+AC_SEARCH_LIBS(getmntent, [sun seq gen],
+	       [ac_cv_func_getmntent=yes
+		AC_DEFINE([HAVE_GETMNTENT], [],
+			  [Define to 1 if you have the `getmntent' function.])],
+	       [ac_cv_func_getmntent=no])
 ])
 
 
@@ -875,7 +874,7 @@ AC_CHECK_HEADERS(stdlib.h)
 AC_CACHE_CHECK([for GNU libc compatible malloc], ac_cv_func_malloc_0_nonnull,
 [AC_RUN_IFELSE(
 [AC_LANG_PROGRAM(
-[[#if STDC_HEADERS || HAVE_STDLIB_H
+[[#if defined STDC_HEADERS || defined HAVE_STDLIB_H
 # include <stdlib.h>
 #else
 char *malloc ();
@@ -972,31 +971,29 @@ test $ac_cv_func_memcmp_working = no && AC_LIBOBJ([memcmp])
 AN_FUNCTION([mktime], [AC_FUNC_MKTIME])
 AC_DEFUN([AC_FUNC_MKTIME],
 [AC_REQUIRE([AC_HEADER_TIME])dnl
-AC_CHECK_HEADERS(stdlib.h sys/time.h unistd.h)
-AC_CHECK_FUNCS(alarm)
+AC_CHECK_HEADERS_ONCE(sys/time.h unistd.h)
+AC_CHECK_FUNCS_ONCE(alarm)
 AC_CACHE_CHECK([for working mktime], ac_cv_func_working_mktime,
 [AC_RUN_IFELSE([AC_LANG_SOURCE(
 [[/* Test program from Paul Eggert and Tony Leneis.  */
-#if TIME_WITH_SYS_TIME
+#ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>
 #else
-# if HAVE_SYS_TIME_H
+# ifdef HAVE_SYS_TIME_H
 #  include <sys/time.h>
 # else
 #  include <time.h>
 # endif
 #endif
 
-#if HAVE_STDLIB_H
-# include <stdlib.h>
-#endif
+#include <stdlib.h>
 
-#if HAVE_UNISTD_H
+#ifdef HAVE_UNISTD_H
 # include <unistd.h>
 #endif
 
-#if !HAVE_ALARM
+#ifndef HAVE_ALARM
 # define alarm(X) /* empty */
 #endif
 
@@ -1097,6 +1094,36 @@ bigtime_test (j)
   return 1;
 }
 
+static int
+year_2050_test ()
+{
+  /* The correct answer for 2050-02-01 00:00:00 in Pacific time,
+     ignoring leap seconds.  */
+  unsigned long int answer = 2527315200UL;
+
+  struct tm tm;
+  time_t t;
+  tm.tm_year = 2050 - 1900;
+  tm.tm_mon = 2 - 1;
+  tm.tm_mday = 1;
+  tm.tm_hour = tm.tm_min = tm.tm_sec = 0;
+  tm.tm_isdst = -1;
+
+  /* Use the portable POSIX.1 specification "TZ=PST8PDT,M4.1.0,M10.5.0"
+     instead of "TZ=America/Vancouver" in order to detect the bug even
+     on systems that don't support the Olson extension, or don't have the
+     full zoneinfo tables installed.  */
+  putenv ("TZ=PST8PDT,M4.1.0,M10.5.0");
+
+  t = mktime (&tm);
+
+  /* Check that the result is either a failure, or close enough
+     to the correct answer that we can assume the discrepancy is
+     due to leap seconds.  */
+  return (t == (time_t) -1
+	  || (0 < t && answer - 120 <= t && t <= answer + 120));
+}
+
 int
 main ()
 {
@@ -1134,7 +1161,7 @@ main ()
       if (! bigtime_test (j - 1))
 	return 1;
     }
-  return ! (irix_6_4_bug () && spring_forward_gap ());
+  return ! (irix_6_4_bug () && spring_forward_gap () && year_2050_test ());
 }]])],
 	       [ac_cv_func_working_mktime=yes],
 	       [ac_cv_func_working_mktime=no],
@@ -1186,21 +1213,21 @@ AC_CACHE_CHECK(for working mmap, ac_cv_func_mmap_fixed_mapped,
 #include <fcntl.h>
 #include <sys/mman.h>
 
-#if !STDC_HEADERS && !HAVE_STDLIB_H
+#if !defined STDC_HEADERS && !defined HAVE_STDLIB_H
 char *malloc ();
 #endif
 
 /* This mess was copied from the GNU getpagesize.h.  */
-#if !HAVE_GETPAGESIZE
+#ifndef HAVE_GETPAGESIZE
 /* Assume that all systems that can run configure have sys/param.h.  */
-# if !HAVE_SYS_PARAM_H
+# ifndef HAVE_SYS_PARAM_H
 #  define HAVE_SYS_PARAM_H 1
 # endif
 
 # ifdef _SC_PAGESIZE
 #  define getpagesize() sysconf(_SC_PAGESIZE)
 # else /* no _SC_PAGESIZE */
-#  if HAVE_SYS_PARAM_H
+#  ifdef HAVE_SYS_PARAM_H
 #   include <sys/param.h>
 #   ifdef EXEC_PAGESIZE
 #    define getpagesize() EXEC_PAGESIZE
@@ -1308,8 +1335,13 @@ AC_DEFUN([AC_FUNC_OBSTACK],
 [AC_LIBSOURCES([obstack.h, obstack.c])dnl
 AC_CACHE_CHECK([for obstacks], ac_cv_func_obstack,
 [AC_LINK_IFELSE(
-    [AC_LANG_PROGRAM([[@%:@include "obstack.h"]],
-		     [[struct obstack *mem; obstack_free(mem,(char *) 0)]])],
+    [AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT
+		      [@%:@include "obstack.h"]],
+		     [[struct obstack mem;
+		       @%:@define obstack_chunk_alloc malloc
+		       @%:@define obstack_chunk_free free
+		       obstack_init (&mem);
+		       obstack_free (&mem, 0);]])],
 		[ac_cv_func_obstack=yes],
 		[ac_cv_func_obstack=no])])
 if test $ac_cv_func_obstack = yes; then
@@ -1335,7 +1367,7 @@ AC_CHECK_HEADERS(stdlib.h)
 AC_CACHE_CHECK([for GNU libc compatible realloc], ac_cv_func_realloc_0_nonnull,
 [AC_RUN_IFELSE(
 [AC_LANG_PROGRAM(
-[[#if STDC_HEADERS || HAVE_STDLIB_H
+[[#if defined STDC_HEADERS || defined HAVE_STDLIB_H
 # include <stdlib.h>
 #else
 char *realloc ();
@@ -1382,10 +1414,10 @@ AC_CACHE_CHECK([types of arguments for select],
    AC_COMPILE_IFELSE(
        [AC_LANG_PROGRAM(
 [AC_INCLUDES_DEFAULT
-#if HAVE_SYS_SELECT_H
+#ifdef HAVE_SYS_SELECT_H
 # include <sys/select.h>
 #endif
-#if HAVE_SYS_SOCKET_H
+#ifdef HAVE_SYS_SOCKET_H
 # include <sys/socket.h>
 #endif
 ],
@@ -1620,7 +1652,8 @@ LIBS="-lintl $LIBS"])])dnl
 # ---------------
 AN_FUNCTION([strnlen], [AC_FUNC_STRNLEN])
 AC_DEFUN([AC_FUNC_STRNLEN],
-[AC_CACHE_CHECK([for working strnlen], ac_cv_func_strnlen_working,
+[AC_REQUIRE([AC_USE_SYSTEM_EXTENSIONS])dnl
+AC_CACHE_CHECK([for working strnlen], ac_cv_func_strnlen_working,
 [AC_RUN_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT], [[
 #define S "foobar"
 #define S_LEN (sizeof S - 1)
@@ -1655,14 +1688,14 @@ AC_CACHE_CHECK(whether setvbuf arguments are reversed,
    AC_LINK_IFELSE(
      [AC_LANG_PROGRAM(
 	[[#include <stdio.h>
-#	  if PROTOTYPES
+#	  ifdef PROTOTYPES
 	   int (setvbuf) (FILE *, int, char *, size_t);
 #	  endif]],
 	[[char buf; return setvbuf (stdout, _IOLBF, &buf, 1);]])],
      [AC_LINK_IFELSE(
 	[AC_LANG_PROGRAM(
 	   [[#include <stdio.h>
-#	     if PROTOTYPES
+#	     ifdef PROTOTYPES
 	      int (setvbuf) (FILE *, int, char *, size_t);
 #	     endif]],
 	   [[char buf; return setvbuf (stdout, &buf, _IOLBF, 1);]])],
@@ -1727,10 +1760,14 @@ AU_ALIAS([AC_STRCOLL], [AC_FUNC_STRCOLL])
 # ------------------
 AN_FUNCTION([utime], [AC_FUNC_UTIME_NULL])
 AC_DEFUN([AC_FUNC_UTIME_NULL],
-[AC_CACHE_CHECK(whether utime accepts a null argument, ac_cv_func_utime_null,
+[AC_CHECK_HEADERS_ONCE(utime.h)
+AC_CACHE_CHECK(whether utime accepts a null argument, ac_cv_func_utime_null,
 [rm -f conftest.data; >conftest.data
 # Sequent interprets utime(file, 0) to mean use start of epoch.  Wrong.
-AC_RUN_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT],
+AC_RUN_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT
+	       #ifdef HAVE_UTIME_H
+	       # include <utime.h>
+	       #endif],
 [[struct stat s, t;
   return ! (stat ("conftest.data", &s) == 0
 	    && utime ("conftest.data", 0) == 0
@@ -1822,7 +1859,7 @@ AC_DEFUN([_AC_FUNC_VFORK],
 [AC_RUN_IFELSE([AC_LANG_SOURCE([[/* Thanks to Paul Eggert for this test.  */
 ]AC_INCLUDES_DEFAULT[
 #include <sys/wait.h>
-#if HAVE_VFORK_H
+#ifdef HAVE_VFORK_H
 # include <vfork.h>
 #endif
 /* On some sparc systems, changes by the child to local and incoming
@@ -1961,6 +1998,7 @@ AC_CACHE_CHECK([for wait3 that fills in rusage],
 [AC_INCLUDES_DEFAULT[
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <sys/wait.h>
 /* HP-UX has wait3 but does not fill in rusage at all.  */
 int
 main ()

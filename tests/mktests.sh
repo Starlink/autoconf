@@ -86,6 +86,7 @@ ac_exclude_list='
 	# Need an argument.
 	/^AC_(CANONICALIZE|PREFIX_PROGRAM|PREREQ)$/ {next}
 	/^AC_(SEARCH_LIBS|REPLACE_FUNCS)$/ {next}
+	/^AC_(CACHE_CHECK|COMPUTE)_INT$/ {next}
 
 	# Performed in the semantics tests.
 	/^AC_CHECK_(ALIGNOF|DECL|FILE|FUNC|HEADER|LIB|MEMBER|PROG|SIZEOF|(TARGET_)?TOOL|TYPE)S?$/ {next}
@@ -129,6 +130,9 @@ ac_exclude_list='
 	# Checked in semantics.
 	/^AC_(PROG_CC|C_CONST|C_VOLATILE)$/ {next}
 	/^AC_PATH_XTRA$/ {next}
+
+	# Requires a working C++ compiler, which is not a given.
+	/^AC_PROG_CXX_C_O$/ {next}
 
 	# Already tested by AT_CHECK_MACRO.
 	/^AC_OUTPUT$/ {next}

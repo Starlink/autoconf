@@ -341,6 +341,8 @@ AC_DEFUN([_AC_FC_DIALECT_YEAR],
 #  frt: Fujitsu F77 compiler
 #  pgf77/pgf90/pghpf/pgf95: Portland Group F77/F90/F95 compilers
 #  xlf/xlf90/xlf95: IBM (AIX) F77/F90/F95 compilers
+#    Prefer xlf9x to the generic names because they do not reject file
+#    with extension `.f'.
 #  lf95: Lahey-Fujitsu F95 compiler
 #  fl32: Microsoft Fortran 77 "PowerStation" compiler
 #  af77: Apogee F77 compiler for Intergraph hardware running CLIX
@@ -348,9 +350,9 @@ AC_DEFUN([_AC_FC_DIALECT_YEAR],
 #  fort: Compaq (now HP) Fortran 90/95 compiler for Tru64 and Linux/Alpha
 #  ifort, previously ifc: Intel Fortran 95 compiler for Linux/x86
 #  efc: Intel Fortran 95 compiler for IA64
-m4_define([_AC_F95_FC], [gfortran g95 f95 fort xlf95 ifort ifc efc pgf95 lf95 ftn])
-m4_define([_AC_F90_FC], [f90 xlf90 pgf90 pghpf epcf90])
-m4_define([_AC_F77_FC], [g77 f77 xlf frt pgf77 cf77 fort77 fl32 af77])
+m4_define([_AC_F95_FC], [gfortran g95 xlf95 f95 fort ifort ifc efc pgf95 lf95 ftn])
+m4_define([_AC_F90_FC], [xlf90 f90 pgf90 pghpf epcf90])
+m4_define([_AC_F77_FC], [g77 xlf f77 frt pgf77 cf77 fort77 fl32 af77])
 AC_DEFUN([_AC_PROG_FC],
 [_AC_FORTRAN_ASSERT()dnl
 AC_CHECK_TOOLS([]_AC_FC[],
@@ -390,6 +392,7 @@ AC_DEFUN([AC_PROG_F77],
 AC_ARG_VAR([F77],    [Fortran 77 compiler command])dnl
 AC_ARG_VAR([FFLAGS], [Fortran 77 compiler flags])dnl
 _AC_ARG_VAR_LDFLAGS()dnl
+_AC_ARG_VAR_LIBS()dnl
 _AC_PROG_FC([Fortran 77], [$1])
 G77=`test $ac_compiler_gnu = yes && echo yes`
 AC_LANG_POP(Fortran 77)dnl
@@ -405,6 +408,7 @@ AC_DEFUN([AC_PROG_FC],
 AC_ARG_VAR([FC],    [Fortran compiler command])dnl
 AC_ARG_VAR([FCFLAGS], [Fortran compiler flags])dnl
 _AC_ARG_VAR_LDFLAGS()dnl
+_AC_ARG_VAR_LIBS()dnl
 _AC_PROG_FC([$2], [$1])
 AC_LANG_POP(Fortran)dnl
 ])# AC_PROG_FC
@@ -662,7 +666,7 @@ while test $[@%:@] != 1; do
              [_AC_LINKER_OPTION([$ac_arg], ac_cv_[]_AC_LANG_ABBREV[]_libs)])
           ;;
           # Ignore these flags.
-        -lang* | -lcrt*.o | -lc | -lgcc | -libmil | -LANG:=* | -LIST:* | -LNO:*)
+        -lang* | -lcrt*.o | -lc | -lgcc* | -lSystem | -libmil | -LANG:=* | -LIST:* | -LNO:*)
           ;;
         -lkernel32)
           test x"$CYGWIN" != xyes && ac_cv_[]_AC_LANG_ABBREV[]_libs="$ac_cv_[]_AC_LANG_ABBREV[]_libs $ac_arg"

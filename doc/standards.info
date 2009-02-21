@@ -6,13 +6,13 @@ START-INFO-DIR-ENTRY
 * Standards: (standards).        GNU coding standards.
 END-INFO-DIR-ENTRY
 
-   The GNU coding standards, last updated May 24, 2006.
+   The GNU coding standards, last updated November 15, 2006.
 
    Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
    Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
+under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
 Texts.  A copy of the license is included in the section entitled "GNU
@@ -24,13 +24,13 @@ File: standards.info,  Node: Top,  Next: Preface,  Prev: (dir),  Up: (dir)
 Version
 *******
 
-The GNU coding standards, last updated May 24, 2006.
+The GNU coding standards, last updated November 15, 2006.
 
    Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
    Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
+under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
 Texts.  A copy of the license is included in the section entitled "GNU
@@ -63,8 +63,8 @@ programs written in C, but many of the rules and principles are useful
 even if you write in another programming language.  The rules often
 state reasons for writing in a certain way.
 
-   This release of the GNU Coding Standards was last updated May 24,
-2006.
+   This release of the GNU Coding Standards was last updated November
+15, 2006.
 
    If you did not obtain this file directly from the GNU project and
 recently, please check for a newer version.  You can get the GNU Coding
@@ -126,7 +126,7 @@ irrelevant and dissimilar to your results.
 
    For example, Unix utilities were generally optimized to minimize
 memory use; if you go for speed instead, your program will be very
-different.  You could keep the entire input file in core and scan it
+different.  You could keep the entire input file in memory and scan it
 there instead of using stdio.  Use a smarter algorithm discovered more
 recently than the Unix program.  Eliminate use of temporary files.  Do
 it in one pass instead of two (we did this in the assembler).
@@ -820,7 +820,7 @@ to be input files only; any output files would be specified using
 options (preferably `-o' or `--output').  Even if you allow an output
 file name as an ordinary argument for compatibility, try to provide an
 option as another way to specify it.  This will lead to more consistency
-among GNU utilities, and fewer idiosyncracies for users to remember.
+among GNU utilities, and fewer idiosyncrasies for users to remember.
 
    All programs should support two standard options: `--version' and
 `--help'.  CGI programs should accept these as command-line options,
@@ -1827,7 +1827,7 @@ meanings, so we can update the table.
 `socket'
      Specify a file descriptor for a network server to use for its
      socket, instead of opening and binding a new socket.  This
-     provides a way to run, in a nonpriveledged process, a server that
+     provides a way to run, in a non-privileged process, a server that
      normally needs a reserved port number.
 
 `sort'
@@ -2027,8 +2027,8 @@ File: standards.info,  Node: Memory Usage,  Next: File Usage,  Prev: Option Tabl
 If a program typically uses just a few meg of memory, don't bother
 making any effort to reduce memory usage.  For example, if it is
 impractical for other reasons to operate on files more than a few meg
-long, it is reasonable to read entire input files into core to operate
-on them.
+long, it is reasonable to read entire input files into memory to
+operate on them.
 
    However, for programs such as `cat' or `tail', that can usefully
 operate on very large files, it is important to avoid using a technique
@@ -2036,10 +2036,10 @@ that would artificially limit the size of files it can handle.  If a
 program works by lines and could be applied to arbitrary user-supplied
 input files, it should keep only a line in memory, because this is not
 very hard and users will want to be able to operate on input files that
-are bigger than will fit in core all at once.
+are bigger than will fit in memory all at once.
 
    If your program creates complicated data structures, just make them
-in core and give a fatal error if `malloc' returns zero.
+in memory and give a fatal error if `malloc' returns zero.
 
 
 File: standards.info,  Node: File Usage,  Prev: Memory Usage,  Up: Program Behavior
@@ -2385,8 +2385,8 @@ the nested `if' within braces like this:
 same declaration.  Instead, declare the structure tag separately and
 then use it to declare the variables or typedefs.
 
-   Try to avoid assignments inside `if'-conditions.  For example, don't
-write this:
+   Try to avoid assignments inside `if'-conditions (assignments inside
+`while'-conditions are ok).  For example, don't write this:
 
      if ((foo = (char *) malloc (sizeof *foo)) == 0)
        fatal ("virtual memory exhausted");
@@ -2545,8 +2545,19 @@ Thus, don't make the following mistake:
 
      int c;
      ...
-     while ((c = getchar()) != EOF)
-       write(file_descriptor, &c, 1);
+     while ((c = getchar ()) != EOF)
+       write (file_descriptor, &c, 1);
+
+Instead, use `unsigned char' as follows.  (The `unsigned' is for
+portability to unusual systems where `char' is signed and where there
+is integer overflow checking.)
+
+     int c;
+     while ((c = getchar ()) != EOF)
+       {
+         unsigned char u = c;
+         write (file_descriptor, &u, 1);
+       }
 
    It used to be ok to not worry about the difference between pointers
 and integers when passing arguments to functions.  However, on most
@@ -2777,7 +2788,7 @@ this code:
 Adding `gettext' calls to this code cannot give correct results for all
 languages, because negation in some languages requires adding words at
 more than one place in the sentence.  By contrast, adding `gettext'
-calls does the job straightfowardly if the code starts out like this:
+calls does the job straightforwardly if the code starts out like this:
 
      printf (f->tried_implicit
              ? "#  Implicit rule search has been done.\n",
@@ -3041,7 +3052,7 @@ should often make some general points that apply to several functions or
 variables.  The previous descriptions of functions and variables in the
 section will also have given information about the topic.  A description
 written to stand alone would repeat some of that information; this
-redundance looks bad.  Meanwhile, the informality that is acceptable in
+redundancy looks bad.  Meanwhile, the informality that is acceptable in
 a documentation string is totally unacceptable in a manual.
 
    The only good way to use documentation strings in writing a good
@@ -3530,8 +3541,9 @@ normally guess it using the shell script `config.guess'
 (http://savannah.gnu.org/cgi-bin/viewcvs/*checkout*/config/config/config.guess).
 
    Other options are permitted to specify in more detail the software
-or hardware present on the machine, and include or exclude optional
-parts of the package:
+or hardware present on the machine, to include or exclude optional parts
+of the package, or to adjust the name of some tools or arguments to
+them:
 
 `--enable-FEATURE[=PARAMETER]'
      Configure the package to build and install an optional user-level
@@ -3556,11 +3568,26 @@ parts of the package:
      find certain files.  That is outside the scope of what `--with'
      options are for.
 
-   All `configure' scripts should accept all of these "detail" options,
-whether or not they make any difference to the particular package at
-hand.  In particular, they should accept any option that starts with
-`--with-' or `--enable-'.  This is so users will be able to configure
-an entire GNU source tree at once with a single set of options.
+`VARIABLE=VALUE'
+     Set the value of the variable VARIABLE to VALUE.  This is used to
+     override the default values of commands or arguments in the build
+     process.  For example, the user could issue `configure CFLAGS=-g
+     CXXFLAGS=-g' to build with debugging information and without the
+     default optimization.
+
+     Specifying variables as arguments to `configure', like this:
+          ./configure CC=gcc
+     is preferable to setting them in environment variables:
+          CC=gcc ./configure
+     as it helps to recreate the same configuration later with
+     `config.status'.
+
+   All `configure' scripts should accept all of the "detail" options
+and the variable settings, whether or not they make any difference to
+the particular package at hand.  In particular, they should accept any
+option that starts with `--with-' or `--enable-'.  This is so users
+will be able to configure an entire GNU source tree at once with a
+single set of options.
 
    You will note that the categories `--with-' and `--enable-' are
 narrow: they *do not* provide a place for any sort of option you might
@@ -3612,8 +3639,8 @@ these conventions.
 * Makefile Basics::             General conventions for Makefiles.
 * Utilities in Makefiles::      Utilities to be used in Makefiles.
 * Command Variables::           Variables for specifying commands.
-* Directory Variables::         Variables for installation directories.
 * DESTDIR::                     Supporting staged installs.
+* Directory Variables::         Variables for installation directories.
 * Standard Targets::            Standard targets for users.
 * Install Command Categories::  Three categories of commands in the `install'
                                   rule: normal, pre-install and post-install.
@@ -3754,7 +3781,7 @@ intended only for particular systems where you know those utilities
 exist.
 
 
-File: standards.info,  Node: Command Variables,  Next: Directory Variables,  Prev: Utilities in Makefiles,  Up: Makefile Conventions
+File: standards.info,  Node: Command Variables,  Next: DESTDIR,  Prev: Utilities in Makefiles,  Up: Makefile Conventions
 
 7.2.3 Variables for Specifying Commands
 ---------------------------------------
@@ -3813,8 +3840,8 @@ basic command for installing a file into the system.
 and `INSTALL_DATA'.  (The default for `INSTALL_PROGRAM' should be
 `$(INSTALL)'; the default for `INSTALL_DATA' should be `${INSTALL} -m
 644'.)  Then it should use those variables as the commands for actual
-installation, for executables and nonexecutables respectively.  Minimal
-use of these variables is as follows:
+installation, for executables and non-executables respectively.
+Minimal use of these variables is as follows:
 
      $(INSTALL_PROGRAM) foo $(bindir)/foo
      $(INSTALL_DATA) libfoo.a $(libdir)/libfoo.a
@@ -3827,7 +3854,7 @@ the installation commands.  Use a separate command for each file to be
 installed.
 
 
-File: standards.info,  Node: DESTDIR,  Next: Standard Targets,  Prev: Directory Variables,  Up: Makefile Conventions
+File: standards.info,  Node: DESTDIR,  Next: Directory Variables,  Prev: Command Variables,  Up: Makefile Conventions
 
 7.2.4 `DESTDIR': support for staged installs
 --------------------------------------------
@@ -3838,14 +3865,13 @@ this:
      $(INSTALL_PROGRAM) foo $(DESTDIR)$(bindir)/foo
      $(INSTALL_DATA) libfoo.a $(DESTDIR)$(libdir)/libfoo.a
 
-   The `DESTDIR' variable is specified by the user, either to the
-`configure' script or, more commonly, on the `make' command line.  For
-example:
+   The `DESTDIR' variable is specified by the user on the `make'
+command line.  For example:
 
      make DESTDIR=/tmp/stage install
 
-(Since the value of `DESTDIR' is only used during installation it is
-not necessary to provide it with other `make' commands.)
+`DESTDIR' should be supported only in the `install*' and `uninstall*'
+targets, as those are the only targets where it is useful.
 
    If your installation step would normally install
 `/usr/local/bin/foo' and `/usr/local/lib/libfoo.a', then an
@@ -3873,11 +3899,11 @@ to install into protected areas to build and install before gaining
 those permissions.  Finally, it can be useful with tools such as
 `stow', where code is installed in one place but made to appear to be
 installed somewhere else using symbolic links or special mount
-operations.  So, we recommend GNU packages support `DESTDIR', though it
-is not an absolute requirement.
+operations.  So, we strongly recommend GNU packages support `DESTDIR',
+though it is not an absolute requirement.
 
 
-File: standards.info,  Node: Directory Variables,  Next: DESTDIR,  Prev: Command Variables,  Up: Makefile Conventions
+File: standards.info,  Node: Directory Variables,  Next: Standard Targets,  Prev: DESTDIR,  Up: Makefile Conventions
 
 7.2.5 Variables for Installation Directories
 --------------------------------------------
@@ -4087,8 +4113,7 @@ have Info files, so every program needs `infodir', but not all need
 `pdfdir'
 `psdir'
      Directories for installing documentation files in the particular
-     format.  (It is not required to support documentation in all these
-     formats.)  They should all be set to `$(docdir)' by default.  (If
+     format.  They should all be set to `$(docdir)' by default.  (If
      you are using Autoconf, write them as `@htmldir@', `@dvidir@',
      etc.)  Packages which supply several translations of their
      documentation should install them in `$(htmldir)/'LL,
@@ -4163,7 +4188,7 @@ have Info files, so every program needs `infodir', but not all need
 `srcdir'
      The directory for the sources being compiled.  The value of this
      variable is normally inserted by the `configure' shell script.
-     (If you are using Autconf, use `srcdir = @srcdir@'.)
+     (If you are using Autoconf, use `srcdir = @srcdir@'.)
 
    For example:
 
@@ -4192,16 +4217,16 @@ specify the exact same values for several different GNU packages.  In
 order for this to be useful, all the packages must be designed so that
 they will work sensibly when the user does so.
 
-   Not all of these variables may be implemented in the current release
-of Autoconf and/or Automake; right now, that includes at least
-`docdir', `psdir', `pdfdir', `htmldir', `dvidir'.  In these cases, the
-descriptions here serve as specifications for what Autoconf will
-implement.  As a programmer, you can either use a development version
-of Autoconf or avoid using these variables until a stable release is
-made which supports them.
+   At times, not all of these variables may be implemented in the
+current release of Autoconf and/or Automake; but as of Autoconf 2.60, we
+believe all of them are.  When any are missing, the descriptions here
+serve as specifications for what Autoconf will implement.  As a
+programmer, you can either use a development version of Autoconf or
+avoid using these variables until a stable release is made which
+supports them.
 
 
-File: standards.info,  Node: Standard Targets,  Next: Install Command Categories,  Prev: DESTDIR,  Up: Makefile Conventions
+File: standards.info,  Node: Standard Targets,  Next: Install Command Categories,  Prev: Directory Variables,  Up: Makefile Conventions
 
 7.2.6 Standard Targets for Users
 --------------------------------
@@ -4211,8 +4236,9 @@ All GNU programs should have the following targets in their Makefiles:
 `all'
      Compile the entire program.  This should be the default target.
      This target need not rebuild any documentation files; Info files
-     should normally be included in the distribution, and DVI files
-     should be made only when explicitly asked for.
+     should normally be included in the distribution, and DVI (and other
+     documentation format) files should be made only when explicitly
+     asked for.
 
      By default, the Make rules should compile and link with `-g', so
      that executable programs have debugging symbols.  Users who don't
@@ -4291,6 +4317,9 @@ All GNU programs should have the following targets in their Makefiles:
      `makeinfo --html'), you'll certainly want to use subdirectories,
      or two nodes with the same name in different manuals will
      overwrite each other.
+
+     Please make these `install-FORMAT' targets invoke the commands for
+     the FORMAT target, for example, by making FORMAT a dependency.
 
 `uninstall'
      Delete all the installed files--the copies that the `install' and
@@ -4408,7 +4437,12 @@ All GNU programs should have the following targets in their Makefiles:
 `html'
 `pdf'
 `ps'
-     Generate documentation files in the given format, if possible.
+     Generate documentation files in the given format.  These targets
+     should always exist, but any or all can be a no-op if the given
+     output format cannot be generated.  These targets should not be
+     dependencies of the `all' target; the user must manually invoke
+     them.
+
      Here's an example rule for generating DVI files from Texinfo:
 
           dvi: foo.dvi
@@ -5180,8 +5214,8 @@ A.1 GNU Free Documentation License
      you may choose any version ever published (not as a draft) by the
      Free Software Foundation.
 
-A.1.1 ADDENDUM: How to use this License for your documents
-----------------------------------------------------------
+ADDENDUM: How to use this License for your documents
+====================================================
 
 To use this License in a document you have written, include a copy of
 the License in the document and put the following copyright and license
@@ -5245,7 +5279,7 @@ Index
                                                               (line 130)
 * canonical name of a program:           Command-Line Interfaces.
                                                               (line  44)
-* casting pointers to integers:          CPU Portability.     (line  79)
+* casting pointers to integers:          CPU Portability.     (line  90)
 * CGI programs, standard options for:    Command-Line Interfaces.
                                                               (line  31)
 * change logs:                           Change Logs.         (line   6)
@@ -5394,72 +5428,72 @@ Index
 
 
 Tag Table:
-Node: Top787
-Node: Preface2029
-Node: Legal Issues4144
-Node: Reading Non-Free Code4611
-Node: Contributions6339
-Node: Trademarks8577
-Node: Design Advice10212
-Node: Source Language10800
-Node: Compatibility12812
-Node: Using Extensions14440
-Node: Standard C16016
-Node: Conditional Compilation18419
-Node: Program Behavior19817
-Node: Non-GNU Standards20864
-Node: Semantics23145
-Node: Libraries27864
-Node: Errors29109
-Node: User Interfaces31602
-Node: Graphical Interfaces33207
-Node: Command-Line Interfaces34243
-Node: Option Table40700
-Node: Memory Usage55641
-Node: File Usage56666
-Node: Writing C57416
-Node: Formatting58382
-Node: Comments62461
-Node: Syntactic Conventions66013
-Node: Names69428
-Node: System Portability71640
-Node: CPU Portability74530
-Node: System Functions78134
-Node: Internationalization83331
-Node: Character Set87324
-Node: Quote Characters88137
-Node: Mmap89657
-Node: Documentation90365
-Node: GNU Manuals91470
-Node: Doc Strings and Manuals97208
-Node: Manual Structure Details98761
-Node: License for Manuals100179
-Node: Manual Credits101153
-Node: Printed Manuals101546
-Node: NEWS File102232
-Node: Change Logs102910
-Node: Change Log Concepts103664
-Node: Style of Change Logs105753
-Node: Simple Changes108253
-Node: Conditional Changes109695
-Node: Indicating the Part Changed111117
-Node: Man Pages111644
-Node: Reading other Manuals113956
-Node: Managing Releases114747
-Node: Configuration115510
-Node: Makefile Conventions122551
-Node: Makefile Basics123433
-Node: Utilities in Makefiles126607
-Node: Command Variables128752
-Node: DESTDIR131986
-Node: Directory Variables134175
-Node: Standard Targets148757
-Ref: Standard Targets-Footnote-1161860
-Node: Install Command Categories161960
-Node: Releases166493
-Node: References170420
-Node: Copying This Manual175160
-Node: GNU Free Documentation License175396
-Node: Index197809
+Node: Top792
+Node: Preface2039
+Node: Legal Issues4159
+Node: Reading Non-Free Code4626
+Node: Contributions6356
+Node: Trademarks8594
+Node: Design Advice10229
+Node: Source Language10817
+Node: Compatibility12829
+Node: Using Extensions14457
+Node: Standard C16033
+Node: Conditional Compilation18436
+Node: Program Behavior19834
+Node: Non-GNU Standards20881
+Node: Semantics23162
+Node: Libraries27881
+Node: Errors29126
+Node: User Interfaces31619
+Node: Graphical Interfaces33224
+Node: Command-Line Interfaces34260
+Node: Option Table40717
+Node: Memory Usage55658
+Node: File Usage56689
+Node: Writing C57439
+Node: Formatting58405
+Node: Comments62484
+Node: Syntactic Conventions66036
+Node: Names69498
+Node: System Portability71710
+Node: CPU Portability74600
+Node: System Functions78512
+Node: Internationalization83709
+Node: Character Set87703
+Node: Quote Characters88516
+Node: Mmap90036
+Node: Documentation90744
+Node: GNU Manuals91849
+Node: Doc Strings and Manuals97587
+Node: Manual Structure Details99140
+Node: License for Manuals100558
+Node: Manual Credits101532
+Node: Printed Manuals101925
+Node: NEWS File102611
+Node: Change Logs103289
+Node: Change Log Concepts104043
+Node: Style of Change Logs106132
+Node: Simple Changes108632
+Node: Conditional Changes110074
+Node: Indicating the Part Changed111496
+Node: Man Pages112023
+Node: Reading other Manuals114335
+Node: Managing Releases115126
+Node: Configuration115889
+Node: Makefile Conventions123609
+Node: Makefile Basics124491
+Node: Utilities in Makefiles127665
+Node: Command Variables129810
+Node: DESTDIR133032
+Node: Directory Variables135181
+Node: Standard Targets149674
+Ref: Standard Targets-Footnote-1163189
+Node: Install Command Categories163289
+Node: Releases167822
+Node: References171749
+Node: Copying This Manual176489
+Node: GNU Free Documentation License176725
+Node: Index199126
 
 End Tag Table

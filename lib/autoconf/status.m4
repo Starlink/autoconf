@@ -983,7 +983,12 @@ if test "$no_recursion" != yes; then
   case $ac_arg in
   *\'*) ac_arg=`echo "$ac_arg" | sed "s/'/'\\\\\\\\''/g"` ;;
   esac
-  ac_sub_configure_args="$ac_arg $ac_sub_configure_args"
+  ac_sub_configure_args="'$ac_arg' $ac_sub_configure_args"
+
+  # Pass --silent
+  if test "$silent" = yes; then
+    ac_sub_configure_args="--silent $ac_sub_configure_args"
+  fi
 
   ac_popdir=`pwd`
   for ac_dir in : $subdirs; do test "x$ac_dir" = x: && continue
@@ -1189,7 +1194,7 @@ current configuration.
 Usage: $[0] [[OPTIONS]] [[FILE]]...
 
   -h, --help       print this help, then exit
-  -V, --version    print version number, then exit
+  -V, --version    print version number and configuration settings, then exit
   -q, --quiet      do not print progress messages
   -d, --debug      don't remove temporary files
       --recheck    update $as_me by reconfiguring in the same conditions

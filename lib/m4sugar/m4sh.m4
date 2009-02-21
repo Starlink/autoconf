@@ -161,24 +161,30 @@ $2
 # --------------------
 # Try to be as Bourne and/or POSIX as possible.
 #
-# FIXME: The assignment to BIN_SH is dubious; see
+# This does not set BIN_SH, due to the problems described in
 # <http://lists.gnu.org/archive/html/autoconf-patches/2006-03/msg00081.html>.
-# It might be better to remove it, but first please see
+# People who need BIN_SH should set it in their environment before invoking
+# configure; apparently this would include UnixWare, as described in
 # <http://lists.gnu.org/archive/html/bug-autoconf/2006-06/msg00025.html>.
 m4_define([AS_BOURNE_COMPATIBLE],
-[# Be Bourne compatible
-if test -n "${ZSH_VERSION+set}" && (emulate sh) >/dev/null 2>&1; then
-  emulate sh
+[# Be more Bourne compatible
+DUALCASE=1; export DUALCASE # for MKS sh
+_$0
+])
+
+# _AS_BOURNE_COMPATIBLE
+# ---------------------
+# This is the part of AS_BOURNE_COMPATIBLE which has to be repeated inside
+# each instance.
+m4_define([_AS_BOURNE_COMPATIBLE],
+[AS_IF([test -n "${ZSH_VERSION+set}" && (emulate sh) >/dev/null 2>&1],
+ [emulate sh
   NULLCMD=:
   [#] Zsh 3.x and 4.x performs word splitting on ${1+"$[@]"}, which
   # is contrary to our usage.  Disable this feature.
   alias -g '${1+"$[@]"}'='"$[@]"'
-  setopt NO_GLOB_SUBST
-else
-  case `(set -o) 2>/dev/null` in *posix*) set -o posix;; esac
-fi
-BIN_SH=xpg4; export BIN_SH # for Tru64
-DUALCASE=1; export DUALCASE # for MKS sh
+  setopt NO_GLOB_SUBST],
+ [AS_CASE([`(set -o) 2>/dev/null`], [*posix*], [set -o posix])])
 ])
 
 
@@ -189,7 +195,7 @@ DUALCASE=1; export DUALCASE # for MKS sh
 m4_define([_AS_RUN],
 [m4_ifval([$2],
 [{ $2 <<\_ASEOF
-AS_BOURNE_COMPATIBLE
+_AS_BOURNE_COMPATIBLE
 $1
 _ASEOF
 }],
@@ -223,16 +229,14 @@ m4_expand_once([m4_append([_AS_DETECT_SUGGESTED_BODY], [
 # The real workhorse for detecting a shell with the correct
 # features.
 #
-# FIXME: The '/usr/bin/posix' below works around a shell bug in OSF
-# <http://lists.gnu.org/archive/html/autoconf-patches/2006-03/msg00081.html>
-# but this causes a regression on OpenServer 6.0.0
+# In previous versions, we prepended /usr/posix/bin to the path, but that
+# caused a regression on OpenServer 6.0.0
 # <http://lists.gnu.org/archive/html/bug-autoconf/2006-06/msg00017.html>
-# The code should test for the OSF bug directly rather than look at
-# /usr/bin/posix here.
+# and on HP-UX 11.11, see the failure of test 120 in
+# <http://lists.gnu.org/archive/html/bug-autoconf/2006-10/msg00003.html>
 #
-# FIXME: The 'test -f "$as_shell.exe"' works around a problem in OS/2
-# <http://lists.gnu.org/archive/html/autoconf/2006-06/msg00038.html>
-# but we should replace the two test -f calls with a single AS_EXECUTABLE_P.
+# FIXME: The code should test for the OSF bug described in
+# <http://lists.gnu.org/archive/html/autoconf-patches/2006-03/msg00081.html>.
 #
 m4_defun_once([_AS_DETECT_BETTER_SHELL],
 [m4_wrap([m4_divert_text([M4SH-SANITIZE], [
@@ -245,7 +249,7 @@ if test "x$CONFIG_SHELL" = x; then
 	 _AS_RUN([_AS_DETECT_SUGGESTED_BODY]) 2> /dev/null],
     [],
     [as_candidate_shells=
-    _AS_PATH_WALK([/usr/bin/posix$PATH_SEPARATOR/bin$PATH_SEPARATOR/usr/bin$PATH_SEPARATOR$PATH],
+    _AS_PATH_WALK([/bin$PATH_SEPARATOR/usr/bin$PATH_SEPARATOR$PATH],
       [case $as_dir in
 	 /*)
 	   for as_base in sh bash ksh sh5; do
@@ -780,12 +784,21 @@ fi
 ])# _AS_DIRNAME_PREPARE
 
 
+# AS_TEST_X
+# ---------
+# Check whether a file has executable or search permissions.
+m4_defun([AS_TEST_X],
+[AS_REQUIRE([_AS_TEST_PREPARE])dnl
+$as_test_x $1[]dnl
+])# AS_TEST_X
+
+
 # AS_EXECUTABLE_P
 # ---------------
-# Check whether a file is executable.
+# Check whether a file is a regular file that has executable permissions.
 m4_defun([AS_EXECUTABLE_P],
 [AS_REQUIRE([_AS_TEST_PREPARE])dnl
-{ test -f $1 && $as_executable_p $1; }dnl
+{ test -f $1 && AS_TEST_X([$1]); }dnl
 ])# AS_EXECUTABLE_P
 
 
@@ -1015,23 +1028,41 @@ esac[]dnl
 
 # _AS_TEST_PREPARE
 # ----------------
-# Find out ahead of time whether ``test -x'' can be used to distinguish
-# executables from other regular files.
-# FIXME: This should use "test -x /"; that's much faster.
+# Find out whether `test -x' works.  If not, prepare a substitute
+# that should work well enough for most scripts.
+#
+# Here are some of the problems with the substitute.
+# The 'ls' tests whether the owner, not the current user, can execute/search.
+# The eval means '*', '?', and '[' cause inadvertent file name globbing
+# after the 'eval', so jam together as many tokens as we can to minimize
+# the likelihood that the inadvertent globbing will actually do anything.
+# Luckily, this gorp is needed only on really ancient hosts.
+#
 m4_defun([_AS_TEST_PREPARE],
-[# Find out whether ``test -x'' works.  Don't use a zero-byte file, as
-# systems may use methods other than mode bits to determine executability.
-cat >conf$$.file <<_ASEOF
-#! /bin/sh
-exit 0
-_ASEOF
-chmod +x conf$$.file
-if test -x conf$$.file >/dev/null 2>&1; then
-  as_executable_p="test -x"
+[if test -x / >/dev/null 2>&1; then
+  as_test_x='test -x'
 else
-  as_executable_p=:
+  if ls -dL / >/dev/null 2>&1; then
+    as_ls_L_option=L
+  else
+    as_ls_L_option=
+  fi
+  as_test_x='
+    eval sh -c '\''
+      if test -d "$[]1"; then
+        test -d "$[]1/.";
+      else
+	case $[]1 in
+        -*)set "./$[]1";;
+	esac;
+	case `ls -ld'$as_ls_L_option' "$[]1" 2>/dev/null` in
+	???[[sx]]*):;;*)false;;esac;fi
+    '\'' sh
+  '
 fi
-rm -f conf$$.file
+dnl as_executable_p is present for backward compatibility with Libtool
+dnl 1.5.22, but it should go away at some point.
+as_executable_p=$as_test_x
 ])# _AS_TEST_PREPARE
 
 
@@ -1134,7 +1165,7 @@ m4_popdef([AS_Prefix])dnl
 # This is an *approximation*: for instance EXPRESSION = `\$' is
 # definitely a literal, but will not be recognized as such.
 m4_define([AS_LITERAL_IF],
-[m4_bmatch([$1], [[`$]],
+[m4_bmatch(m4_quote($1), [[`$]],
 	   [$3], [$2])])
 
 

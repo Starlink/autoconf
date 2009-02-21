@@ -63,7 +63,7 @@ AU_DEFUN([AC_DECL_SYS_SIGLIST],
 [AC_CHECK_DECLS([sys_siglist],,,
 [#include <signal.h>
 /* NetBSD declares sys_siglist in unistd.h.  */
-#if HAVE_UNISTD_H
+#ifdef HAVE_UNISTD_H
 # include <unistd.h>
 #endif
 ])
@@ -85,7 +85,7 @@ AC_DEFUN([AC_SYS_INTERPRETER],
 exit 69
 ' >conftest
 chmod u+x conftest
-(SHELL=/bin/sh; export SHELL; ./conftest >/dev/null)
+(SHELL=/bin/sh; export SHELL; ./conftest >/dev/null 2>&1)
 if test $? -ne 69; then
    ac_cv_sys_interpreter=yes
 else
@@ -130,17 +130,20 @@ m4_define([_AC_SYS_LARGEFILE_TEST_INCLUDES],
 m4_define([_AC_SYS_LARGEFILE_MACRO_VALUE],
 [AC_CACHE_CHECK([for $1 value needed for large files], [$3],
 [while :; do
-  $3=no
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([$5], [$6])],
-		    [break])
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([@%:@define $1 $2
+  m4_ifval([$6], [AC_LINK_IFELSE], [AC_COMPILE_IFELSE])(
+    [AC_LANG_PROGRAM([$5], [$6])],
+    [$3=no; break])
+  m4_ifval([$6], [AC_LINK_IFELSE], [AC_COMPILE_IFELSE])(
+    [AC_LANG_PROGRAM([@%:@define $1 $2
 $5], [$6])],
-		    [$3=$2; break])
+    [$3=$2; break])
+  $3=unknown
   break
 done])
-if test "$$3" != no; then
-  AC_DEFINE_UNQUOTED([$1], [$$3], [$4])
-fi
+case $$3 in #(
+  no | unknown) ;;
+  *) AC_DEFINE_UNQUOTED([$1], [$$3], [$4]);;
+esac
 rm -f conftest*[]dnl
 ])# _AC_SYS_LARGEFILE_MACRO_VALUE
 
@@ -181,10 +184,12 @@ if test "$enable_largefile" != no; then
     ac_cv_sys_file_offset_bits,
     [Number of bits in a file offset, on hosts where this is settable.],
     [_AC_SYS_LARGEFILE_TEST_INCLUDES])
-  _AC_SYS_LARGEFILE_MACRO_VALUE(_LARGE_FILES, 1,
-    ac_cv_sys_large_files,
-    [Define for large files, on AIX-style hosts.],
-    [_AC_SYS_LARGEFILE_TEST_INCLUDES])
+  if test $ac_cv_sys_file_offset_bits = unknown; then
+    _AC_SYS_LARGEFILE_MACRO_VALUE(_LARGE_FILES, 1,
+      ac_cv_sys_large_files,
+      [Define for large files, on AIX-style hosts.],
+      [_AC_SYS_LARGEFILE_TEST_INCLUDES])
+  fi
 fi
 ])# AC_SYS_LARGEFILE
 
@@ -256,7 +261,7 @@ AC_CACHE_CHECK(for restartable system calls, ac_cv_sys_restartable_syscalls,
 
 AC_INCLUDES_DEFAULT
 #include <signal.h>
-#if HAVE_SYS_WAIT_H
+#ifdef HAVE_SYS_WAIT_H
 # include <sys/wait.h>
 #endif
 
@@ -397,6 +402,9 @@ AC_DEFUN([AC_USE_SYSTEM_EXTENSIONS],
 #endif
 #ifndef _POSIX_PTHREAD_SEMANTICS
 # undef _POSIX_PTHREAD_SEMANTICS
+#endif
+#ifndef _TANDEM_SOURCE
+# undef _TANDEM_SOURCE
 #endif])
   AC_CACHE_CHECK([whether it is safe to define __EXTENSIONS__],
     [ac_cv_safe_to_define___extensions__],
@@ -409,6 +417,7 @@ AC_DEFUN([AC_USE_SYSTEM_EXTENSIONS],
   test $ac_cv_safe_to_define___extensions__ = yes &&
     AC_DEFINE([__EXTENSIONS__])
   AC_DEFINE([_POSIX_PTHREAD_SEMANTICS])
+  AC_DEFINE([_TANDEM_SOURCE])
 ])
 
 
