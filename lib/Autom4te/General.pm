@@ -1,5 +1,5 @@
 # autoconf -- create `configure' using m4 macros
-# Copyright (C) 2001, 2002, 2003  Free Software Foundation, Inc.
+# Copyright (C) 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,8 +13,8 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
-# 02111-1307, USA.
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
 
 package Autom4te::General;
 
@@ -183,7 +183,8 @@ sub END
   #        this sets $? = 255
   #
   # Cases 1), 2), and 3b) are fine, but we prefer $? = 1 for 3a) and 3c).
-  $? = 1 if ($! && $! == $?) || $? == 255;
+  my $status = $?;
+  $status = 1 if ($! && $! == $?) || $? == 255;
   # (Note that we cannot safely distinguish calls to `exit (n)'
   # from calls to die when `$! = n'.  It's not big deal because
   # we only call `exit (0)' or `exit (1)'.)
@@ -192,11 +193,14 @@ sub END
     {
       if (<$tmp/*>)
 	{
-	  if (! unlink <$tmp/*>)
+	  while (<$tmp/*>)
 	    {
-	      print STDERR "$me: cannot empty $tmp: $!\n";
-	      $? = 1;
-	      return;
+	      if (! unlink $_)
+		{
+		  print STDERR "$me: cannot empty $tmp ($_): $!\n";
+		  $? = 1;
+		  return;
+		}
 	    }
 	}
       if (! rmdir $tmp)
@@ -215,6 +219,8 @@ sub END
       $? = 1;
       return;
     }
+
+  $? = $status;
 }
 
 
@@ -267,9 +273,9 @@ sub getopt (%)
   %option = ("h|help"     => sub { print $help; exit 0 },
 	     "V|version"  => sub { print $version; exit 0 },
 
-	     "v|verbose"    => \$verbose,
-	     "d|debug"      => \$debug,
-	     'f|force'      => \$force,
+	     "v|verbose"  => sub { ++$verbose },
+	     "d|debug"    => sub { ++$debug },
+	     'f|force'    => \$force,
 
 	     # User options last, so that they have precedence.
 	     %option);
@@ -309,7 +315,7 @@ sub mktmpdir ($)
 
   # If mktemp supports dirs, use it.
   $tmp = `(umask 077 &&
-	   mktemp -d -q "$TMPDIR/${signature}XXXXXX") 2>/dev/null`;
+	   mktemp -d "$TMPDIR/${signature}XXXXXX") 2>/dev/null`;
   chomp $tmp;
 
   if (!$tmp || ! -d $tmp)
