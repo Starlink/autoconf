@@ -2,8 +2,8 @@
 
 AT_BANNER([M4sugar.])
 
-# Copyright (C) 2000, 2001, 2002, 2005, 2006, 2007, 2008 Free Software
-# Foundation, Inc.
+# Copyright (C) 2000, 2001, 2002, 2005, 2006, 2007, 2008, 2009 Free
+# Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -37,20 +37,66 @@ AT_CHECK_M4SUGAR([-o-],, [$2], [$3])
 ])# AT_CHECK_M4SUGAR_TEXT
 
 
-# Order of the tests:
-# - m4_warn
-#
-# - m4_require
-# uses warn/error code.
-#
-# - m4_split
-#
-# - m4_append
-#
-# - m4_join
-#
-# - m4_text_wrap
-# uses m4_split code.
+## ------------------ ##
+## m4_stack_foreach.  ##
+## ------------------ ##
+
+AT_SETUP([m4@&t@_stack])
+
+AT_KEYWORDS([m4@&t@_stack_foreach m4@&t@_stack_foreach_lifo])
+AT_KEYWORDS([m4@&t@_stack_foreach_sep m4@&t@_stack_foreach_sep_lifo])
+AT_KEYWORDS([m4@&t@_copy m4@&t@_n])
+
+# Test the semantics of macros to walk stacked macro definitions.
+AT_CHECK_M4SUGAR_TEXT([[dnl
+m4_pushdef([abc], [def])dnl
+m4_pushdef([abc], [ghi])dnl
+m4_pushdef([abc], [jkl])dnl
+m4_stack_foreach([abc], [m4_n])
+abc
+m4_stack_foreach_lifo([abc], [m4_n])
+m4_stack_foreach([abc], [m4_n])
+m4_copy([abc], [foo])dnl
+m4_stack_foreach([foo], [m4_n])
+m4_stack_foreach_lifo([foo], [m4_n])
+m4_stack_foreach_sep([abc], [ m4_index([abcdefghijkl],], [)])
+m4_define([colon], [:])m4_define([lt], [<])m4_define([gt], [>])dnl
+m4_stack_foreach_sep_lifo([abc], [lt], [gt], [colon])
+m4_pushdef([xyz], [123])dnl
+m4_pushdef([xyz], [456])dnl
+m4_define([doit], [[$1](m4_stack_foreach_sep([xyz], [m4_dquote(], [)], [,]))
+])dnl
+m4_stack_foreach([abc], [doit])]],
+[[def
+ghi
+jkl
+
+jkl
+jkl
+ghi
+def
+
+def
+ghi
+jkl
+
+def
+ghi
+jkl
+
+jkl
+ghi
+def
+
+ 3 6 9
+<jkl>:<ghi>:<def>
+def([123],[456])
+ghi([123],[456])
+jkl([123],[456])
+]])
+
+AT_CLEANUP
+
 
 ## --------- ##
 ## m4_defn.  ##
@@ -58,7 +104,8 @@ AT_CHECK_M4SUGAR([-o-],, [$2], [$3])
 
 AT_SETUP([m4@&t@_defn])
 
-AT_KEYWORDS([m4@&t@_popdef m4@&t@_undefine])
+AT_KEYWORDS([m4@&t@_popdef m4@&t@_undefine m4@&t@_copy m4@&t@_rename
+m4@&t@_copy_force m4@&t@_rename_force])
 
 # Ensure that m4sugar dies when dereferencing undefined macros, whether
 # this is provided by m4 natively or faked by wrappers in m4sugar.
@@ -89,6 +136,107 @@ m4_undefine([good], [oops])
 AT_CHECK_M4SUGAR([-o-], 1, [], [stderr])
 AT_CHECK([grep good stderr], [1])
 AT_CHECK([grep 'm4@&t@_undefine: undefined.*oops' stderr], [0], [ignore])
+
+# Cannot rename an undefined macro.
+AT_DATA_M4SUGAR([script.4s],
+[[m4_rename([oops], [good])
+]])
+
+AT_CHECK_M4SUGAR([-o-], 1, [], [stderr])
+AT_CHECK([grep 'm4@&t@_undefine: undefined.*oops' stderr], [0], [ignore])
+
+# Check that pushdef stacks can be renamed.
+AT_CHECK_M4SUGAR_TEXT([[m4_pushdef([a], [1])dnl
+m4_pushdef([a], [2])dnl
+m4_pushdef([a], m4_defn([m4_divnum]))dnl
+a b c
+m4_rename([a], [b])dnl
+a b c
+m4_copy([b], [c])dnl
+a b c
+m4_popdef([b], [c])dnl
+a b c
+m4_popdef([b], [c])dnl
+a b c
+m4_popdef([b], [c])dnl
+a b c
+dnl m4_copy is intentionally a no-op on undefined source
+m4_copy([oops], [dummy])m4_ifdef([dummy], [[oops]])dnl
+dnl allow forceful overwrites
+m4_define([d], [4])m4_define([e], [5])m4_define([f], [6])dnl
+m4_copy_force([d], [e])dnl
+m4_rename_force([d], [f])dnl
+d e f
+m4_popdef([e], [f])dnl
+d e f
+]], [[0 b c
+a 0 c
+a 0 0
+a 2 2
+a 1 1
+a b c
+d 4 4
+d e f
+]])
+
+AT_CLEANUP
+
+
+## ------------ ##
+## m4_dumpdef.  ##
+## ------------ ##
+
+AT_SETUP([m4@&t@_dumpdef])
+
+AT_KEYWORDS([m4@&t@_dumpdefs])
+
+# Ensure that m4sugar dies when dereferencing undefined macros.
+
+AT_DATA_M4SUGAR([script.4s],
+[[m4_define([good], [yep])
+m4_dumpdef([good], [oops])
+]])
+
+AT_CHECK_M4SUGAR([-o-], 1, [], [stderr])
+AT_CHECK([grep '^good:	\[[yep\]]$' stderr], [0], [ignore])
+AT_CHECK([grep 'm4@&t@_dumpdef: undefined.*oops' stderr], [0], [ignore])
+
+# Check that pushdef stacks can be dumped.
+AT_CHECK_M4SUGAR_TEXT([[m4_divert_push([KILL])
+m4_pushdef([a], [1])
+m4_pushdef([a], [2])
+m4_dumpdef([a])
+m4_dumpdefs([oops], [a])
+m4_divert_pop([KILL])dnl
+]], [],
+[[a:	[2]
+a:	[2]
+a:	[1]
+]])
+
+# Check behavior when dumping builtins.  Unfortunately, when using M4 1.4.x
+# (or more precisely, when __m4_version__ is undefined), builtins get
+# flattened to an empty string.  It takes M4 1.6 to work around this.
+AT_DATA_M4SUGAR([script.4s],
+[[m4_ifdef([__m4_version__], [_m4_undefine([__m4_version__])])
+m4_init
+m4_dumpdef([m4_define])
+]])
+
+AT_CHECK_M4SUGAR([-o-], [0], [],
+[[m4_define:	[]
+]])
+
+AT_DATA_M4SUGAR([script.4s],
+[[m4_init
+m4_ifdef([__m4_version__],
+[m4_dumpdef([m4_define])],
+[m4_errprintn([m4_define:	<define>])])
+]])
+
+AT_CHECK_M4SUGAR([-o-], [0], [],
+[[m4_define:	<define>
+]])
 
 AT_CLEANUP
 
@@ -143,11 +291,115 @@ script.4s:6: the top level
 AT_CLEANUP
 
 
+## ----------------- ##
+## m4_divert_stack.  ##
+## ----------------- ##
+
+AT_SETUP([m4@&t@_divert_stack])
+AT_KEYWORDS([m4@&t@_divert m4@&t@_divert_push m4@&t@_divert_pop
+m4@&t@_undivert m4@&t@_cleardivert m4@&t@_divert_text])
+
+AT_CHECK_M4SUGAR_TEXT([[1.m4_divert_stack
+m4_divert_push([10])2.m4_divert_stack
+m4_divert_text([20], [3.m4_divert_stack])dnl
+m4_divert([30])4.m4_divert_stack
+m4_divert_pop([30])dnl
+5.m4_undivert([20], [30])
+m4_pattern_allow([^m4_divert])dnl
+]], [[1.script.4s:2: m4@&t@_divert_push: 0
+script.4s:1: m4@&t@_divert: KILL
+5.3.script.4s:5: m4@&t@_divert_push: 20
+script.4s:4: m4@&t@_divert_push: 10
+script.4s:2: m4@&t@_divert_push: 0
+script.4s:1: m4@&t@_divert: KILL
+4.script.4s:6: m4@&t@_divert: 30
+script.4s:2: m4@&t@_divert_push: 0
+script.4s:1: m4@&t@_divert: KILL
+
+2.script.4s:4: m4@&t@_divert_push: 10
+script.4s:2: m4@&t@_divert_push: 0
+script.4s:1: m4@&t@_divert: KILL
+]])
+
+AT_CHECK_M4SUGAR_TEXT([[dnl
+m4_divert_text([3], [three])dnl
+m4_divert_text([4], [four])dnl
+m4_divert_text([1], [one])dnl
+m4_divert_text([2], [two])dnl
+m4_cleardivert([2], [3])dnl
+]],
+[[one
+four
+]])
+
+AT_DATA_M4SUGAR([script.4s],
+[[m4_divert_pop
+]])
+AT_CHECK_M4SUGAR([-o-], [1], [],
+[[script.4s:1: error: too many m4@&t@_divert_pop
+script.4s:1: the top level
+autom4te: m4 failed with exit status: 1
+]])
+
+AT_DATA_M4SUGAR([script.4s],
+[[m4_init
+m4_divert_push([1])
+m4_divert_pop([2])
+]])
+AT_CHECK_M4SUGAR([-o-], [1], [],
+[[script.4s:3: error: m4@&t@_divert_pop(2): diversion mismatch:
+script.4s:2: m4@&t@_divert_push: 1
+script.4s:1: m4@&t@_divert: KILL
+script.4s:3: the top level
+autom4te: m4 failed with exit status: 1
+]])
+
+AT_DATA_M4SUGAR([script.4s],
+[[m4_divert([1])
+m4_init
+m4_divert_push([2])
+]])
+AT_CHECK_M4SUGAR([-o-], [1], [],
+[[script.4s:2: error: m4@&t@_init: unbalanced m4@&t@_divert_push:
+script.4s:3: m4@&t@_divert_push: 2
+script.4s:2: m4@&t@_divert: KILL
+script.4s:2: the top level
+autom4te: m4 failed with exit status: 1
+]])
+
+AT_CLEANUP
+
+
+## -------------------- ##
+## m4_expansion_stack.  ##
+## -------------------- ##
+
+AT_SETUP([m4@&t@_expansion_stack])
+
+AT_CHECK_M4SUGAR_TEXT([[1.m4_expansion_stack
+m4_defun([a], [b])dnl
+m4_define([c], [d])dnl
+m4_defun([d], [2.m4_expansion_stack])dnl
+m4_defun([b], [c])dnl
+a
+3.m4_ifdef([_m4_expansion_stack], [m4_expansion_stack])
+]], [[1.script.4s:3: the top level
+2.script.4s:6: d is expanded from...
+script.4s:7: b is expanded from...
+script.4s:4: a is expanded from...
+script.4s:8: the top level
+3.
+]])
+
+AT_CLEANUP
+
+
 ## --------------------------- ##
 ## m4_require: error message.  ##
 ## --------------------------- ##
 
 AT_SETUP([m4@&t@_require: error message])
+AT_KEYWORDS([m4@&t@_require])
 
 AT_DATA_M4SUGAR([script.4s],
 [[m4_defun([foo], [FOO])
@@ -167,6 +419,7 @@ AT_CLEANUP
 ## ----------------------------------- ##
 
 AT_SETUP([m4@&t@_require: circular dependencies])
+AT_KEYWORDS([m4@&t@_require])
 
 AT_DATA_M4SUGAR([script.4s],
 [[m4_defun([foo], [m4_require([bar])])
@@ -190,6 +443,317 @@ autom4te: m4 failed with exit status: 1
 ]])
 AT_CLEANUP
 
+
+## ---------------------- ##
+## m4_require: one-shot.  ##
+## ---------------------- ##
+
+AT_SETUP([m4@&t@_require: one-shot initialization])
+AT_KEYWORDS([m4@&t@_require])
+AT_KEYWORDS([m4@&t@_defun_init m4@&t@_copy m4@&t@_defun_once])
+
+dnl check out m4_defun_init, m4_copy, and odd macro names
+AT_CHECK_M4SUGAR_TEXT([[
+m4_defun_init([a], [[init a
+]], [[common a]])dnl
+m4_defun([b], [[b]m4_require([a])])dnl
+m4_defun([c], [[c]m4_require([a])])dnl
+b
+c
+a
+m4_defun_init([-], [hello, ], [m4_if([$#], [0], [world], [[$1]])])dnl
+m4_copy([-], [.])dnl
+m4_indir([.])
+m4_indir([.], [goodbye])
+m4_indir([-], [again])
+]], [[
+init a
+common a
+b
+c
+common a
+hello, world
+goodbye
+hello, again
+]])
+
+dnl Check m4_defun_once behavior
+AT_CHECK_M4SUGAR_TEXT([[
+m4_defun_once([a], [[a]])dnl
+m4_defun([b], [[b]m4_require([a])])dnl
+m4_defun([c], [[c]a[]m4_require([b])])dnl
+c
+a
+m4_defun_once([d], [[d]m4_require([a])])dnl
+d
+m4_defun_once([e], [[e]])dnl
+m4_defun([f], [[f]m4_require([e])e])dnl
+f
+]], [[
+a
+b
+c
+
+d
+e
+f
+]])
+
+
+AT_CLEANUP
+
+
+## -------------------- ##
+## m4_require: nested.  ##
+## -------------------- ##
+
+AT_SETUP([m4@&t@_require: nested])
+AT_KEYWORDS([m4@&t@_require m4@&t@_defun])
+
+dnl From the m4sugar.m4 discourse: Require chains, top level
+AT_CHECK_M4SUGAR_TEXT([[dnl
+m4_defun([a], [[a]])dnl aka TEST2a
+m4_defun([b], [[b]m4_require([a])])dnl aka TEST3
+m4_defun([c], [[c]m4_require([b])])dnl aka TEST2b
+m4_defun([d], [[d]m4_require([a])m4_require([c])])dnl aka TEST1
+pre
+d
+d
+post
+]],
+[[pre
+a
+b
+c
+d
+d
+post
+]])
+
+dnl From the m4sugar.m4 discourse: Require chains, nested
+AT_CHECK_M4SUGAR_TEXT([[dnl
+m4_defun([a], [[a]])dnl aka TEST2a
+m4_defun([b], [[b]m4_require([a])])dnl aka TEST3
+m4_defun([c], [[c]m4_require([b])])dnl aka TEST2b
+m4_defun([d], [[d]m4_require([a])m4_require([c])])dnl aka TEST1
+m4_defun([wrap],
+[pre
+d
+d
+post])dnl
+wrap
+]],
+[[a
+b
+c
+pre
+d
+d
+post
+]])
+
+dnl Direct invocation, nested requires, top level
+AT_CHECK_M4SUGAR_TEXT([[dnl
+m4_defun([a], [[a]])dnl
+m4_defun([b], [[b]m4_require([a])])dnl
+m4_defun([c], [[c]m4_require([b])])dnl
+pre
+a
+c
+a
+c
+post
+]],
+[[pre
+a
+b
+c
+a
+c
+post
+]])
+
+dnl Direct invocation, nested requires, nested defun.  This is an example
+dnl of expansion before requirement, such that b occurs before its
+dnl prerequisite a.  This indicates a bug in the macros (but not in
+dnl autoconf), so we should be emitting a warning.
+AT_CHECK_M4SUGAR_TEXT([[dnl
+m4_defun([a], [[a]])dnl
+m4_defun([b], [[b]m4_require([a])])dnl
+m4_defun([c], [[c]m4_require([b])])dnl
+dnl the extra macro layer works around line number differences in older m4
+m4_define([foo], [m4_defun([outer],
+[pre
+a
+c
+a
+c
+post])])foo[]dnl
+outer
+]],
+[[a
+b
+pre
+a
+c
+a
+c
+post
+]],
+[[script.4s:15: warning: m4@&t@_require: `a' was expanded before it was required
+script.4s:5: b is expanded from...
+script.4s:6: c is expanded from...
+script.4s:14: outer is expanded from...
+script.4s:15: the top level
+]])
+
+dnl Direct invocation, expand-before-require but no nested require.  As this
+dnl is common in real life, but does not result in out-of-order expansion,
+dnl we silently permit this.
+AT_CHECK_M4SUGAR_TEXT([[dnl
+m4_defun([a], [[a]])dnl
+m4_defun([b], [[b]m4_require([a])])dnl
+m4_defun([c], [[c]])dnl
+m4_defun([d], [[d]m4_require([c])])dnl
+pre1
+a
+b
+a
+b
+post1
+m4_defun([outer],
+[pre2
+c
+d
+c
+d
+post2])dnl
+outer
+m4_defun([e], [[e]])dnl
+m4_defun([f], [[f]m4_require([e])])dnl
+m4_defun([g], [[g]
+e
+f])dnl
+m4_defun([h], [[h]m4_require([g])])dnl
+h
+m4_defun([i], [[i]])dnl
+m4_defun([j], [[j]
+i])dnl
+m4_defun([k], [[k]m4_require([i])])dnl
+m4_defun([l], [[l]m4_require([k])])dnl
+m4_defun([m], [[m]m4_require([j])m4_require([l])])dnl
+m
+]],
+[[pre1
+a
+b
+a
+b
+post1
+pre2
+c
+d
+c
+d
+post2
+g
+e
+f
+h
+j
+i
+k
+l
+m
+]])
+
+AT_CLEANUP
+
+
+## ------------------------------------------------- ##
+## m4_ifval, m4_ifblank, m4_ifset, m4_default, etc.  ##
+## ------------------------------------------------- ##
+
+AT_SETUP([m4sugar shorthand conditionals])
+AT_KEYWORDS([m4@&t@_ifval m4@&t@_ifblank m4@&t@_ifnblank m4@&t@_ifset
+m4@&t@_default m4@&t@_default_quoted m4@&t@_default_nblank
+m4@&t@_default_nblank_quoted])
+
+AT_CHECK_M4SUGAR_TEXT([[m4_define([active], [ACTIVE])m4_define([empty])
+m4_ifval([active], [yes], [no])
+m4_ifval([empty], [yes], [no])
+m4_ifval([ ], [yes], [no])
+m4_ifval([], [yes], [no])
+m4_ifblank([active], [yes], [no])
+m4_ifblank([empty], [yes], [no])
+m4_ifblank([ ], [yes], [no])
+m4_ifblank([], [yes], [no])
+m4_ifnblank([active], [yes], [no])
+m4_ifnblank([empty], [yes], [no])
+m4_ifnblank([ ], [yes], [no])
+m4_ifnblank([], [yes], [no])
+m4_ifset([active], [yes], [no])
+m4_ifset([empty], [yes], [no])
+m4_ifset([ ], [yes], [no])
+m4_ifset([], [yes], [no])
+---
+m4_define([demo1], [m4_default([$1], [$2])])dnl
+m4_define([demo2], [m4_default_quoted([$1], [$2])])dnl
+m4_define([demo3], [m4_default_nblank([$1], [$2])])dnl
+m4_define([demo4], [m4_default_nblank_quoted([$1], [$2])])dnl
+demo1([active], [default])
+demo1([], [active])
+demo1([empty], [text])
+-demo1([ ], [active])-
+demo2([active], [default])
+demo2([], [active])
+demo2([empty], [text])
+-demo2([ ], [active])-
+demo3([active], [default])
+demo3([], [active])
+demo3([empty], [text])
+-demo3([ ], [active])-
+demo4([active], [default])
+demo4([], [active])
+demo4([empty], [text])
+-demo4([ ], [active])-
+]], [[
+yes
+yes
+yes
+no
+no
+no
+yes
+yes
+yes
+yes
+no
+no
+yes
+no
+no
+no
+---
+ACTIVE
+ACTIVE
+
+- -
+active
+active
+empty
+- -
+ACTIVE
+ACTIVE
+
+-ACTIVE-
+active
+active
+empty
+-active-
+]])
+
+AT_CLEANUP
 
 ## --------- ##
 ## m4_cond.  ##
@@ -244,6 +808,58 @@ AT_CLEANUP
 
 
 ## ---------- ##
+## m4 lists.  ##
+## ---------- ##
+
+AT_SETUP([m4 lists])
+
+AT_KEYWORDS([m4@&t@_car m4@&t@_cdr m4@&t@_argn _m4@&t_cdr])
+
+AT_CHECK_M4SUGAR_TEXT([[dnl
+m4_define([a], [A])m4_define([b], [B])m4_define([c], [C])
+m4_argn([1], [a], [b], [c])
+m4_argn([2], [a], [b], [c])
+m4_argn([3], [a], [b], [c])
+m4_argn([4], [a], [b], [c])
+m4_car([a], [b], [c])
+m4_cdr([a], [b], [c])
+m4_cdr([a], [b])
+m4_cdr([a])
+_m4_cdr([a], [b], [c])
+_m4_cdr([a], [b])
+_m4_cdr([a])
+m4_if(m4_cdr([], []), [[]], [good], [bad])
+m4_if(m4_cdr([]), [], [good], [bad])
+]], [[
+a
+b
+c
+
+a
+[b],[c]
+[b]
+
+, [b],[c]
+, [b]
+
+good
+good
+]])
+
+AT_DATA_M4SUGAR([script.4s],
+[[m4_init
+m4_argn([0], [a], [b], [c])
+]])
+AT_CHECK_M4SUGAR([-o-], [1], [],
+[[script.4s:2: error: assert failed: 0 < 0
+script.4s:2: the top level
+autom4te: m4 failed with exit status: 1
+]])
+
+AT_CLEANUP
+
+
+## ---------- ##
 ## m4_split.  ##
 ## ---------- ##
 
@@ -283,7 +899,7 @@ m4_split([a )}@&t@>=- b -=<@&t@{( c])
 [foo=``], [bar='']
 [foo=''], [bar=``]
 [a], [], [B], [], [c]
-[a], [)}>=-], [b], [-=<{(], [c]
+[a], [)}>=@&t@-], [b], [-@&t@=<{(], [c]
 ]])
 
 AT_CLEANUP
@@ -322,6 +938,7 @@ AT_CLEANUP
 ## ----------- ##
 
 AT_SETUP([m4@&t@_append])
+AT_KEYWORDS([m4@&t@_append_uniq m4@&t@_append_uniq_w])
 
 AT_CHECK_M4SUGAR_TEXT(
 [[m4_define([active], [ACTIVE])dnl
@@ -386,14 +1003,15 @@ one, two, three
 ]])
 
 AT_DATA_M4SUGAR([script.4s],
-[[m4_append_uniq([str], [a], [ ])
+[[m4_init[]dnl
+m4_append_uniq([str], [a], [ ])
 m4_append_uniq([str], [a b], [ ])
 m4_divert([0])dnl
 str
 ]])
 
 AT_CHECK_M4SUGAR([-o-], 0, [[a a b
-]], [[script.4s:2: warning: m4@&t@_append_uniq: `a b' contains ` '
+]], [[script.4s:3: warning: m4@&t@_append_uniq: `a b' contains ` '
 ]])
 
 AT_CLEANUP
@@ -450,6 +1068,62 @@ one
 AT_CLEANUP
 
 
+## ----------- ##
+## m4_expand.  ##
+## ----------- ##
+
+AT_SETUP([m4@&t@_expand])
+
+AT_CHECK_M4SUGAR_TEXT(
+[[m4_define([active], [ACTIVE])dnl
+m4_expand([#active
+active])
+m4_expand([[active]])
+dnl properly quoted case statements
+m4_expand([case a in @%:@(
+  *) echo active, ;;
+esac
+case b in
+  *[)] echo active, ;;
+esac])
+dnl unbalanced underquoted `)', but we manage anyway (gasp!)
+m4_expand([case c in #(
+  *) echo active, ;;
+esac
+case d in
+  *) echo active, ;;
+esac])
+dnl unterminated comment/dnl
+m4_expand([active # active])
+m4_expand([a
+dnl])
+m4_expand([a
+-dnl])
+]],
+[[#active
+ACTIVE
+active
+case a in #(
+  *) echo ACTIVE, ;;
+esac
+case b in
+  *) echo ACTIVE, ;;
+esac
+case c in #(
+  *) echo ACTIVE, ;;
+esac
+case d in
+  *) echo ACTIVE, ;;
+esac
+ACTIVE # active
+a
+a
+-
+]])
+
+AT_CLEANUP
+
+
 ## -------------- ##
 ## m4_text_wrap.  ##
 ## -------------- ##
@@ -461,7 +1135,7 @@ AT_SETUP([m4@&t@_text_wrap])
 # m4-listification.
 
 AT_DATA_M4SUGAR([script.4s],
-[[m4_divert([0])dnl
+[[m4_init[]m4_divert([0])dnl
 m4_text_wrap([Short string */], [   ], [/* ], 20)
 
 m4_text_wrap([Much longer string */], [   ], [/* ], 20)
@@ -527,6 +1201,8 @@ m4_version_compare([1.1a], [1.1A])
 m4_version_compare([1z], [1aa])
 m4_version_compare([2.61a], [2.61a-248-dc51])
 m4_version_compare([2.61b], [2.61a-248-dc51])
+m4_version_compare([08], [09])
+m4_version_compare([010], [8])
 dnl Test that side effects to m4_list_cmp occur exactly once
 m4_list_cmp([[0], [0], [0]m4_errprintn([hi])],
             [[0], [0], [0]m4_errprintn([hi])])
@@ -545,6 +1221,8 @@ m4_list_cmp([[0], [0], [0]m4_errprintn([hi])],
 0
 0
 -1
+-1
+1
 -1
 1
 0
@@ -645,13 +1323,41 @@ $1$#$@
 
 AT_CLEANUP
 
+## -------------- ##
+## m4_esyscmd_s.  ##
+## -------------- ##
+
+AT_SETUP([m4@&t@_esyscmd_s])
+AT_KEYWORDS([m4@&t@_chomp m4@&t@_chomp_all])
+
+AT_CHECK_M4SUGAR_TEXT(
+[[m4_define([world], [WORLD])dnl
+m4_chomp([abc])
+m4_chomp([world
+
+])
+m4_esyscmd_s([echo hello world])
+m4_esyscmd_s([echo '[goodbye,
+cruel world
+
+]'])
+]], [[abc
+world
+
+hello WORLD
+goodbye,
+cruel world
+]])
+
+AT_CLEANUP
+
 ## ---------- ##
 ## M4 Loops.  ##
 ## ---------- ##
 
 AT_SETUP([M4 loops])
 
-AT_KEYWORDS([m4@&t@_for m4@&t@_foreach m4@&t@_foreach_w])
+AT_KEYWORDS([m4@&t@_for m4@&t@_foreach m4@&t@_foreach_w m4@&t@_map_args_w])
 
 AT_CHECK_M4SUGAR_TEXT([[dnl
 m4_define([myvar], [outer value])dnl
@@ -696,6 +1402,11 @@ m4_foreach([myvar], [[a], [b, c], [d], [e
 m4_foreach_w([myvar], [a  b c, d,e f
 g], [ myvar|])
 myvar
+m4_map_args_w([a  b c, d,e f
+g], [ ], [|])
+m4_map_args_w([a b], [\1], [/])
+m4_define([dashes], [--])dnl
+m4_map_args_w([a b c], [/], [\1], [dashes])
 dnl only one side effect expansion, prior to visiting list elements
 m4_foreach([i], [[1], [2], [3]m4_errprintn([hi])], [m4_errprintn(i)])dnl
 dnl shifting forms an important part of loops
@@ -734,6 +1445,9 @@ m4_shiftn(3,1,2,3):m4_shiftn(3,1,2,3,4)
 | f|
  a| b| c,| d,e| f| g|
 outer value
+ a| b| c,| d,e| f| g|
+\1a/\1b/
+/a\1--/b\1--/c\1
 ::4
 :4
 ]], [[hi
@@ -866,6 +1580,78 @@ hi
 AT_CLEANUP
 
 
+## --------------------------------------- ##
+## m4_map_args{,_sep,_pair} and m4_curry.  ##
+## --------------------------------------- ##
+
+AT_SETUP([m4@&t@_map_args and m4@&t@_curry])
+AT_KEYWORDS([m4@&t@_map_args_sep m4@&t@_map_args_pair m4@&t@_reverse
+m4@&t@_map])
+
+dnl First, make sure we can curry in isolation.
+AT_CHECK_M4SUGAR_TEXT(
+[[m4_curry([m4_echo])([1])
+m4_curry([m4_curry], [m4_reverse], [1])([2])([3])
+m4_define([add], [m4_eval(([$1]) + ([$2]))])dnl
+m4_define([add_one], [m4_curry([add], [1])])dnl
+add_one()([4])
+]],
+[[1
+3, 2, 1
+5
+]])
+
+dnl Now, check that we can map a list of arguments.
+AT_CHECK_M4SUGAR_TEXT([[m4_define([active], [ACTIVE])dnl
+m4_map_args([ m4_echo])
+m4_map_args([ m4_echo], [plain], [active])
+m4_map_args([m4_unquote], [plain], [active])
+m4_map_args_pair([, m4_reverse], [])
+m4_map_args_pair([, m4_reverse], [], [1])
+m4_map_args_pair([, m4_reverse], [], [1], [2])
+m4_map_args_pair([, m4_reverse], [], [1], [2], [3])
+m4_map_args_pair([, m4_reverse], [], [1], [2], [3], [4])
+m4_map_args_pair([, m4_reverse], [, m4_dquote], [1])
+m4_map_args_pair([, m4_reverse], [, m4_dquote], [1], [2])
+m4_map_args_pair([, m4_reverse], [, m4_dquote], [1], [2], [3])
+m4_map_args_pair([, m4_reverse], [, m4_dquote], [1], [2], [3], [4])
+m4_map_args_sep([<], [>], [:], [1], [2], [3])
+m4_map_args_sep([m4_echo(], [)], [ ], [plain], [active])
+]],
+[[
+ plain active
+plainACTIVE
+
+, 1
+, 2, 1
+, 2, 1, 3
+, 2, 1, 4, 3
+, [1]
+, 2, 1
+, 2, 1, [3]
+, 2, 1, 4, 3
+<1>:<2>:<3>
+plain active
+]])
+
+dnl Finally, put the two concepts together, to show the real power of the API.
+AT_CHECK_M4SUGAR_TEXT(
+[[m4_define([add], [m4_eval(([$1]) + ([$2]))])dnl
+m4_define([list], [[-1], [0], [1]])dnl
+dnl list_add_n(value, arg...)
+dnl add VALUE to each ARG and output the resulting list
+m4_define([list_add_n],
+  [m4_shift(m4_map_args([,m4_curry([add], [$1])], m4_shift($@)))])
+list_add_n([1], list)
+list_add_n([2], list)
+]], [[
+0,1,2
+1,2,3
+]])
+
+AT_CLEANUP
+
+
 ## ------------ ##
 ## m4_combine.  ##
 ## ------------ ##
@@ -981,7 +1767,7 @@ AT_SETUP([recursion])
 AT_KEYWORDS([m4@&t@_foreach m4@&t@_foreach_w m4@&t@_case m4@&t@_cond
 m4@&t@_bpatsubsts m4@&t@_shiftn m4@&t@_do m4@&t@_dquote_elt m4@&t@_reverse
 m4@&t@_map m4@&t@_join m4@&t@_joinall m4@&t@_list_cmp m4@&t@_max m4@&t@_min
-m4@&t@_bmatch m4@&t@_transform m4@&t@_transform_pair])
+m4@&t@_bmatch m4@&t@_map_args m4@&t@_map_args_pair])
 
 dnl This test completes in a reasonable time if m4_foreach is linear,
 dnl but thrashes if it is quadratic.  If we are testing with m4 1.4.x,
@@ -1009,7 +1795,7 @@ m4_bpatsubsts([a1]m4_for([i], [1], [10000], [], [,i]), [a2], [A])
 m4_bmatch([9997]m4_for([i], [1], [10000], [], [,^i$]))
 m4_define([up], [m4_define([$1], m4_incr($1))$1])m4_define([j], 0)dnl
 m4_cond(m4_for([i], [1], [10000], [], [[up([j])], [9990], i,]) [oops]) j
-m4_count(m4_transform_pair([,m4_quote], []m4_transform([,m4_echo]m4_for([i],
+m4_count(m4_map_args_pair([,m4_quote], []m4_map_args([,m4_echo]m4_for([i],
   [1], [10000], [], [,i]))))
 m4_divert_pop(0)
 ]])
@@ -1066,7 +1852,7 @@ m4_bpatsubsts([a1]m4_for([i], [1], [10000], [], [,i]), [a2], [A])
 m4_bmatch([9997]m4_for([i], [1], [10000], [], [,^i$]))
 m4_define([up], [m4_define([$1], m4_incr($1))$1])m4_define([j], 0)dnl
 m4_cond(m4_for([i], [1], [10000], [], [[up([j])], [9990], i,]) [oops]) j
-m4_count(m4_transform_pair([,m4_quote], []m4_transform([,m4_echo]m4_for([i],
+m4_count(m4_map_args_pair([,m4_quote], []m4_map_args([,m4_echo]m4_for([i],
   [1], [10000], [], [,i]))))
 m4_divert_pop(0)
 ]])
@@ -1098,7 +1884,8 @@ AT_SETUP([m4@&t@_set])
 AT_KEYWORDS([m4@&t@_set_add m4@&t@_set_add_all m4@&t@_set_contains
 m4@&t@_set_contents m4@&t@_set_delete m4@&t@_set_difference m4@&t@_set_dump
 m4@&t@_set_empty m4@&t@_set_foreach m4@&t@_set_intersection m4@&t@_set_list
-m4@&t@_set_listc m4@&t@_set_remove m4@&t@_set_size m4@&t@_set_union])
+m4@&t@_set_listc m4@&t@_set_map m4@&t@_set_remove m4@&t@_set_size
+m4@&t@_set_union])
 
 # Simple tests
 AT_CHECK_M4SUGAR_TEXT([[m4_set_contains([a], [1], [yes], [no])
@@ -1123,6 +1910,8 @@ m4_set_difference([a], [b])
 m4_set_difference([b], [a])
 m4_set_intersection([a], [b])
 m4_set_union([a], [b])
+m4_define([printodd], [m4_if(m4_eval([$1 & 1]), [1], [:$1])])dnl
+m4_set_map([a], [printodd])
 m4_set_foreach([a], [i], [m4_if(m4_eval(i & 1), [1], [m4_set_remove([a], i)])])
 m4_set_list([a])
 m4_set_add([a], [])
@@ -1158,6 +1947,7 @@ yes
 ,,4
 ,3
 ,1,2,3,,4
+:1:3
 
 2
 
@@ -1221,11 +2011,15 @@ m4_len(m4_set_contents([a]))
 m4_len(m4_set_foreach([b], [b], [m4_if(m4_eval(b & 1), [1],
   [m4_set_remove([b], b, [-])])]))
 m4_set_size([b])
+m4_define([prune3x], [m4_if(m4_eval([$1 % 3]), [0],
+  [m4_set_remove([a], [$1], [-])])])dnl
+m4_len(m4_set_map([a], [prune3x]))
 m4_count(m4_shift(m4_set_intersection([a], [b])))
 ]], [[38894
 5000
 5000
-5000
+3333
+3334
 ]])
 
 AT_CLEANUP

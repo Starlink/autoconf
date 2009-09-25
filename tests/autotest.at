@@ -2,8 +2,8 @@
 
 AT_BANNER([Autotest.])
 
-# Copyright (C) 2004, 2005, 2006, 2007, 2008 Free Software Foundation,
-# Inc.
+# Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Free Software
+# Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,6 +19,16 @@ AT_BANNER([Autotest.])
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 # 02110-1301, USA.
+
+
+# AT_DATA_AUTOTEST(FILE-NAME, CONTENTS)
+# -------------------------------------
+# Escape the invalid tokens with @&t@.
+m4_define([AT_DATA_AUTOTEST],
+[AT_DATA([$1],
+[m4_bpatsubst([$2], [\(@.\)\(.@\)\|\(m4\|AS\|AT\)\(_\)\|\(d\)\(nl\)],
+              [\1\3\5@&t@\2\4\6])])])
+
 
 # AT_CHECK_AT_PREP(NAME, SUITE-CODE, [STATUS = 0], [STDOUT], [STDERR],
 #                  [DIR = .])
@@ -36,15 +46,15 @@ m4_pushdef([AT_dir], m4_ifval([$6], [[[$6]]], [.]))dnl
 dnl
 AT_CAPTURE_FILE([$1.log])dnl
 dnl
-AT_DATA(AT_dir[/package.m4],
-[[m4_define([AT@&t@_PACKAGE_NAME],      [GNU Nonsense])
-m4_define([AT@&t@_PACKAGE_TARNAME],   [nonsense])
-m4_define([AT@&t@_PACKAGE_VERSION],   [1.0])
-m4_define([AT@&t@_PACKAGE_STRING],    [GNU Nonsense 1.0])
-m4_define([AT@&t@_PACKAGE_BUGREPORT], [bug-autoconf@gnu.org])
+AT_DATA_AUTOTEST(AT_dir[/package.m4],
+[[m4_define([AT_PACKAGE_NAME],      [GNU Nonsense])
+m4_define([AT_PACKAGE_TARNAME],   [nonsense])
+m4_define([AT_PACKAGE_VERSION],   [1.0])
+m4_define([AT_PACKAGE_STRING],    [GNU Nonsense 1.0])
+m4_define([AT_PACKAGE_BUGREPORT], [bug-autoconf@gnu.org])
 ]])
 dnl
-AT_DATA(AT_dir[/$1.at], m4_bpatsubst([[$2]], [AT_], [AT@&t@_]))
+AT_DATA_AUTOTEST(AT_dir[/$1.at], [$2])
 m4_ifval([$6], [(cd AT_dir])
 AT_CHECK_AUTOM4TE([--language=autotest -o $1 $1.at], [$3], [$4], [$5])
 m4_ifval([$6], [)])
@@ -52,24 +62,26 @@ m4_popdef([AT_dir])dnl
 ]) # AT_CHECK_AT_PREP
 
 # AT_CHECK_AT(TITLE, SUITE-CODE, [XFAIL-CONDITION], [STATUS = 0],
-#             [STDOUT = ignore], STDERR, [POST-TEST-CODE], [SUITE-ARGS])
-# ----------------------------------------------------------------------
+#             [STDOUT = ignore], STDERR, [PRE-TEST-CODE],
+#             [POST-TEST-CODE], [SUITE-ARGS])
+# ---------------------------------------------------------------
 # Create a new test named TITLE that runs a minimal Autotest test suite,
 # SUITE-CODE with additional SUITE-ARGS, once without and once with
 # '-v -x' added.  Call AT_XFAIL_IF with XFAIL-CONDITION.  Pass STDERR
 # directly to the AT_CHECK that calls the minimal test suite, STDOUT to
 # the AT_CHECK without '-v -x'; ignore stdout for the latter.
-# Run POST-TEST-CODE at the top level after the micro-suite has been run.
+# Run PRE-TEST-CODE at the top level after the micro-suite is created, but
+# before it is run, and POST-TEST-CODE after the micro-suite has been run.
 m4_define([AT_CHECK_AT],
 [AT_SETUP([$1])
 AT_XFAIL_IF([$3])
 AT_CHECK_AT_PREP([micro-suite], [$2])
-
-AT_CHECK([$CONFIG_SHELL ./micro-suite $8],       m4_default([$4], 0),
-         m4_default([$5], [ignore]), [$6])
-AT_CHECK([$CONFIG_SHELL ./micro-suite -v -x $8], m4_default([$4], 0),
-         [ignore], [$6])
 $7
+AT_CHECK([$CONFIG_SHELL ./micro-suite $9],       m4_default([$4], 0),
+         m4_default([$5], [ignore]), [$6])
+AT_CHECK([$CONFIG_SHELL ./micro-suite -v -x $9], m4_default([$4], 0),
+         [ignore], [$6])
+$8
 AT_CLEANUP
 ])# AT_CHECK_AT
 
@@ -157,6 +169,16 @@ AT_SETUP([only test])
 AT_CHECK([:])
 ]], [missing AT@&t@_CLEANUP detected])
 
+AT_CHECK_AT_SYNTAX([AT@&t@_FAIL_IF without AT@&t@_SETUP],
+[[AT_INIT([incomplete test suite])
+AT_FAIL_IF([:])
+]], [AT@&t@_FAIL_IF: missing AT@&t@_SETUP detected])
+
+AT_CHECK_AT_SYNTAX([AT@&t@_SKIP_IF without AT@&t@_SETUP],
+[[AT_INIT([incomplete test suite])
+AT_SKIP_IF([:])
+]], [AT@&t@_SKIP_IF: missing AT@&t@_SETUP detected])
+
 AT_CHECK_AT_SYNTAX([AT@&t@_CHECK without AT@&t@_SETUP],
 [[AT_INIT([incomplete test suite])
 AT_CHECK([:])
@@ -210,40 +232,244 @@ AT_CHECK_AT([Tested programs],
 [[AT_INIT([programs test suite])
 AT_TESTED([autoconf autom4te])
 AT_TESTED([autoconf])
-]], [], [], [], [],
+]], [], [], [], [], [],
 [AT_CHECK([[sed -n 's|.*/\([^ /]* --version\)|\1|p' micro-suite.log]], [],
 [[autoconf --version
 autom4te --version
 ]])])
 
-## ----------------------------------------------------- ##
-## Newlines and command substitutions in test commands.  ##
-## ----------------------------------------------------- ##
+AT_CHECK_AT([Startup error messages],
+[[AT_INIT([[suite]])
+AT_SETUP([only test])
+AT_CHECK([:])
+AT_CLEANUP
+]], [], [], [], [], [],
+[AT_CHECK([sed -n '/exec AS_MESSAGE_LOG_FD/q; />&AS_MESSAGE_LOG_FD/p' < micro-suite])])
+
+## ----------------- ##
+## Status handling.  ##
+## ----------------- ##
 
 AT_CHECK_AT_TEST([Truth],
   [AT_CHECK([:], 0, [], [])])
 
 AT_CHECK_AT_TEST([Fallacy],
   [AT_CHECK([false], [], [], [])],
-  [], [1], [], [ignore],
+  [], [1], [], [ignore], [],
   [AT_CHECK([grep failed micro-suite.log], [], [ignore])])
 
 AT_CHECK_AT_TEST([Skip],
-  [AT_CHECK([exit 77], 0, [], [])],
-  [], [], [], [],
+  [AT_CHECK([echo output; echo irrelevant >&2; exit 77], 0, [mismatch], [])],
+  [], [], [], [], [],
   [AT_CHECK([grep skipped micro-suite.log], [], [ignore])])
+
+AT_CHECK_AT_TEST([Hard fail],
+  [AT_CHECK([exit 99])
+   AT_CLEANUP
+   AT_SETUP([another test])
+   AT_XFAIL_IF([:])
+   AT_CHECK([exit 99])],
+  [], [1], [], [ignore], [],
+  [AT_CHECK([grep '2 failed unexpectedly' micro-suite.log], [], [ignore])
+   AT_CHECK([grep ok micro-suite.log], [1])])
+
+AT_CHECK_AT_TEST([AT@&t@_FAIL_IF],
+  [AT_FAIL_IF([:])
+  AT_CLEANUP
+  AT_SETUP
+  AT_FAIL_IF([false])
+  AT_CLEANUP
+  AT_SETUP
+  AT_FAIL_IF([test x = y])
+  AT_CLEANUP
+  AT_SETUP
+  AT_FAIL_IF([bah])
+  AT_CLEANUP
+  AT_SETUP
+  AT_FAIL_IF([test x = x])
+  AT_CLEANUP
+  AT_SETUP
+  AT_FAIL_IF([test $foo = x])],
+  [], [1], [stdout], [ignore], [],
+  [AT_CHECK([grep '1 5 failed' stdout], [], [ignore], [ignore])])
+
+AT_CHECK_AT_TEST([AT@&t@_SKIP_IF],
+  [AT_SKIP_IF([:])
+  AT_CLEANUP
+  AT_SETUP
+  AT_SKIP_IF([false])
+  AT_CLEANUP
+  AT_SETUP
+  AT_SKIP_IF([test x = y])
+  AT_CLEANUP
+  AT_SETUP
+  AT_SKIP_IF([bah])
+  AT_CLEANUP
+  AT_SETUP
+  AT_SKIP_IF([test x = x])
+  AT_CLEANUP
+  AT_SETUP
+  AT_SKIP_IF([test $foo = x])],
+  [], [], [], [], [],
+  [AT_CHECK([grep '2.*skipped' micro-suite.log], [], [ignore], [ignore])])
+
+AT_CHECK_AT_TEST([Syntax error],
+  [AT_CHECK([:])
+   AT_CLEANUP
+   AT_SETUP([syntax])
+   AT_CHECK([if])
+   AT_CLEANUP
+   AT_SETUP([another test])
+   AT_CHECK([:])],
+  [], [0], [], [], [],
+  [dnl Until we can find a way to avoid catastrophic failure (ash) or
+   dnl lack of failure (zsh), skip the rest of this test on such shells.
+   echo 'if' > syntax
+   AT_CHECK([${CONFIG_SHELL-$SHELL} -c 'case `. ./syntax; echo $?` in
+		  0|"") exit 77;;
+		esac'], [0], [ignore], [ignore])
+   AT_CHECK([$CONFIG_SHELL ./micro-suite], [1], [ignore], [stderr])
+   AT_CHECK([grep "unable to parse test group: 2" stderr], [0], [ignore])],
+  [1 3])
 
 AT_CHECK_AT_TEST([errexit],
   [AT_CHECK([false])
    AT_CLEANUP
    AT_SETUP([test that should not be run])
    AT_CHECK([:])],
-  [], [1], [stdout], [stderr],
+  [], [1], [stdout], [stderr], [],
   [AT_CHECK([test -f micro-suite.log], [1])
    touch micro-suite.log # shut up AT_CAPTURE_FILE.
    AT_CHECK([grep "should not be run" stdout], [1])
    AT_CHECK([grep "1 .* inhibited subsequent" stderr], [], [ignore])],
   [--errexit])
+
+AT_CHECK_AT_TEST([unquoted output],
+  [m4_define([backtick], [`])
+   a=a
+   AT_CHECK_UNQUOTED([echo 'a"b  backtick`'], [],
+     [${a}"`echo 'b  '`\`\backtick]m4_newline)],
+  [], [], [], [], [AT_KEYWORDS([AT@&t@_CHECK_UNQUOTED])])
+
+AT_CHECK_AT([Logging],
+  [[AT_INIT([artificial test suite])
+    dnl intentionally write failing tests, to see what gets logged
+    AT_SETUP([one])
+    AT_CHECK([echo magicstring01], [1], [ignore])
+    AT_CLEANUP
+    AT_SETUP([two])
+    AT_CHECK([echo magicstring02 >&2], [1], [], [ignore])
+    AT_CLEANUP
+    AT_SETUP([three])
+    AT_CHECK([echo magicstring03], [1], [ignore-nolog])
+    AT_CLEANUP
+    AT_SETUP([four])
+    AT_CHECK([echo magicstring04 >&2], [1], [], [ignore-nolog])
+    AT_CLEANUP
+    AT_SETUP([five])
+    AT_CHECK([echo magicstring05], [1], [stdout])
+    AT_CLEANUP
+    AT_SETUP([six])
+    AT_CHECK([echo magicstring06 >&2], [1], [], [stderr])
+    AT_CLEANUP
+    AT_SETUP([seven])
+    AT_CHECK([echo magicstring07], [1], [stdout-nolog])
+    AT_CLEANUP
+    AT_SETUP([eight])
+    AT_CHECK([echo magicstring08 >&2], [1], [], [stderr-nolog])
+    AT_CLEANUP
+    AT_SETUP([nine])
+    echo magicstring09 > expout
+    AT_CHECK([echo magicstring09], [1], [expout])
+    AT_CLEANUP
+    AT_SETUP([ten])
+    echo magicstring10 > experr
+    AT_CHECK([echo magicstring10 >&2], [1], [], [experr])
+    AT_CLEANUP
+]], [], [1], [], [ignore], [],
+  [AT_CHECK([$CONFIG_SHELL ./micro-suite], [1], [ignore-nolog], [ignore-nolog])
+   AT_CHECK([grep '^magicstring' micro-suite.log], [],
+[[magicstring01
+magicstring02
+magicstring05
+magicstring06
+]])])
+
+
+AT_CHECK_AT([Binary output],
+  [[AT_INIT([artificial test suite])
+    AT_SETUP([pass: no trailing newline])
+    AT_CHECK([printf short], [0], [stdout-nolog])
+    AT_CHECK([cat stdout], [0], [[short]])
+    AT_CLEANUP
+    AT_SETUP([pass: non-printing characters])
+    AT_CHECK([printf '\1\n' >&2], [0], [], [stderr-nolog])
+    printf '\1\n' > expout
+    AT_CHECK([cat stderr], [0], [expout])
+    AT_CLEANUP
+    AT_SETUP([pass: long lines])
+    # 5000 bytes in str
+    str=..........
+    str=$str$str$str$str$str$str$str$str$str$str
+    str=$str$str$str$str$str$str$str$str$str$str
+    str=$str$str$str$str$str
+    AT_CHECK_UNQUOTED([echo $str], [0], [[$str]m4_newline])
+    AT_CLEANUP
+    AT_SETUP([fail: no trailing newline])
+    AT_CHECK([printf short], [0], [stdout-nolog])
+    AT_CHECK([cat stdout], [0], [[long]])
+    AT_CLEANUP
+    AT_SETUP([fail: non-printing characters])
+    AT_CHECK([printf '\1\n' >&2], [0], [], [stderr-nolog])
+    printf '\2\n' > expout
+    AT_CHECK([cat stderr], [0], [expout])
+    AT_CLEANUP
+    AT_SETUP([fail: long lines])
+    # 5000 bytes in str
+    str=..........
+    str=$str$str$str$str$str$str$str$str$str$str
+    str=$str$str$str$str$str$str$str$str$str$str
+    str=$str$str$str$str$str
+    AT_CHECK_UNQUOTED([echo x$str], [0], [[${str}x]m4_newline])
+    AT_CLEANUP
+]], [], [0], [], [], [],
+  [AT_CHECK([$CONFIG_SHELL ./micro-suite 4], [1], [ignore], [ignore])
+   AT_CHECK([$CONFIG_SHELL ./micro-suite 5], [1], [ignore], [ignore])
+   AT_CHECK([$CONFIG_SHELL ./micro-suite 6], [1], [ignore], [ignore])], [1-3])
+
+
+AT_CHECK_AT_TEST([Cleanup],
+  [AT_CHECK([test ! -f cleanup.success && test ! -f cleanup.failure])
+   AT_CHECK_UNQUOTED([exit $value], [ignore], [$output],
+     [], [touch cleanup.failure], [touch cleanup.success])],
+  [], [], [], [],
+  [AT_KEYWORDS([AT@&t@_CHECK_UNQUOTED])
+    output=; export output],
+  [AT_CHECK([test -d micro-suite.dir/1])
+   AT_CHECK([test -f micro-suite.dir/1/cleanup.success])
+   AT_CHECK([test ! -f micro-suite.dir/1/cleanup.failure])
+
+   AT_CHECK([$CONFIG_SHELL ./micro-suite -d value=1], [], [ignore])
+   AT_CHECK([test -f micro-suite.dir/1/cleanup.success])
+   AT_CHECK([test ! -f micro-suite.dir/1/cleanup.failure])
+
+   AT_CHECK([$CONFIG_SHELL ./micro-suite -d value=1 output=mismatch],
+     [1], [ignore], [ignore])
+   AT_CHECK([test ! -f micro-suite.dir/1/cleanup.success])
+   AT_CHECK([test -f micro-suite.dir/1/cleanup.failure])
+
+   AT_CHECK([$CONFIG_SHELL ./micro-suite -d value=77], [], [ignore])
+   AT_CHECK([test ! -f micro-suite.dir/1/cleanup.success])
+   AT_CHECK([test ! -f micro-suite.dir/1/cleanup.failure])
+
+   AT_CHECK([$CONFIG_SHELL ./micro-suite -d value=99], [1], [ignore], [ignore])
+   AT_CHECK([test ! -f micro-suite.dir/1/cleanup.success])
+   AT_CHECK([test ! -f micro-suite.dir/1/cleanup.failure])
+  ], [-d value=0])
+
+## ----------------------------------------------------- ##
+## Newlines and command substitutions in test commands.  ##
+## ----------------------------------------------------- ##
 
 AT_CHECK_AT_TEST([Literal multiline command],
   [AT_CHECK([echo Auto'
@@ -286,6 +512,12 @@ bar
   [AT_NO_CMDSUBST])
 
 
+AT_CHECK_AT_TEST([Shell comment in command],
+  [my_echo=echo
+   AT_CHECK([$my_echo one [#] two], [], [one
+])])
+
+
 ## ------------------------- ##
 ## ${...} in test commands.  ##
 ## ------------------------- ##
@@ -302,20 +534,23 @@ AT_CHECK_AT_TEST([Invalid brace-enclosed parameter expansion],
 ## M4 macros in test commands.  ##
 ## ---------------------------- ##
 
-# The last paragaph in the comment above _AT_DECIDE_TRACEABLE illustrates why
-# this test fails (except with Korn shell-style quoting $'foo\nbar').
 AT_CHECK_AT_TEST([Multiline command from M4 expansion],
   [m4_define([GNU], ['foo
 bar'])
    AT_CHECK([echo GNU], 0, [foo
 bar
-], [])], [case `( set -x; echo 'foo
-bar') 2>&1` in *\$\'foo\\nbar\'*) false;; *) :;; esac])
+], [])])
 
 AT_CHECK_AT_TEST([Double-M4-quoted command],
   [m4_define([GNU], ['foo
 bar'])
    AT_CHECK([[echo GNU]], 0, [[GNU
+]], [])])
+
+
+AT_CHECK_AT_TEST([Metacharacters in command from M4 expansion],
+  [m4_define([GNU], [\"`])
+   AT_CHECK([echo '\"`' [GNU] 'GNU'], 0, [GNU [G][NU] [\"`
 ]], [])])
 
 
@@ -409,19 +644,19 @@ AT_CLEANUP
 m4_define([AT_CHECK_AT_TITLE],
 [AT_CHECK_AT([$1],
 [[
-m4@&t@_define([macro_name],         [[macro_expanded]])
-m4@&t@_define([macro_expanded],     [[macro_overexpanded]])
-m4@&t@_define([macro_backquote],    [`])
-m4@&t@_define([macro_single_quote], ['])
-m4@&t@_define([macro_double_quote], ["])
+m4_define([macro_name],         [[macro_expanded]])
+m4_define([macro_expanded],     [[macro_overexpanded]])
+m4_define([macro_backquote],    [`])
+m4_define([macro_single_quote], ['])
+m4_define([macro_double_quote], ["])
 ]]dnl restore font-lock: "
-[[m4@&t@_define([macro_backslash],  [\])
-m4@&t@_define([macro_echo],         [$][1])
+[[m4_define([macro_backslash],  [\])
+m4_define([macro_echo],         [$][1])
 AT_INIT([artificial test suite])
 AT_SETUP([$2])
 AT_CHECK([:])
 AT_CLEANUP
-]], [$4], [], [], [],
+]], [$4], [], [], [], [],
 dnl This sed script checks for two things - that the output is properly
 dnl expanded, and that the 'ok' starts on the right column.
 [AT_KEYWORDS([m4@&t@_expand])
@@ -454,11 +689,12 @@ AT_CHECK_AT_TITLE_CHAR([Double-quote],  ["])
 dnl restore font-lock: "
 AT_CHECK_AT_TITLE_CHAR([Backslash],     [\])
 AT_CHECK_AT_TITLE_CHAR([Brackets],   [[[]]], [[]])
-AT_CHECK_AT_TITLE_CHAR([Left bracket],  [@<@&t@:@], [@<:@])
-AT_CHECK_AT_TITLE_CHAR([Right bracket], [@:@&t@>@], [@:>@])
-AT_CHECK_AT_TITLE_CHAR([Pound],       [[#]], [#])
-AT_CHECK_AT_TITLE_CHAR([Quoted comma],[[,]], [,])
-AT_CHECK_AT_TITLE_CHAR([Comma],         [,], [,])
+AT_CHECK_AT_TITLE_CHAR([Left bracket],  [@<:@], [@<:@])
+AT_CHECK_AT_TITLE_CHAR([Right bracket], [@:>@], [@:>@])
+AT_CHECK_AT_TITLE_CHAR([Quoted pound],  [[#]], [#])
+AT_CHECK_AT_TITLE_CHAR([Pound],         [#])
+AT_CHECK_AT_TITLE_CHAR([Quoted comma],  [[,]], [,])
+AT_CHECK_AT_TITLE_CHAR([Comma],         [,])
 dnl this test also hits quadrigraphs for ()
 AT_CHECK_AT_TITLE_CHAR([Parentheses],   [(@{:@)@:}@], [(())])
 AT_CHECK_AT_TITLE_CHAR([Left paren],    [[(]], [(])
@@ -489,7 +725,7 @@ AT_CHECK_AT_TITLE_CHAR([Longer test title],
 AT_CHECK_AT_TEST([Long test source lines],
 [m4_for([nnn], [1], [999], [], [: ])
 AT_CHECK([:])
-], [], [], [], [ignore],
+], [], [], [], [ignore], [],
 [AT_CHECK([$CONFIG_SHELL ./micro-suite -k skipalltests], [], [ignore], [ignore])
 ])
 
@@ -499,7 +735,7 @@ AT_CHECK([:])
 ## ----------------- ##
 
 AT_CHECK_AT_TEST([Debugging a successful test],
-  [AT_CHECK([:])], [], [], [], [ignore],
+  [AT_CHECK([:])], [], [], [], [ignore], [],
 [# Without options, when all tests pass, no test directory should exist.
 AT_CHECK([test -d micro-suite.dir/1 && exit 42
           $CONFIG_SHELL ./micro-suite -d 1], [], [ignore], [ignore])
@@ -514,7 +750,7 @@ AT_CHECK([(cd micro-suite.dir/1 && ./run)], [], [ignore], [ignore])
 
 AT_CHECK_AT_TEST([Debugging script and environment],
   [AT_CHECK([test "$MY_VAR" = pass || exit 42])],
-  [], [1], [], [ignore], [
+  [], [1], [], [ignore], [], [
 # Changing environment outside of debugging script is not preserved.
 AT_CHECK([(cd micro-suite.dir/1 && MY_VAR=pass ./run)],
          [0], [ignore], [ignore])
@@ -531,7 +767,7 @@ AT_CHECK([(cd micro-suite.dir/1; ./run)],
 # in via an environment option.
 AT_CHECK_AT_TEST([Debugging a failed test],
   [AT_CHECK([test "$MY_VAR" = "one space" || exit 42])],
-  [], [1], [], [ignore], [
+  [], [1], [], [ignore], [], [
 AT_CHECK([(cd micro-suite.dir/1 && ./run MY_VAR='two  spaces')],
          [1], [ignore], [ignore])
 AT_CHECK([(cd micro-suite.dir/1 && ./run MY_VAR='one space')],
@@ -542,7 +778,7 @@ AT_CHECK([(cd micro-suite.dir/1 && ./run MY_VAR='one space')],
 # Setting default variable values via atlocal.
 AT_CHECK_AT_TEST([Using atlocal],
   [AT_CHECK([test "x$MY_VAR" = "xodd;  'string" || exit 42])],
-  [], [1], [ignore], [ignore], [
+  [], [1], [ignore], [ignore], [], [
 dnl check that command line can set variable
 AT_CHECK([$CONFIG_SHELL ./micro-suite MY_VAR="odd;  'string"], [0], [ignore])
 dnl check that command line overrides environment
@@ -576,7 +812,7 @@ AT_CHECK([$CONFIG_SHELL ./micro-suite 1=2], [1], [], [ignore], [ignore])
 
 # Controlling where the testsuite is run.
 AT_CHECK_AT_TEST([Choosing where testsuite is run],
-  [AT_CHECK([:])], [], [], [], [], [
+  [AT_CHECK([:])], [], [], [], [], [], [
 dnl AT_CHECK_AT_TEST tests the default of running in `.'.
 AT_CHECK([$CONFIG_SHELL ./micro-suite --clean])
 AT_CHECK([test -f micro-suite.log], [1])
@@ -600,9 +836,9 @@ AT_CHECK([$CONFIG_SHELL ./micro-suite --clean --directory="`pwd`/sub2"])
 AT_CHECK([test -f sub2/micro-suite.log], [1])
 AT_CHECK([test -f sub2/micro-suite.dir], [1])
 dnl check for failure detection with bad, missing, or empty directory.
-AT_CHECK([$CONFIG_SHELL ./micro-suite -C nonesuch], [1], [ignore], [ignore])
+AT_CHECK([$CONFIG_SHELL ./micro-suite -C nonesuch || exit 1], [1], [ignore], [ignore])
 AT_CHECK([$CONFIG_SHELL ./micro-suite -C ''], [1], [ignore], [ignore])
-AT_CHECK([$CONFIG_SHELL ./micro-suite -C -], [1], [ignore], [ignore])
+AT_CHECK([$CONFIG_SHELL ./micro-suite -C - || exit 1], [1], [ignore], [ignore])
 AT_CHECK([$CONFIG_SHELL ./micro-suite -C], [1], [ignore], [ignore])
 dnl check that --help overrides bad directory selection.
 AT_CHECK([$CONFIG_SHELL ./micro-suite -C nonesuch --help], [0], [ignore], [])
@@ -690,7 +926,7 @@ AT_CHECK(:)
 AT_CLEANUP
 AT_SETUP(both) # 04
 AT_KEYWORDS([key1 key2])
-AT_KEYWORDS([m4@&t@_echo([Key1])])
+AT_KEYWORDS([m4_echo([Key1])])
 AT_CHECK(:)
 AT_CLEANUP
 AT_SETUP(test5) # 05
@@ -772,6 +1008,308 @@ AT_CHECK_KEYS([--list 01], [none], [1], [first|second|both], [0])
 AT_CHECK_KEYS([--list -k none -k first], [none|first], [2], [second|both], [0])
 AT_CLEANUP
 
+
+## ----------------- ##
+## Keyword wrapping. ##
+## ----------------- ##
+AT_SETUP([Keyword wrapping])
+
+AT_CHECK_AT_PREP([k],
+[[AT_INIT
+AT_SETUP([test])
+AT_KEYWORDS([a1 b1 c1 d1 e1 f1 g1 h1 i1 j1 k1 l1 m1 n1 o1 p1 q1 r1 s1 t1])
+AT_KEYWORDS([u1 v1 w1 x1 y1 z1])
+AT_KEYWORDS([a b c d e f g h i j k l m n o p q r s t u v w x y z])
+AT_CLEANUP
+AT_SETUP([test with long keywords])
+AT_KEYWORDS(
+[this-is-a-long-keyword-that-cannot-be-wrapped-so-we-exceed-the-length-limit-here])
+# surrounded by short ones
+AT_KEYWORDS([s])
+AT_KEYWORDS(
+[another-very-long-keyword-that-hits-the-line-length-limit-bla-bla-bla-bla])
+AT_KEYWORDS([t])
+AT_CLEANUP
+]])
+
+AT_CHECK_KEYS([-l], [.{80}], [1], [.{87}], [0])
+
+AT_CLEANUP
+
+m4_define([AT_SKIP_PARALLEL_TESTS],
+[# Per BUGS, we have not yet figured out how to run parallel tests cleanly
+# under dash and some ksh variants.  For now, only run this test under
+# limited conditions; help is appreciated in widening this test base.
+AT_SKIP_IF([${CONFIG_SHELL-$SHELL} -c 'test -z "${BASH_VERSION+set}]]dnl
+[[${ZSH_VERSION+set}${TEST_PARALLEL_AUTOTEST+set}"'])
+# The parallel scheduler requires mkfifo and job control to work.
+AT_CHECK([mkfifo fifo || exit 77])
+AT_CHECK([${CONFIG_SHELL-$SHELL} -c '(set -m && set +m) || exit 77'],
+	 [], [], [ignore])
+])
+
+
+## ----------------------- ##
+## parallel test execution ##
+## ----------------------- ##
+
+AT_SETUP([parallel test execution])
+
+# This test tries to ensure that -j runs tests in parallel.
+# Such a test is inherently racy, because there are no real-time
+# guarantees about scheduling delays.  So we try to minimize
+# the chance to lose the race.
+
+# The time needed for a micro-suite consisting of NTESTS tests each
+# sleeping for a second is estimated by
+#   startup + ntests * (serial_overhead + 1 / njobs)
+#
+# in absence of major scheduling delays.  This leads to side conditions:
+# - NTESTS should be high, so the STARTUP time is small compared to the
+#   test run time, and scheduling delays can even out; it should not be
+#   too high, to not slow down the testsuite unnecessarily,
+# - the number of concurrent jobs NJOBS should not be too low, so the
+#   race is not lost so easily; it should not be too high, to avoid fork
+#   failures on tightly limited systems.  4 seems a good compromise
+#   here, considering that Autotest spawns several other processes.
+# - STARTUP is assumed to be the same for parallel and serial runs, so
+#   the latter can estimate the former.
+# - To avoid unportable output from time measurement commands, spawn
+#   both a parallel and a serial testsuite run; check that the former
+#   completes before the latter has completed a fraction SERIAL_NTESTS
+#   of the tests (the serial run is executed in a subdirectory), plus
+#   some additional time to allow for compensation of SERIAL_OVERHEAD.
+# - when adding this time to the serial test execution, an initial delay
+#   SERIAL_DELAY of the serial test helps to avoid unreliable scheduling
+#   due to the startup burst of the suites.
+
+dnl total number of tests.
+m4_define([AT_PARALLEL_NTESTS], [16])
+dnl number of jobs to run in parallel.
+m4_define([AT_PARALLEL_NJOBS], [4])
+dnl number of tests to run serially, as comparison.
+m4_define([AT_PARALLEL_SERIAL_NTESTS],
+  m4_eval(AT_PARALLEL_NTESTS / AT_PARALLEL_NJOBS))
+dnl initial delay of serial run, to compensate for SERIAL_OVERHEAD.
+dnl This corresponds to 0.67 s of overhead per test.
+m4_define([AT_PARALLEL_SERIAL_DELAY],
+  m4_eval((AT_PARALLEL_NTESTS - AT_PARALLEL_SERIAL_NTESTS + 1) * 2 / 3))
+
+
+AT_CHECK_AT_PREP([micro-suite],
+[[AT_INIT([suite to test parallel execution])
+m4_for([count], [1], ]]AT_PARALLEL_NTESTS[[, [],
+   [AT_SETUP([test number count])
+    AT_CHECK([sleep 1])
+    AT_CLEANUP
+])
+]])
+
+# Even if parallel jobs are not supported, the command line must work.
+AT_CHECK([$CONFIG_SHELL ./micro-suite --help | grep " --jobs"], [0], [ignore])
+AT_CHECK([$CONFIG_SHELL ./micro-suite -j2foo], [1], [], [stderr])
+AT_CHECK([grep 'non-numeric argument' stderr], [], [ignore])
+AT_CHECK([$CONFIG_SHELL ./micro-suite --jobs=foo], [1], [], [stderr])
+AT_CHECK([grep 'non-numeric argument' stderr], [], [ignore])
+
+AT_SKIP_PARALLEL_TESTS
+
+# Ensure that all tests run, and lines are not split.
+AT_CHECK([$CONFIG_SHELL ./micro-suite -j[]AT_PARALLEL_NJOBS], [], [stdout])
+AT_CHECK([grep -c '^.\{53\}ok' stdout], [], [AT_PARALLEL_NTESTS
+])
+# Running one test with -j should produce correctly formatted output:
+AT_CHECK([$CONFIG_SHELL ./micro-suite -j 3], [], [stdout])
+AT_CHECK([grep -c '^.\{53\}ok' stdout], [], [1
+])
+# Specifying more jobs than tests should not hang:
+AT_CHECK([$CONFIG_SHELL ./micro-suite -j3 3], [], [stdout])
+AT_CHECK([grep -c '^.\{53\}ok' stdout], [], [1
+])
+# Not even with zero tests:
+AT_CHECK([$CONFIG_SHELL ./micro-suite -j -k nomatch], [], [ignore])
+AT_CHECK([$CONFIG_SHELL ./micro-suite -j3 -k nomatch], [], [ignore])
+
+mkdir serial
+
+# Unfortunately, the return value of wait is unreliable,
+# so we check that kill fails.
+AT_CHECK([$CONFIG_SHELL ./micro-suite --jobs=[]AT_PARALLEL_NJOBS & ]dnl
+         [sleep AT_PARALLEL_SERIAL_DELAY && ]dnl
+         [cd serial && $CONFIG_SHELL ../micro-suite -AT_PARALLEL_SERIAL_NTESTS >/dev/null && ]dnl
+         [{ kill $! && exit 1; :; }], [], [stdout], [ignore])
+AT_CHECK([grep -c '^.\{53\}ok' stdout], [], [AT_PARALLEL_NTESTS
+])
+AT_CHECK([grep 'AT_PARALLEL_NTESTS tests' stdout], [], [ignore])
+
+AT_CLEANUP
+
+AT_CHECK_AT_TEST([parallel truth],
+  [AT_CHECK([:], 0, [], [])],
+  [], [], [], [], [AT_SKIP_PARALLEL_TESTS],
+  [], [-j])
+
+AT_CHECK_AT_TEST([parallel fallacy],
+  [AT_CHECK([false], [], [], [])],
+  [], [1], [], [ignore], [AT_SKIP_PARALLEL_TESTS],
+  [AT_CHECK([grep failed micro-suite.log], [], [ignore])], [-j])
+
+AT_CHECK_AT_TEST([parallel skip],
+  [AT_CHECK([echo output; echo irrelevant >&2; exit 77], 0, [mismatch], [])],
+  [], [], [], [], [AT_SKIP_PARALLEL_TESTS],
+  [AT_CHECK([grep skipped micro-suite.log], [], [ignore])], [-j])
+
+AT_CHECK_AT_TEST([parallel syntax error],
+  [AT_CHECK([:])
+   AT_CLEANUP
+   AT_SETUP([syntax])
+   AT_CHECK([if])
+   AT_CLEANUP
+   AT_SETUP([another test])
+   AT_CHECK([:])],
+  [], [0], [], [], [AT_SKIP_PARALLEL_TESTS],
+  [dnl Until we can find a way to avoid catastrophic failure (ash) or
+   dnl lack of failure (zsh), skip the rest of this test on such shells.
+   echo 'if' > syntax
+   AT_CHECK([${CONFIG_SHELL-$SHELL} -c 'case `. ./syntax; echo $?` in
+		  0|"") exit 77;;
+		esac'], [0], [ignore], [ignore])
+   AT_CHECK([$CONFIG_SHELL ./micro-suite -j], [1], [ignore], [stderr])
+   AT_CHECK([grep "unable to parse test group: 2" stderr], [0], [ignore])],
+  [-j2 1 3])
+
+AT_CHECK_AT_TEST([parallel errexit],
+  [AT_CHECK([false])
+   AT_CLEANUP
+   AT_SETUP([barrier test])
+   AT_CHECK([sleep 4])
+   AT_CLEANUP
+   AT_SETUP([test that should not be run])
+   AT_CHECK([:])],
+  [], [1], [stdout], [stderr], [AT_SKIP_PARALLEL_TESTS],
+  [AT_CHECK([test -f micro-suite.log], [1])
+   touch micro-suite.log # shut up AT_CAPTURE_FILE.
+   AT_CHECK([grep "should not be run" stdout], [1])
+   AT_CHECK([grep "[[12]] .* inhibited subsequent" stderr], [], [ignore])],
+  [-j2 --errexit])
+
+
+AT_SETUP([parallel autotest and signal handling])
+
+AT_SKIP_PARALLEL_TESTS
+
+# Goals:
+# (1) interrupt `./testsuite -jN'
+# (2) interrupt `make check TESTSUITEFLAGS=-jN'
+# (3) no trailing verbose/trace output
+# (4) exit status should be 128+signal
+
+AT_DATA([atlocal],
+[[suite_pid=$$
+export suite_pid
+]])
+
+AT_CHECK_AT_PREP([micro-suite],
+[[AT_INIT([suite to test parallel execution])
+AT_SETUP([test number 1])
+AT_CHECK([sleep 2])
+AT_CLEANUP
+AT_SETUP([test number 2])
+AT_CHECK([sleep 1])
+AT_CLEANUP
+AT_SETUP([test number 3])
+AT_CHECK([sleep 1])
+AT_CLEANUP
+AT_SETUP([killer test])
+AT_CHECK([kill -$signal $suite_pid])
+AT_CLEANUP
+m4_for([count], [5], [7], [],
+   [AT_SETUP([test number count])
+    AT_CHECK([sleep 1])
+    AT_CLEANUP
+])
+]])
+
+AT_DATA([Makefile.in],
+[[@SET_MAKE@
+SHELL = @SHELL@
+TESTSUITE = ./micro-suite
+check:
+	$(SHELL) '$(TESTSUITE)' $(TESTSUITEFLAGS)
+.PHONY: check
+]])
+
+AT_CHECK([$CONFIG_SHELL $abs_top_builddir/config.status --file=Makefile:Makefile.in],
+	 [], [ignore])
+
+# Test INT and TERM.
+for signal in 2 15; do
+  export signal
+  AS_VAR_ARITH([expected_status], [128 + $signal])
+
+  # Sequential case.
+  AT_CHECK([$CONFIG_SHELL ./micro-suite], [$expected_status],
+	   [ignore], [stderr])
+  # Both stderr and the log should contain the notification about the signal.
+  AT_CHECK([grep 'bailing out' stderr], [], [ignore])
+  AT_CHECK([grep 'bailing out' micro-suite.log], [], [ignore])
+  # There should be no junk job status output.
+  AT_CHECK([[grep '[iI]nterrupt[	 ]' stderr]], [1])
+
+  # Parallel case.
+  AT_CHECK([$CONFIG_SHELL ./micro-suite --jobs=3], [$expected_status],
+	   [ignore], [stderr])
+  AT_CHECK([grep 'bailing out' stderr], [], [ignore])
+  AT_CHECK([grep 'bailing out' micro-suite.log], [], [ignore])
+  # We'd like to check this here, too, but some shells do not allow to
+  # turn off job control.
+  # AT_CHECK([[grep '[iI]nterrupt[	 ]' stderr]], [1])
+
+  # Ditto with `make' in the loop.
+  : ${MAKE=make}
+  unset MAKEFLAGS
+  # Need to eliminate outer TESTSUITEFLAGS here.
+  # Need to normalize exit status here: some make implementations
+  # exit 1 (BSD make), some exit 2 (GNU make).
+  AT_CHECK([$MAKE check TESTSUITEFLAGS=; ]dnl
+	   [case $? in 1|2) exit 1;; *) exit $?;; esac],
+	   [1], [ignore], [stderr])
+  AT_CHECK([grep 'bailing out' stderr], [], [ignore])
+  AT_CHECK([grep 'bailing out' micro-suite.log], [], [ignore])
+  # Ditto, parallel case.
+  AT_CHECK([$MAKE check TESTSUITEFLAGS=--jobs=3; ]dnl
+	   [case $? in 1|2) exit 1;; *) exit $?;; esac],
+	   [1], [ignore], [stderr])
+  AT_CHECK([grep 'bailing out' stderr], [], [ignore])
+  AT_CHECK([grep 'bailing out' micro-suite.log], [], [ignore])
+done
+
+
+# Test PIPE.
+# The most important part here is that things should not hang, nor
+# get out of hand.  OTOH, if the shell sets the default handler to
+# ignore PIPE (pdksh, dash), there is little we can do about having the
+# test run; it's only the output that won't be there.  So all we check
+# for is that, if test 7 didn't run serially, then it shouldn't be
+# run in the parallel case either; the intermediate tests serve as
+# parallel barrier.
+# Note that stderr may contain "Broken pipe" errors.
+AT_CHECK([($CONFIG_SHELL ./micro-suite -d -3 5-; echo $? >status) | sed 5q],
+	 [], [stdout], [stderr])
+AT_CHECK([grep '5.*ok' stdout], [1])
+# Apparently some shells don't get around to creating 'status' any more.
+# And ksh93 on FreeBSD uses 256 + 13 instead of 128 + 13
+AT_CHECK([test ! -s status || grep 141 status || grep 269 status],
+	 [], [ignore])
+AT_CHECK([if test -f micro-suite.dir/7/micro-suite.log; then ]dnl
+	 [  echo "shell ignores SIGPIPE" > sigpipe-stamp ]dnl
+	 [else :; fi])
+
+AT_CHECK([$CONFIG_SHELL ./micro-suite -d -3 5- --jobs=2 | sed 5q], [], [stdout], [ignore])
+AT_CHECK([grep '5.*ok' stdout], [1])
+AT_CHECK([test -s sigpipe-stamp || test ! -f micro-suite.dir/7/micro-suite.log], [0])
+
+AT_CLEANUP
 
 ## ------------------- ##
 ## srcdir propagation. ##
@@ -869,24 +1407,25 @@ AT_CLEANUP
 
 AT_SETUP([unusual file names])
 
-AT_DATA_M4SUGAR([d@&t@nl.at],
-[[AT@&t@_SETUP([test one])
+AT_DATA_AUTOTEST([d@&t@nl.at],
+[[AT_SETUP([test one])
 m4_pattern_allow([^dnl$])
-AT@&t@_CHECK([test "]m4_dquote(AT@&t@_LINE)[" = dn[]l.at:3])
-AT@&t@_CLEANUP
+AT_CHECK([test "]m4_dquote(AT_LINE)[" = dn[]l.at:3])
+AT_CLEANUP
 ]])
 
 mkdir sub
-AT_DATA_M4SUGAR([sub/"two  spaces".at],
-[[AT@&t@_SETUP([test two])
-AT@&t@_CHECK([test "]m4_dquote(AT@&t@_LINE)[" = "two  spaces.at:2"])
-AT@&t@_CLEANUP
+AT_DATA_AUTOTEST([sub/"two  spaces".at],
+[[AT_SETUP([test two])
+AT_CHECK([test "]m4_dquote(AT_LINE)[" = "two  spaces.at:2"])
+AT_CLEANUP
 ]])
 
 AT_CHECK_AT_PREP([suite],
 [[AT_INIT([suite to check included file names])
-m4@&t@_include([d][nl.at])
-m4@&t@_include([sub/two  spaces.at])
+m4_include([d][nl.at])
+m4_include([sub/two  spaces.at])
 ]])
-AT_CHECK([$CONFIG_SHELL ./suite], [0], [ignore])
+AT_CHECK([$CONFIG_SHELL ./suite], [0], [stdout])
+AT_CHECK([grep 'two spaces' suite.log], [1])
 AT_CLEANUP

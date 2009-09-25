@@ -1,7 +1,7 @@
 ## Make Autoconf tests.
 
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-# Free Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+# 2009 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 # But if you are borrowing from this file for setting up autotest in your
 # project, remember to distribute both testsuite and package.m4.
 EXTRA_DIST = $(TESTSUITE_AT) local.at mktests.sh \
-	     atlocal.in wrapper.as
+	     atlocal.in wrapper.as statesave.m4
 
 # Running the uninstalled scripts.  Build them upon `all', for the manpages.
 noinst_SCRIPTS = $(wrappers)
@@ -44,7 +44,8 @@ package.m4: Makefile
 	  echo 'm4_define([AT_PACKAGE_TARNAME],   [$(PACKAGE_TARNAME)])' && \
 	  echo 'm4_define([AT_PACKAGE_VERSION],   [$(PACKAGE_VERSION)])' && \
 	  echo 'm4_define([AT_PACKAGE_STRING],    [$(PACKAGE_STRING)])' && \
-	  echo 'm4_define([AT_PACKAGE_BUGREPORT], [$(PACKAGE_BUGREPORT)])'; \
+	  echo 'm4_define([AT_PACKAGE_BUGREPORT], [$(PACKAGE_BUGREPORT)])' && \
+	  echo 'm4_define([AT_PACKAGE_URL],       [$(PACKAGE_URL)])'; \
 	} > $@-t
 	mv $@-t $@
 
@@ -99,7 +100,7 @@ TESTSUITE_HAND_AT = \
 	suite.at \
 	m4sugar.at m4sh.at autotest.at \
 	base.at tools.at torture.at \
-	compile.at c.at fortran.at \
+	compile.at c.at erlang.at fortran.at \
 	semantics.at \
 	autoscan.at \
 	foreign.at
@@ -127,12 +128,11 @@ atconfig: $(top_builddir)/config.status
 # if found, attempts to run it.  But the distclean-generic rule may
 # be running in parallel, and it removes $(DISTCLEANFILES) which
 # includes $(TESTSUITE).  This is the Automake rule, plus our
-# dependency, and we silence the warning from 'automake -Wall'.
+# dependency, and we silence the warning from 'automake -Wall' by
+# hiding the dependency behind a variable.
 # TODO - fix this if newer automake accomodates the dependency.
-AUTOMAKE_OPTIONS = -Wno-override
-distclean-generic: clean-local
-	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
-	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
+distclean_generic = distclean-generic
+$(distclean_generic): clean-local
 
 clean-local:
 	test ! -f $(TESTSUITE) || $(SHELL) $(TESTSUITE) --clean

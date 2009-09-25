@@ -9,6 +9,7 @@ contributions significant enough to warrant copyright assignment.
 
 Aaron Crane                 aaronc@pobox.com
 Aaron M. Ucko               amu@alum.mit.edu
+Aaron W. LaFramboise        aaronenvelope277@aaronwl.com
 Adam J. Richter             adam@yggdrasil.com
 Aharon Robbins              arnold@gnu.org
 Akim Demaille               akim@freefriends.org
@@ -22,6 +23,8 @@ Alexander Mai               ?
 Alexandre Duret-Lutz        duret_g@epita.fr
 Alexandre Julliard          ?
 Alexandre Oliva             oliva@lsd.ic.unicamp.br
+Alfred G. de Wijn           dwijn@iluvatar.eu.org
+Allan Caffee                allan.caffee@gmail.com
 Andreas Buening             andreas.buening@nexgo.de
 Andreas Jaeger              aj@suse.de
 Andreas Schott              schott@rzg.mpg.de
@@ -31,6 +34,7 @@ Andrej Borsenkow            borsenkow.msk@sni.de
 Andrew Belov                ?
 Andrew Church               achurch@achurch.org
 Andrey Simonenko            simon@comsys.ntu-kpi.kiev.ua
+Andris Pavenis              andris.pavenis@iki.fi
 Anthony N. Frasso           afrasso@yahoo.com
 Art Haas                    ahaas@neosoft.com
 Arto C. Nirkko              ?
@@ -42,6 +46,7 @@ Ben Pfaff                   pfaffben@debian.org
 Bill Moseley                moseley@hank.org
 Bill Northcott              w.northcott@unsw.edu.au
 Bill Sommerfeld             sommerfeld@apollo.hp.com
+BJ Terry                    bjterry@gmail.com
 Bob Friesenhahn             bfriesen@simple.dallas.tx.us
 Bob Proulx                  bob@proulx.com
 Bob Rossi                   bob_rossi@cox.net
@@ -50,6 +55,7 @@ Brad Walker                 me@bradmwalker.com
 Braden McDaniel             braden@endoframe.com
 Bram Moolenaar              bram@vim.org
 Brian Gough                 bjg@network-theory.co.uk
+Bruce Dugan                 bld0401@gmail.com
 Bruce Korb                  bkorb@gnu.org
 Bruce Lilly                 ?
 Bruno Haible                haible@ilog.fr
@@ -58,6 +64,7 @@ Carl Edman                  cedman@princeton.edu
 Carlos Velasco              carlosev@newipnet.com
 Chad R. Larson              chad@anasazi.com
 Charles 'Buck' Krasic       krasic@cs.ubc.ca
+Chikama Masaki              masaki.chikama@gmail.com
 Chris P. Ross               cross@uu.net
 Chris Pickett               chris.pickett@mail.mcgill.ca
 Chris Provenzano            proven@cygnus.com
@@ -65,8 +72,10 @@ Chris Torek                 torek@bsdi.com
 Christian Cornelssen        ccorn@cs.tu-berlin.de
 Christian Krackowizer       ckrackowiz@std.schuler-ag.com
 Christian Krone             krischan@sql.de
+Christian Rössel            christian.roessel@gmx.de
 Christopher Hulbert         cchgroupmail@gmail.com
 Christopher Lee             chrislee@ri.cmu.edu
+Clinton Roy                 clinton.roy@gmail.com
 Cort Dougan                 cort@cs.nmt.edu
 D'Arcy A MacIsaac           ?
 Dalibor Topic               robilad@kaffe.org
@@ -80,6 +89,7 @@ Dave Erickson               retrorandomaccess@hotmail.com
 Dave Love                   fx@gnu.org
 David Byron                 dbyron@hheld.com
 David Carter                david@carter.net
+David Cournapeau            david@ar.media.kyoto-u.ac.jp
 David Fang                  fang@csl.cornell.edu
 David J. MacKenzie          djm@uunet.uu.net
 David M. Lloyd              dmlloyd@tds.net
@@ -143,12 +153,14 @@ Howard Chu                  hyc@highlandsun.com
 Ian Lance Taylor            ian@cygnus.com
 Ian Macdonald               iamacdo@telkomsa.net
 Ian Redfern                 Ian.Redfern@logicacmg.com
+Ilya Bobir                  ilya.bobir@gmail.com
 Ilya Zakharevich            ilya@Math.Berkeley.EDU
 Ineiev                      ineiev@yahoo.co.uk
 Iohannes m zmoelnig         zmoelnig@iem.at
 J C Fitzgerald              v7022@wave.co.nz
 Jaap Haitsma                jaap@haitsma.org
 James A. Lupo               lupoja@feynman.ml.wpafb.af.mil
+Jan Madzik                  jmadzik@gmail.com
 Jason Molenda               jsm@cygnus.com
 Jeff Garzik                 jgarzik@pobox.com
 Jeff Painter                ?
@@ -157,6 +169,7 @@ Jeffrey A Law               law@cygnus.com
 Jeffrey J. Barteet          ?
 Jennis Pruett               ?
 Jens Petersen               petersen@redhat.com
+Jens Schmidt                jens.schmidt35@arcor.de
 Jeremy Yallop               jeremy@yallop.org
 Jerker Bäck                 jerker.back@home.se
 Jim Blandy                  jimb@wookumz.gnu.ai.mit.edu
@@ -164,11 +177,13 @@ Jim Meyering                meyering@ascend.com
 Jiro Takabatake             jiro@din.or.jp
 Jochen Friedrich            jochen@scram.de
 Joel E. Denny               jdenny@ces.clemson.edu
+Joey Mingrone               joey@mingrone.org
 Johan Danielsson            joda@pdc.kth.se
 John Calcote                john.calcote@gmail.com
 John David Anglin           dave@hiauly1.hia.nrc.ca
 John Fortin                 fortinj@attglobal.net
 John Interrante             interran@uluru.stanford.edu
+John R. Cary                cary@txcorp.com
 John W. Eaton               jwe@bevo.che.wisc.edu
 Jonathan Kamens             jik@kamens.brookline.ma.us
 Josef Tran                  josef@timetrackertechnology.com
@@ -224,7 +239,7 @@ Martin Koeppe               mkoeppe@gmx.de
 Martin Mokrejs              mmokrejs@natur.cuni.cz
 Martin Wilck                martin@tropos.de
 Martyn Johnson              Martyn.Johnson@cl.cam.ac.uk
-Matej Tyc                   matej.tyc@gmail.com
+Matěj Týč                   matej.tyc@gmail.com
 Matteo Frigo                ?
 Matthew D. Langston         langston@SLAC.Stanford.EDU
 Matthew Mueller             donut@azstarnet.com
@@ -242,6 +257,7 @@ Mikulas Patocka             ?
 Miles Bader                 miles@gnu.ai.mit.edu
 Mo DeJong                   mdejong@cygnus.com
 Momchil Velkov              velco@fadata.bg
+Monty Taylor                mordred@inaugust.com
 Morten Eriksen              mortene@sim.no
 Motoyuki Kasahara           m-kasahr@sra.co.jp
 Nathanael Nerode            neroden@gcc.gnu.org
@@ -272,6 +288,7 @@ Paul Pogonyshev             ?
 Paul Townsend               ?
 Pavel Roskin                pavel_roskin@geocities.com
 Per Øyvind Karlsen          peroyvind@mandriva.org
+Peter Breitenlohner         peb@mppmu.mpg.de
 Peter Eisentraut            peter_e@gmx.net
 Peter Hendrickson           pdh@wiredyne.com
 Peter O'Gorman              peter@pogma.com
@@ -297,8 +314,10 @@ Roberto Bagnara             bagnara@cs.unipr.it
 Roger Leigh                 rleigh@whinlatter.ukfsn.org
 Roland McGrath              roland@gnu.org
 Rolf Ebert                  rolf.ebert.gcc@gmx.de
-Romain Lenglet              rlenglet@users.forge.objectweb.org
+Rolf Vandevaart             Rolf.Vandevaart@sun.com
+Romain Lenglet              romain.lenglet@laposte.net
 Ruediger Kuhlmann           info@ruediger-kuhlmann.de
+Ruslan Babayev              ruslan@babayev.com
 Russ Allbery                rra@stanford.edu
 Russ Boylan                 ross@biostat.ucsf.edu
 Ryuji Abe                   raeva@t3.rim.or.jp
@@ -316,12 +335,15 @@ Slava Sysoltsev             Viatcheslav.Sysoltsev@h-d-gmbh.de
 Stefan Seefeld              stefan@codesourcery.com
 Stefan `Sec' Zehl           ?
 Stepan Kasal                kasal@ucw.cz
+Stéphane Chazelas           Stephane_Chazelas@yahoo.fr
 Stephen Gildea              filtered@against.spam
 Stephen Rasku               srasku@mail.tantalus-systems.com
+Stephen P. Schaefer         sschaefer@acm.org
 Steve Chamberlain           sac@cygnus.com
 Steve Huston                shuston@riverace.com
 Steve Robbins               steve@nyongwa.montreal.qc.ca
 Steven G. Johnson           stevenj@alum.mit.edu
+Steven R. Loomis            srl@icu-project.org
 Stu Grossman                grossman@cygnus.com
 Sumit Pandya                sumit@elitecore.com
 Syd Polk                    spolk@cygnus.com
@@ -330,9 +352,11 @@ Ted Bullock                 tbullock@canada.com
 Theodore Ts'o               tytso@mit.edu
 Thien-Thi Nguyen            ttn@gnu.org
 Thomas Winder               tom@vlsivie.tuwien.ac.at
+Tim Freeman                 tim@fungible.com
 Tim Mooney                  mooney@dogbert.cc.ndsu.NoDak.edu
 Tim Rice                    tim@multitalents.net
 Tim Van Holder              tim.van.holder@pandora.be
+Tom Browder                 tom.browder@gmail.com
 Tom Epperly                 tepperly@llnl.gov
 Tom Lane                    tgl@sss.pgh.pa.us
 Tom Purcell                 Tom.Purcell@wang.com
@@ -352,6 +376,7 @@ Volker Borchert             bt@teknon.de
 Wayne Chapeskie             waynec@spinnaker.com
 Werner Lemberg              wl@gnu.org
 Wilfredo Sanchez            wsanchez@apple.com
+William Pursell             bill.pursell@gmail.com
 Wolfgang Mueller            Wolfgang.Mueller@cui.unige.ch
 Yury Puhalsky               pooh@cryptopro.ru
 Zack Weinberg               zack@codesourcery.com
@@ -367,12 +392,18 @@ mode: text
 coding: utf-8
 End:
 
-Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-Free Software Foundation, Inc.
+Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+2008, 2009 Free Software Foundation, Inc.
 
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.2 or
-any later version published by the Free Software Foundation; with no
-Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
-Texts.  A copy of the license is included in the ``GNU Free
-Documentation License'' file as part of this distribution.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.

@@ -1,5 +1,137 @@
 GNU Autoconf NEWS - User visible changes.
 
+* Major changes in Autoconf 2.64 (2009-07-26) [stable]
+  Released by Eric Blake, based on git versions 2.63b.*.
+
+** Autoconf now requires GNU M4 1.4.6 or later.  Earlier versions of M4
+   have a bug in regular expression handling that interferes with some
+   of the speedups provided since Autoconf 2.63.  GNU M4 1.4.13 or
+   later is recommended.
+
+** AS_IF and AS_CASE have been taught to avoid syntax errors even when
+   given arguments that expand to just whitespace.
+
+** The following documented autoconf macros are new:
+   AC_ERLANG_SUBST_ERTS_VER
+
+** The autoheader tool now understands m4 macro arguments passed to
+   AC_DEFINE and AC_DEFINE_UNQUOTED.
+
+** Ensure AT_CHECK can support commands that include a # given with
+   proper m4 quoting.  For shell comments, this is a new feature; for
+   non-shell comments, this fixes a regression introduced in 2.63b.
+   Additionally, AT_CHECK correctly supplies shell escapes for
+   metacharacters occurring in m4 macro expansions within the expected
+   stdout and stderr parameters.
+
+** The macro AT_CHECK now understands the concept of hard failure.  If
+   a test exits with an unexpected status 99, cleanup actions for the
+   test are inhibited and the test is treated as a failure regardless
+   of AT_XFAIL_IF.  It also understands the new directives
+   ignore-nolog, stdout-nolog, and stderr-nolog.
+
+** The following documented autotest macros are new:
+   AT_CHECK_UNQUOTED  AT_FAIL_IF  AT_SKIP_IF
+
+** The following documented m4sugar macros are new:
+   m4_argn  m4_copy_force  m4_default_nblank  m4_default_nblank_quoted
+   m4_ifblank  m4_ifnblank  m4_rename_force
+
+** The autoconf testsuite now exercises all Erlang macros.
+
+* Major changes in Autoconf 2.63b (2009-03-31) [beta]
+  Released by Eric Blake, based on git versions 2.63.*.
+
+** The manual is now shipped under the terms of the GNU FDL 1.3.
+
+** AC_REQUIRE now detects the case of an outer macro which first expands
+   then later indirectly requires the same inner macro.  Previously,
+   this case led to silent out-of-order expansion (bug present since
+   2.50); it now issues a syntax warning, and duplicates the expansion
+   of the inner macro to guarantee dependencies have been met.  See
+   the manual for advice on how to refactor macros in order to avoid
+   the bug in earlier autoconf versions and avoid increased script
+   size in the current version.
+
+** AC_DEFUN_ONCE has improved semantics.  Previously, a macro declared
+   with AC_DEFUN_ONCE warned on a second invocation; and out-of-order
+   expansion was still possible.  Now, dependencies are guaranteed,
+   and subsequent invocations are a silent no-op.  This makes
+   AC_DEFUN_ONCE an ideal macro for silencing AC_REQUIRE warnings.
+
+** The following macros are now defined with AC_DEFUN_ONCE.  This means
+   a subtle change in semantics; previously, an AC_DEFUN macro could
+   expand one of these macros multiple times or surround the macro
+   inside shell conditional text to bypass the effects of these
+   macros, but now the macro will expand exactly once, and prior to
+   the start of any enclosing AC_DEFUN macro:
+   AC_CANONICAL_BUILD  AC_CANONICAL_HOST  AC_CANONICAL_TARGET
+   AC_HEADER_ASSERT  AC_PROG_INSTALL  AC_PROG_MKDIR_P
+   AC_USE_SYSTEM_EXTENSIONS
+
+** AC_LANG_ERLANG works once again (regression introduced in 2.61a).
+
+** AC_HEADER_ASSERT is fixed so that './configure --enable-assert' no
+   longer mistakenly disables assertions.
+
+** AC_INIT now takes an optional fifth parameter that can be used to
+   set AC_PACKAGE_URL, a URL for the package's home page; the URL is
+   used in `configure --help' and is also available via AC_DEFINE.
+
+** Autotest testsuites accept an option --jobs[=N] for parallel testing.
+   This feature is still in testing, and may not work on every
+   platform, help in improving it would be appreciated.
+
+** Autotest testsuites do not attempt to write startup error messages
+   to the log file before that is opened (regression introduced in 2.63).
+
+** Configure scripts now use shell functions.  This feature leads to
+   smaller configure files and faster execution.
+
+** Present But Cannot Be Compiled: Autoconf will now proceed with
+   the compiler's result if a header is present but cannot be compiled.
+   The warning is still printed, and you should really fix it by
+   providing a fourth parameter to AC_CHECK_HEADER/AC_CHECK_HEADERS.
+
+** Autoreconf added aclocal to the set of programs affected by the
+   `autoreconf -I dir' option.
+
+** The following documented m4sugar macros are new:
+   m4_chomp  m4_chomp_all  m4_cleardivert  m4_curry  m4_default_quoted
+   m4_esyscmd_s  m4_map_args  m4_map_args_pair  m4_map_args_sep
+   m4_map_args_w  m4_set_map  m4_set_map_sep  m4_stack_foreach
+   m4_stack_foreach_lifo  m4_stack_foreach_sep
+   m4_stack_foreach_sep_lifo
+
+** The following m4sugar macros are documented now, but in some cases
+   with slightly different semantics than what the previous
+   undocumented version had:
+   m4_copy  m4_dumpdefs  m4_rename  m4_version_prereq
+
+** The m4sugar macro m4_expand has been taught to handle unterminated
+   comments and shell case statements.  As a result, it is used
+   internally in more places, such as AC_DEFINE and AT_CHECK.  Most
+   uses of AC_DEFINE and AT_CHECK should not behave any differently;
+   however, it may be necessary to add double-quoting around
+   unbalanced `(' where single-quoting used to be sufficient.
+
+** The following documented m4sh macros are new:
+   AS_INIT_GENERATED  AS_LINENO_PREPARE  AS_ME_PREPARE  AS_SET_STATUS
+   AS_VAR_APPEND  AS_VAR_ARITH  AS_VAR_COPY
+
+** The following m4sh macros are documented now, but in some cases
+   with slightly different semantics than what the previous
+   undocumented version had:
+   AS_ECHO  AS_ECHO_N  AS_ESCAPE  AS_EXIT  AS_LITERAL_IF  AS_UNSET
+   AS_VAR_IF  AS_VAR_POPDEF  AS_VAR_PUSHDEF  AS_VAR_SET  AS_VAR_SET_IF
+   AS_VAR_TEST_SET  AS_VERSION_COMPARE
+
+** The m4sh macros AS_IF and AS_CASE can now be used in shell lists.
+   The responsibility for supplying a trailing newline now belongs to
+   the call site, but since most users did not add dnl, this generally
+   results in fewer empty lines in configure.
+
+
 * Major changes in Autoconf 2.63 (2008-09-09) [stable]
   Released by Eric Blake, based on git versions 2.62.*.
 
@@ -40,11 +172,11 @@ GNU Autoconf NEWS - User visible changes.
    allowing the output of unbalanced parentheses in more contexts.
 
 ** The following m4sugar macros are new:
-   m4_joinall  m4_mapall  m4_mapall_sep  m4_reverse  m4_set_add
-   m4_set_add_all  m4_set_contains  m4_set_contents  m4_set_delete
-   m4_set_difference  m4_set_dump  m4_set_empty  m4_set_foreach
-   m4_set_intersection  m4_set_list  m4_set_listc  m4_set_remove
-   m4_set_size  m4_set_union
+   m4_cleardivert  m4_joinall  m4_mapall  m4_mapall_sep  m4_reverse
+   m4_set_add  m4_set_add_all  m4_set_contains  m4_set_contents
+   m4_set_delete  m4_set_difference  m4_set_dump  m4_set_empty
+   m4_set_foreach  m4_set_intersection  m4_set_list  m4_set_listc
+   m4_set_remove  m4_set_size  m4_set_union
 
 ** The following m4sugar macros now accept multiple arguments, as is the
    case with underlying m4:
@@ -687,8 +819,8 @@ One packaging problem fixed (config/install-sh was not executable).
 
 Release tips:
 
-           Have your configure.ac checked by autoscan ("autoscan").
-             Try the warning options ("autoreconf -fv -Wall").
+	   Have your configure.ac checked by autoscan ("autoscan").
+	     Try the warning options ("autoreconf -fv -Wall").
 
 ** Documentation
 
@@ -751,8 +883,8 @@ Release tips:
   avoid useless backslashes-- because Libtool 1.4.3 contains a
 
   AC_DEFINE([error_t], [int],
-            [Define to a type to use for \`error_t' if it is not
-             otherwise available.])
+	    [Define to a type to use for \`error_t' if it is not
+	     otherwise available.])
 
   We have to quote the single quotes and backslashes with \.  The old
   compatibility scheme saw that ` was backslashed, and therefore did
@@ -1251,14 +1383,14 @@ test cases in this new framework.
   They now obey sh: you should no longer use shell variables as
   argument.  Instead of
 
-        test "$package_foo_enabled" = yes && $my_subdirs="$my_subdirs foo"
-        AC_CONFIG_SUBDIRS($my_subdirs)
+	test "$package_foo_enabled" = yes && $my_subdirs="$my_subdirs foo"
+	AC_CONFIG_SUBDIRS($my_subdirs)
 
   write
 
-        if test "$package_foo_enabled" = yes; then
-          AC_CONFIG_SUBDIRS(foo)
-        fi
+	if test "$package_foo_enabled" = yes; then
+	  AC_CONFIG_SUBDIRS(foo)
+	fi
 
 - AC_HELP_STRING
   To format an Autoconf macro's help string so that it looks pretty
@@ -1748,20 +1880,13 @@ Various bug fixes.
 -----
 
 Copyright (C) 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001, 2002,
-2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation,
+Inc.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without warranty of any kind.
 
 Local Variables:
 mode: outline
