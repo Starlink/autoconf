@@ -31,7 +31,7 @@ dnl  Include the TARNAME field, not because we want to distribute
 dnl  this package, but so that autoconf uses this when building some
 dnl  installation locations rather than the "starlink-autoconf" it
 dnl  would otherwise construct.
-AC_INIT([Starlink Autoconf], [2.59], [ussc@star.rl.ac.uk], autoconf)
+AC_INIT([Starlink Autoconf], [2.59], [starlink@jiscmail.ac.uk], autoconf)
 dnl AC_INIT([GNU Autoconf], [2.59], [bug-autoconf@gnu.org])
 AC_SUBST([PACKAGE_NAME])dnl
 AC_CONFIG_SRCDIR([ChangeLog])
