@@ -6,7 +6,7 @@ eval 'case $# in 0) exec @PERL@ -S "$0";; *) exec @PERL@ -S "$0" "$@";; esac'
     if 0;
 
 # autom4te - Wrapper around M4 libraries.
-# Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.
+# Copyright (C) 2001, 2002, 2003, 2005, 2006 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,8 +20,8 @@ eval 'case $# in 0) exec @PERL@ -S "$0";; *) exec @PERL@ -S "$0" "$@";; esac'
 
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
-# 02111-1307, USA.
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
 
 
 BEGIN
@@ -95,7 +95,7 @@ fatal "need GNU m4 1.4 or later: $m4"
 # Set some high recursion limit as the default limit, 250, has already
 # been hit with AC_OUTPUT.  Don't override the user's choice.
 $m4 .= ' --nesting-limit=1024'
-  if " $m4 " !~ / (--nesting-limit|-L) /;
+  if " $m4 " !~ / (--nesting-limit(=[0-9]+)?|-L[0-9]*) /;
 
 
 # @M4_BUILTIN -- M4 builtins and a useful comment.
@@ -191,7 +191,7 @@ Languages include:
 
 " . Autom4te::ChannelDefs::usage . "
 
-The environment variable \`WARNINGS\' is honored.
+The environment variables \`M4\' and \`WARNINGS\' are honored.
 
 Library directories:
   -B, --prepend-include=DIR  prepend directory DIR to search path
@@ -213,7 +213,7 @@ $version =  <<"EOF";
 autom4te (@PACKAGE_NAME@) @VERSION@
 Written by Akim Demaille.
 
-Copyright (C) 2003 Free Software Foundation, Inc.
+Copyright (C) 2006 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 EOF
@@ -572,7 +572,7 @@ sub handle_output ($$)
       foreach (split (/\W+/))
 	{
 	  $prohibited{$_} = $.
-	    if /$forbidden/o && !/$allowed/o && ! exists $prohibited{$_};
+	    if !/^$/ && /$forbidden/o && !/$allowed/o && ! exists $prohibited{$_};
 	}
 
       # Performed *last*: the empty quadrigraph.
@@ -836,7 +836,7 @@ EOF
       # It makes no sense to try to transform __oline__.
       s/\@<:\@/[/g;
       s/\@:>\@/]/g;
-      s/\@\$\|\@/\$/g;
+      s/\@S\|\@/\$/g;
       s/\@%:\@/#/g;
       s/\@&t\@//g;
       print $out $_;

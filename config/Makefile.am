@@ -15,8 +15,10 @@
 
 ## You should have received a copy of the GNU General Public License
 ## along with this program; if not, write to the Free Software
-## Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
-## 02111-1307, USA.
+## Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+## 02110-1301, USA.
+
+# This line added to force a rebuild of Makefile.in.
 
 EXTRA_DIST = $(SPECIFIC_MACROS) $(SPECIFIC_TOOLS) \
 	      prev-version.txt
@@ -25,7 +27,7 @@ MAINTAINERCLEANFILES = $(GENERIC_TOOLS)
 SPECIFIC_MACROS =				\
 m4.m4
 
-GENERIC_TOOLS = 				\
+GENERIC_TOOLS =					\
 config.guess					\
 config.sub					\
 emacs-comp					\
