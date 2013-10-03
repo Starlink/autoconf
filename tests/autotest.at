@@ -159,6 +159,25 @@ AT_CHECK([sed 50q micro-suite | grep 'This is just a test notice'],
 [--version])
 
 
+## --------- ##
+## AT_DATA.  ##
+## --------- ##
+
+AT_CHECK_AT_TEST([AT@&t@_DATA], [
+AT_CHECK([test -f file1], [1])
+AT_DATA([file1])
+AT_CHECK([test -f file1 && test ! -s file1])
+AT_CHECK([echo hi > file1])
+AT_DATA([file1], [[]])
+AT_CHECK([test -f file1 && test ! -s file1])
+file=file2
+AT_DATA([$file], [[$file
+]])
+AT_CHECK([echo '$file' > file3])
+AT_CHECK([cmp file2 file3])
+])
+
+
 ## ------------------ ##
 ## Empty test suite.  ##
 ## ------------------ ##
@@ -368,13 +387,88 @@ AT_CHECK_AT_TEST([errexit],
   [AT_CHECK([false])
    AT_CLEANUP
    AT_SETUP([test that should not be run])
-   AT_CHECK([:])],
+   AT_CHECK([:])
+   AT_CLEANUP
+   AT_SETUP([xpassing test])
+   AT_XFAIL_IF([:])
+   AT_CHECK([:])
+   AT_CLEANUP
+   AT_SETUP([another test that should not be run])
+   AT_CHECK([:])
+   AT_CLEANUP
+   AT_SETUP([skipping test])
+   AT_CHECK([exit 77])
+   AT_CLEANUP
+   AT_SETUP([xfailing test])
+   AT_XFAIL_IF([:])
+   AT_CHECK([false])
+   AT_CLEANUP
+   AT_SETUP([a test that should be run])
+   AT_CLEANUP
+   AT_SETUP([hard failure])
+   AT_XFAIL_IF([:])
+   AT_CHECK([exit 99])
+   AT_CLEANUP
+   AT_SETUP([yet another test that should not be run])],
   [], [1], [stdout], [stderr], [],
   [AT_CHECK([test -f micro-suite.log], [1])
    touch micro-suite.log # shut up AT_CAPTURE_FILE.
    AT_CHECK([grep "should not be run" stdout], [1])
-   AT_CHECK([grep "1 .* inhibited subsequent" stderr], [], [ignore])],
+   AT_CHECK([grep "1 .* inhibited subsequent" stderr], [], [ignore])
+   AT_CHECK([$CONFIG_SHELL ./micro-suite --errexit 3-], [1], [stdout], [stderr])
+   AT_CHECK([grep "should not be run" stdout], [1])
+   AT_CHECK([grep "1 .* inhibited subsequent" stderr], [], [ignore])
+   AT_CHECK([$CONFIG_SHELL ./micro-suite --errexit 5-], [1], [stdout], [stderr])
+   AT_CHECK([grep "should be run" stdout], [0], [ignore])
+   AT_CHECK([grep "should not be run" stdout], [1])
+   AT_CHECK([grep "inhibited subsequent" stderr], [], [ignore])],
   [--errexit])
+
+
+AT_CHECK_AT_TEST([at_status],
+  [AT_CHECK([exit $mystatus], [$expected], [], [],
+	    [AT_CHECK([echo run-if-fail: $at_status], [], [ignore])],
+	    [AT_CHECK([echo run-if-pass: $at_status], [], [ignore])])
+   AT_CLEANUP
+   AT_SETUP([test with nested checks])
+   AT_CHECK([exit $mystatus], [$expected], [], [],
+	    [AT_CHECK([exit $mystatus], [$expected], [], [],
+		      [AT_CHECK([echo inner run-if-fail: $at_status], [],
+				[ignore])])])],
+  [], [], [stdout], [],
+[], [
+AT_CHECK([grep 'inner run-if-fail: 42' stdout], [], [ignore])
+AT_CHECK([$CONFIG_SHELL ./micro-suite -x -v 1 mystatus=0 expected=0], [], [stdout])
+AT_CHECK([grep 'run-if-pass: 0' stdout], [], [ignore])
+AT_CHECK([$CONFIG_SHELL ./micro-suite -x -v 1 mystatus=42 expected=0], [], [stdout])
+AT_CHECK([grep 'run-if-fail: 42' stdout], [], [ignore])
+AT_CHECK([$CONFIG_SHELL ./micro-suite -x -v 1 mystatus=0 expected=42], [], [stdout])
+AT_CHECK([grep 'run-if-fail: 0' stdout], [], [ignore])
+AT_CHECK([$CONFIG_SHELL ./micro-suite -x -v 1 mystatus=42 expected=42], [], [stdout])
+AT_CHECK([grep 'run-if-pass: 42' stdout], [], [ignore])
+],
+[-v mystatus=42 expected=1
+])
+
+
+AT_CHECK_AT_TEST([AT@&t@_CHECK execution environment],
+  [dnl The first test should fail, so we enter RUN-IF-FAIL.
+   AT_CHECK([test "$state" != before], [], [], [],
+	    [state=run-if-fail
+	     AT_CHECK([:]) dnl need this so we do not bail out at this point.
+            ])
+   dnl This should pass, so we enter RUN-IF-PASS.
+   AT_CHECK([test "$state" = run-if-fail], [], [], [], [],
+	    [state=run-if-pass])
+   AT_CHECK([test "$state" = run-if-pass])
+   dnl However, COMMANDS are run inside a subshell, so do not change state.
+   AT_CHECK([state=broken; false], [], [], [],
+	    [AT_CHECK([test "$state" = run-if-pass])])
+   AT_CHECK([state=broken], [], [], [], [],
+	    [AT_CHECK([test "$state" = run-if-pass])])
+  ],
+  [], [], [], [], [], [], [state=before])
+
 
 AT_CHECK_AT_TEST([unquoted output],
   [m4_define([backtick], [`])
@@ -478,6 +572,7 @@ AT_CHECK_AT([Binary output],
 
 AT_CHECK_AT_TEST([Cleanup],
   [AT_CHECK([test ! -f cleanup.success && test ! -f cleanup.failure])
+   AT_XFAIL_IF([$xfail])
    AT_CHECK_UNQUOTED([exit $value], [ignore], [$output],
      [], [touch cleanup.failure], [touch cleanup.success])],
   [], [], [], [],
@@ -487,23 +582,29 @@ AT_CHECK_AT_TEST([Cleanup],
    AT_CHECK([test -f micro-suite.dir/1/cleanup.success])
    AT_CHECK([test ! -f micro-suite.dir/1/cleanup.failure])
 
-   AT_CHECK([$CONFIG_SHELL ./micro-suite -d value=1], [], [ignore])
+   AT_CHECK([$CONFIG_SHELL ./micro-suite -d xfail=false value=1], [], [ignore])
    AT_CHECK([test -f micro-suite.dir/1/cleanup.success])
    AT_CHECK([test ! -f micro-suite.dir/1/cleanup.failure])
 
-   AT_CHECK([$CONFIG_SHELL ./micro-suite -d value=1 output=mismatch],
+   AT_CHECK([$CONFIG_SHELL ./micro-suite xfail=: value=0],
+     [1], [ignore], [ignore])
+   AT_CHECK([test -f micro-suite.dir/1/cleanup.success])
+   AT_CHECK([test ! -f micro-suite.dir/1/cleanup.failure])
+
+   AT_CHECK([$CONFIG_SHELL ./micro-suite -d xfail=false value=1 output=mismatch],
      [1], [ignore], [ignore])
    AT_CHECK([test ! -f micro-suite.dir/1/cleanup.success])
    AT_CHECK([test -f micro-suite.dir/1/cleanup.failure])
 
-   AT_CHECK([$CONFIG_SHELL ./micro-suite -d value=77], [], [ignore])
+   AT_CHECK([$CONFIG_SHELL ./micro-suite -d xfail=false value=77], [], [ignore])
    AT_CHECK([test ! -f micro-suite.dir/1/cleanup.success])
    AT_CHECK([test ! -f micro-suite.dir/1/cleanup.failure])
 
-   AT_CHECK([$CONFIG_SHELL ./micro-suite -d value=99], [1], [ignore], [ignore])
+   AT_CHECK([$CONFIG_SHELL ./micro-suite -d xfail=false value=99],
+     [1], [ignore], [ignore])
    AT_CHECK([test ! -f micro-suite.dir/1/cleanup.success])
    AT_CHECK([test ! -f micro-suite.dir/1/cleanup.failure])
-  ], [-d value=0])
+  ], [-d xfail=false value=0])
 
 ## ----------------------------------------------------- ##
 ## Newlines and command substitutions in test commands.  ##
@@ -775,6 +876,20 @@ AT_CHECK([:])
 ])
 
 
+## ---------------- ##
+## Huge testsuite.  ##
+## ---------------- ##
+
+# Ensure we don't hit line length limits with large test suites.
+
+AT_CHECK_AT_TEST([Huge testsuite],
+[m4_for([nnn], [1], [1999], [],
+[AT_CLEANUP
+AT_SETUP([test ]nnn)
+])
+], [], [], [], [ignore], [], [], [1999])
+
+
 ## ----------------- ##
 ## Debugging a test. ##
 ## ----------------- ##
@@ -956,15 +1071,18 @@ AT_CHECK(:)
 AT_CLEANUP
 
 AT_BANNER()
-AT_SETUP(two)# 4
+AT_SETUP(two a)# 4
+AT_CHECK(:)
+AT_CLEANUP
+AT_SETUP(two b)# 5
 AT_CHECK(:)
 AT_CLEANUP
 
 AT_BANNER([second])
-AT_SETUP(three a)# 5
+AT_SETUP(three a)# 6
 AT_CHECK(:)
 AT_CLEANUP
-AT_SETUP(three b)# 6
+AT_SETUP(three b)# 7
 AT_CHECK(:)
 AT_CLEANUP
 ]])
@@ -983,8 +1101,11 @@ AT_CHECK_BANNERS([-2],		[first], [1], [second], [0])
 AT_CHECK_BANNERS([-3],		[first], [1], [second], [0])
 AT_CHECK_BANNERS([-k one],	[first], [1], [second], [0])
 AT_CHECK_BANNERS([3-4],		[first], [1], [second], [0])
-AT_CHECK_BANNERS([3-5],		[first], [1], [second], [1])
-AT_CHECK_BANNERS([4-5],		[first], [0], [second], [1])
+dnl There should be an empty line separating the first category from the
+dnl unnamed one.
+AT_CHECK([sed -n '/one b/,/two a/p' stdout | grep '^$'], [0], [ignore])
+AT_CHECK_BANNERS([3-6],		[first], [1], [second], [1])
+AT_CHECK_BANNERS([4-6],		[first], [0], [second], [1])
 AT_CHECK_BANNERS([3-],		[first], [1], [second], [1])
 AT_CHECK_BANNERS([-k a],	[first], [1], [second], [1])
 AT_CHECK_BANNERS([4],		[first], [0], [second], [0])
@@ -1460,7 +1581,7 @@ for signal in 2 15; do
   # AT_CHECK([[grep '[iI]nterrupt[	 ]' stderr]], [1])
 
   # Ditto with `make' in the loop.
-  : ${MAKE=make}
+  : "${MAKE=make}"
   unset MAKEFLAGS
   # Need to eliminate outer TESTSUITEFLAGS here.
   # Need to normalize exit status here: some make implementations
@@ -1506,6 +1627,28 @@ AT_CHECK([test -s sigpipe-stamp || test ! -f micro-suite.dir/7/micro-suite.log],
 AT_CLEANUP
 
 
+# Avoid running into a regression when mkfifo does not work.
+AT_CHECK_AT_TEST([parallel args but non-working mkfifo],
+[AT_CHECK([:])
+AT_CLEANUP
+AT_SETUP([second test])
+AT_CHECK([:])
+],
+[], [], [stdout], [stderr],
+[AT_SKIP_PARALLEL_TESTS
+mkdir bin
+cat >bin/mkfifo <<\EOF
+#! /bin/sh
+exit 1
+EOF
+chmod +x bin/mkfifo
+PATH=`pwd`/bin:$PATH
+export PATH
+],
+[AT_CHECK([grep 'second test' stdout], [], [ignore])
+], [--jobs])
+
+
 # --color
 AT_CHECK_AT_TEST([colored test results],
   [AT_CHECK([:])
@@ -1543,7 +1686,7 @@ std=`printf '\033@<:@m'`
 # GNU or BSD 'grep -a' works on files, but is not portable.
 AT_CHECK([case `echo "$std" | grep .` in #'' restore font-lock
 	    $std) :;;
-	    *) Exit 77;;
+	    *) exit 77;;
 	  esac], [], [ignore], [],
 	 [echo "grep can't parse nonprinting characters" >&2])
 

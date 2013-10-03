@@ -49,13 +49,16 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+build_triplet = @build@
+host_triplet = @host@
 subdir = doc
 DIST_COMMON = $(autoconf_TEXINFOS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/stamp-vti \
 	$(srcdir)/version.texi $(standards_TEXINFOS)
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/m4.m4 \
-	$(top_srcdir)/m4/make-case.m4 $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/autobuild.m4 \
+	$(top_srcdir)/m4/m4.m4 $(top_srcdir)/m4/make-case.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -155,14 +158,22 @@ am__leading_dot = @am__leading_dot@
 am__tar = @am__tar@
 am__untar = @am__untar@
 bindir = @bindir@
+build = @build@
 build_alias = @build_alias@
+build_cpu = @build_cpu@
+build_os = @build_os@
+build_vendor = @build_vendor@
 builddir = @builddir@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
+host = @host@
 host_alias = @host_alias@
+host_cpu = @host_cpu@
+host_os = @host_os@
+host_vendor = @host_vendor@
 htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
@@ -399,10 +410,10 @@ mostlyclean-aminfo:
 	  autoconf.ky autoconf.kys autoconf.log autoconf.ov \
 	  autoconf.ovs autoconf.pg autoconf.pgs autoconf.pr \
 	  autoconf.prs autoconf.tmp autoconf.toc autoconf.tp \
-	  autoconf.tps autoconf.vr autoconf.vrs standards.aux \
-	  standards.cp standards.cps standards.fn standards.ky \
-	  standards.log standards.pg standards.tmp standards.toc \
-	  standards.tp standards.tps standards.vr
+	  autoconf.tps autoconf.vr standards.aux standards.cp \
+	  standards.cps standards.fn standards.ky standards.log \
+	  standards.pg standards.tmp standards.toc standards.tp \
+	  standards.tps standards.vr
 
 clean-aminfo:
 	-test -z "autoconf.dvi autoconf.pdf autoconf.ps autoconf.html standards.dvi \

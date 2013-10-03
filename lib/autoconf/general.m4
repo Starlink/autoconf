@@ -239,7 +239,7 @@ m4_define([_AC_INIT_LITERAL],
 m4_define([_AC_INIT_PACKAGE],
 [_AC_INIT_LITERAL([$1])
 _AC_INIT_LITERAL([$2])
-AS_LITERAL_IF([$3], [],  [m4_warn([syntax], [AC_INIT: not a literal: $3])])
+_AC_INIT_LITERAL([$3])
 m4_ifndef([AC_PACKAGE_NAME],
 	  [m4_define([AC_PACKAGE_NAME],     [$1])])
 m4_ifndef([AC_PACKAGE_TARNAME],
@@ -900,7 +900,7 @@ Try `$[0] --help' for more information])
     AC_MSG_WARN([you should use --build, --host, --target])
     expr "x$ac_option" : "[.*[^-._$as_cr_alnum]]" >/dev/null &&
       AC_MSG_WARN([invalid host type: $ac_option])
-    : ${build_alias=$ac_option} ${host_alias=$ac_option} ${target_alias=$ac_option}
+    : "${build_alias=$ac_option} ${host_alias=$ac_option} ${target_alias=$ac_option}"
     ;;
 
   esac
@@ -2001,9 +2001,22 @@ _AC_CACHE_DUMP() |
      :end'] >>confcache
 if diff "$cache_file" confcache >/dev/null 2>&1; then :; else
   if test -w "$cache_file"; then
-    test "x$cache_file" != "x/dev/null" &&
+    if test "x$cache_file" != "x/dev/null"; then
       AC_MSG_NOTICE([updating cache $cache_file])
-    cat confcache >$cache_file
+      if test ! -f "$cache_file" || test -h "$cache_file"; then
+	cat confcache >"$cache_file"
+      else
+dnl Try to update the cache file atomically even on different mount points;
+dnl at the same time, avoid filename limitation issues in the common case.
+        case $cache_file in #(
+        */* | ?:*)
+	  mv -f confcache "$cache_file"$$ &&
+	  mv -f "$cache_file"$$ "$cache_file" ;; #(
+        *)
+	  mv -f confcache "$cache_file" ;;
+	esac
+      fi
+    fi
   else
     AC_MSG_NOTICE([not updating unwritable cache $cache_file])
   fi
@@ -2913,10 +2926,7 @@ AC_DEFUN([AC_LIBSOURCES],
 # --------------------------------------------
 # We need `FILE-NAME-NOEXT.o', save this into `LIBOBJS'.
 m4_define([_AC_LIBOBJ],
-[AS_LITERAL_WORD_IF([$1],
-	       [AC_LIBSOURCE([$1.c])],
-	       [$2])dnl
-case " $LIB@&t@OBJS " in
+[case " $LIB@&t@OBJS " in
   *" $1.$ac_objext "* ) ;;
   *) AC_SUBST([LIB@&t@OBJS], ["$LIB@&t@OBJS $1.$ac_objext"]) ;;
 esac
@@ -2927,10 +2937,9 @@ esac
 # --------------------------
 # We need `FILE-NAME-NOEXT.o', save this into `LIBOBJS'.
 AC_DEFUN([AC_LIBOBJ],
-[_AC_LIBOBJ([$1],
-	    [AC_DIAGNOSE(syntax,
-			 [$0($1): you should use literals])])dnl
-])
+[_AC_LIBOBJ([$1])]dnl
+[AS_LITERAL_WORD_IF([$1], [AC_LIBSOURCE([$1.c])],
+  [AC_DIAGNOSE([syntax], [$0($1): you should use literals])])])
 
 
 # _AC_LIBOBJS_NORMALIZE

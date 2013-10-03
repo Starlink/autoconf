@@ -11,6 +11,7 @@ Aaron Crane                 aaronc@pobox.com
 Aaron M. Ucko               amu@alum.mit.edu
 Aaron W. LaFramboise        aaronenvelope277@aaronwl.com
 Adam J. Richter             adam@yggdrasil.com
+Adrian Bunk                 bunk-gnu@fs.tum.de
 Aharon Robbins              arnold@gnu.org
 Akim Demaille               akim@freefriends.org
 Akinori Musha               knu@iDaemons.org
@@ -27,6 +28,7 @@ Alfred G. de Wijn           dwijn@iluvatar.eu.org
 Alfred M. Szmidt            ams@gnu.org
 Allan Caffee                allan.caffee@gmail.com
 Allan Clark                 allanc@chickenandporn.com
+Anders Kaseorg              andersk@MIT.EDU
 Andreas Buening             andreas.buening@nexgo.de
 Andreas Jaeger              aj@suse.de
 Andreas Schott              schott@rzg.mpg.de
@@ -112,6 +114,7 @@ Dietmar P. Schindler        schd@mra.man.de
 Dmitry Grebeniuk            gdsfh1@gmail.com
 Doug Evans                  dje@canuck.cygnus.com
 Dries Kimpe                 ?
+Dustin J. Mitchell          dustin@zmanda.com
 Edouard Bechetoille         ebecheto@ens-lyon.fr
 Elbert Pol                  elbert.pol@gmail.com
 Eli Zaretskii               eliz@gnu.org
@@ -127,6 +130,7 @@ Eric Sunshine               sunshine@sunshineco.com
 Ezra Peisach                epeisach@zif.mit.edu
 Fedor Sergeev               ?
 Felix Lee                   flee@cygnus.com
+Fernando Carrijo            fcarrijo@freedesktop.org
 Franceseco Romani           fromani@gmail.com
 Frank Denis                 j@jedi.claranet.fr
 François Pinard             pinard@iro.umontreal.ca
@@ -137,6 +141,7 @@ Gary V. Vaughan             gvaughan@oranda.demon.co.uk
 Geir Ove Myhr               myhr@stud.fim.ntnu.no
 Gerrit P. Haase             gp@familiehaase.de
 Gideon Go                   gideon.go@gmail.com
+Giorgos Keramidas           gkeramidas@gmail.com
 Giuseppe Guerrini           guisguerrini@racine.ra.it
 Glenn P. Davis              davis@unidata.ucar.edu
 Godmar Back                 gback@cs.utah.edu
@@ -234,6 +239,7 @@ Laurence Darbe              ldarby@tuffmail.com
 Leo Moisio                  leo.moisio@gmail.com
 Loulou Pouchet              loulou@lrde.epita.fr
 Ludovic Courtes             ?
+Luke Dalessandro            luked@cs.rochester.edu
 Magnus Therning             therning@gforge.natlab.research.philips.com
 Manu                        manubee@wanadoo.fr
 Marc Espie                  Marc.Espie@liafa.jussieu.fr
@@ -326,12 +332,14 @@ Ralf Corsepius              corsepiu@faw.uni-ulm.de
 Ralf Menzel                 menzel@ls6.cs.uni-dortmund.de
 Ralf S. Engelschall         rse@engelschall.com
 Ralf Wildenhues             Ralf.Wildenhues@gmx.de
+Randall Cotton              recotton@earthlink.net
 Reuben Thomas               rrt@sc3d.org
 Richard Dawe                rich@phekda.freeserve.co.uk
 Richard Stallman            rms@gnu.org
 Robert Lipe                 robertlipe@usa.net
 Robert S. Maier             rsm@math.arizona.edu
 Roberto Bagnara             bagnara@cs.unipr.it
+Rochan                      rochan@ices.utexas.edu
 Roger Leigh                 rleigh@whinlatter.ukfsn.org
 Roland McGrath              roland@gnu.org
 Rolf Ebert                  rolf.ebert.gcc@gmx.de
@@ -350,6 +358,7 @@ Sam Varshavchik             mrsam@courier-mta.com
 Sander Niemeijer            niemeijer@science-and-technology.nl
 santilín                    listas@gestiong.org
 Scott Bambrough             scottb@corelcomputer.com
+Scott McCreary              scottmc2@gmail.com
 Scott Stanton               stanton@scriptics.com
 Sebastian Freundt           hroptatyr@gna.org
 Sergey Poznyakoff           ?
@@ -405,7 +414,10 @@ Wayne Chapeskie             waynec@spinnaker.com
 Werner Lemberg              wl@gnu.org
 Wilfredo Sanchez            wsanchez@apple.com
 William Pursell             bill.pursell@gmail.com
+Wiseman Jun                 junwiseman@gmail.com
 Wolfgang Mueller            Wolfgang.Mueller@cui.unige.ch
+Yaakov Selkowitz            yselkowitz@users.sourceforge.net
+Yavor Doganov               yavor@gnu.org
 Yury Puhalsky               pooh@cryptopro.ru
 Zack Weinberg               zack@codesourcery.com
 ?                           Seanster@Seanster.com
