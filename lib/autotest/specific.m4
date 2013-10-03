@@ -1,7 +1,7 @@
 # This file is part of Autoconf.                          -*- Autoconf -*-
 # M4 macros used in running tests using third-party testing tools.
 m4_define([_AT_COPYRIGHT_YEARS],
-[Copyright (C) 2009 Free Software Foundation, Inc.])
+[Copyright (C) 2009, 2010 Free Software Foundation, Inc.])
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the
@@ -25,7 +25,7 @@ m4_define([_AT_COPYRIGHT_YEARS],
 
 
 ## ------------------------ ##
-## Erlang EUnit unit tests.  ##
+## Erlang EUnit unit tests. ##
 ## ------------------------ ##
 
 # AT_CHECK_EUNIT(MODULE, SPEC, [ERLFLAGS], [RUN-IF-FAIL], [RUN-IF-PASS])

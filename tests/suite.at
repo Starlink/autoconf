@@ -1,6 +1,6 @@
 # Validation suite for Autoconf                           -*- Autotest -*-
 
-# Copyright (C) 2000, 2001, 2003, 2004, 2005, 2009 Free Software
+# Copyright (C) 2000, 2001, 2003, 2004, 2005, 2009, 2010 Free Software
 # Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -38,7 +38,7 @@ m4_include([base.at])
 # Testing config.status
 # ---------------------
 # Actually should be named config.status.at but I fear problems with
-# the name.  Does no `checking...' at all, but exercises only code
+# the name.  Does no `checking ...' at all, but exercises only code
 # which following section use too.  Hence, run it first.
 m4_include([torture.at])
 

@@ -1,7 +1,7 @@
 # This file is part of Autoconf.                       -*- Autoconf -*-
 # Parameterizing and creating config.status.
 # Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
-# 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software
+# 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software
 # Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
@@ -160,7 +160,7 @@ m4_define([_AC_FILE_DEPENDENCY_TRACE_COLON],
 
 
 # _AC_CONFIG_DEPENDENCY(MODE, DEST[:SOURCE1...])
-# ---------------------------------------------
+# ----------------------------------------------
 # MODE is `FILES', `HEADERS', or `LINKS'.
 #
 # Be sure that a missing dependency is expressed as a dependency upon
@@ -364,7 +364,7 @@ if test "x$ac_cr" = x; then
 fi
 ac_cs_awk_cr=`$AWK 'BEGIN { print "a\rb" }' </dev/null 2>/dev/null`
 if test "$ac_cs_awk_cr" = "a${ac_cr}b"; then
-  ac_cs_awk_cr='\r'
+  ac_cs_awk_cr='\\r'
 else
   ac_cs_awk_cr=$ac_cr
 fi
@@ -403,7 +403,7 @@ rm -f conf$$files.sh
   echo "_ACEOF"
 } >conf$$subs.sh ||
   AC_MSG_ERROR([could not make $CONFIG_STATUS])
-ac_delim_num=`echo "$ac_subst_vars" | grep -c '$'`
+ac_delim_num=`echo "$ac_subst_vars" | grep -c '^'`
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   . ./conf$$subs.sh ||
@@ -552,17 +552,25 @@ fi < "$tmp/subs1.awk" > "$tmp/subs.awk" \
   || AC_MSG_ERROR([could not setup config files machinery])
 _ACEOF
 
-# VPATH may cause trouble with some makes, so we remove $(srcdir),
-# ${srcdir} and @srcdir@ from VPATH if srcdir is ".", strip leading and
+# VPATH may cause trouble with some makes, so we remove sole $(srcdir),
+# ${srcdir} and @srcdir@ entries from VPATH if srcdir is ".", strip leading and
 # trailing colons and then remove the whole line if VPATH becomes empty
 # (actually we leave an empty line to preserve line numbers).
 if test "x$srcdir" = x.; then
-  ac_vpsub=['/^[	 ]*VPATH[	 ]*=/{
-s/:*\$(srcdir):*/:/
-s/:*\${srcdir}:*/:/
-s/:*@srcdir@:*/:/
-s/^\([^=]*=[	 ]*\):*/\1/
+  ac_vpsub=['/^[	 ]*VPATH[	 ]*=[	 ]*/{
+h
+s///
+s/^/:/
+s/[	 ]*$/:/
+s/:\$(srcdir):/:/g
+s/:\${srcdir}:/:/g
+s/:@srcdir@:/:/g
+s/^:*//
 s/:*$//
+x
+s/\(=[	 ]*\).*/\1/
+G
+s/\n//
 s/^[^=]*=[	 ]*$//
 }']
 fi
@@ -673,7 +681,7 @@ m4_ifndef([AC_DATAROOTDIR_CHECKED],
   { ac_out=`sed -n '/\${datarootdir}/p' "$tmp/out"`; test -n "$ac_out"; } &&
   { ac_out=`sed -n '/^[[	 ]]*datarootdir[[	 ]]*:*=/p' "$tmp/out"`; test -z "$ac_out"; } &&
   AC_MSG_WARN([$ac_file contains a reference to the variable `datarootdir'
-which seems to be undefined.  Please make sure it is defined.])
+which seems to be undefined.  Please make sure it is defined])
 ])dnl
 
   rm -f "$tmp/stdin"
@@ -974,7 +982,7 @@ m4_define([_AC_OUTPUT_LINK],
     rm -f "$ac_file"
 
     # Try a relative symlink, then a hard link, then a copy.
-    case $srcdir in
+    case $ac_source in
     [[\\/$]]* | ?:[[\\/]]* ) ac_rel_source=$ac_source ;;
 	*) ac_rel_source=$ac_top_build_prefix$ac_source ;;
     esac
@@ -1094,7 +1102,7 @@ AC_DEFUN([AC_CONFIG_SUBDIRS],
   _AC_CONFIG_COMPUTE_DEST(], [))])]dnl
 [m4_append([_AC_LIST_SUBDIRS], [$1], [
 ])]dnl
-[AS_LITERAL_IF([$1], [],
+[AS_LITERAL_WORD_IF([$1], [],
 	       [AC_DIAGNOSE([syntax], [$0: you should use literals])])]dnl
 [AC_SUBST([subdirs], ["$subdirs m4_normalize([$1])"])])
 
@@ -1294,7 +1302,7 @@ if test "$no_create" != yes; then
   exec AS_MESSAGE_LOG_FD>>config.log
   # Use ||, not &&, to avoid exiting from the if with $? = 1, which
   # would make configure fail if this is the last instruction.
-  $ac_cs_success || AS_EXIT
+  $ac_cs_success || AS_EXIT([1])
 fi
 dnl config.status should not do recursion.
 AC_PROVIDE_IFELSE([AC_CONFIG_SUBDIRS], [_AC_OUTPUT_SUBDIRS()])dnl
@@ -1666,7 +1674,7 @@ do
 	   [[\\/$]]*) false;;
 	   *) test -f "$srcdir/$ac_f" && ac_f="$srcdir/$ac_f";;
 	   esac ||
-	   AC_MSG_ERROR([cannot find input file: `$ac_f']);;
+	   AC_MSG_ERROR([cannot find input file: `$ac_f'], [1]);;
       esac
       case $ac_f in *\'*) ac_f=`AS_ECHO(["$ac_f"]) | sed "s/'/'\\\\\\\\''/g"`;; esac
       AS_VAR_APPEND([ac_file_inputs], [" '$ac_f'"])

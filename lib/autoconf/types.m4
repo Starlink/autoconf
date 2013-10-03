@@ -1,8 +1,8 @@
 # This file is part of Autoconf.			-*- Autoconf -*-
 # Type related macros: existence, sizeof, and structure members.
 #
-# Copyright (C) 2000, 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2009
-# Free Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2009,
+# 2010 Free Software Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the
@@ -305,7 +305,7 @@ AU_DEFUN([AM_TYPE_PTRDIFF_T],
 
 
 # AC_TYPE_INTMAX_T
-# -----------------
+# ----------------
 AC_DEFUN([AC_TYPE_INTMAX_T],
 [
   AC_REQUIRE([AC_TYPE_LONG_LONG_INT])
@@ -339,7 +339,7 @@ AC_DEFUN([AC_TYPE_UINTMAX_T],
 
 
 # AC_TYPE_INTPTR_T
-# -----------------
+# ----------------
 AC_DEFUN([AC_TYPE_INTPTR_T],
 [
   AC_CHECK_TYPE([intptr_t],
@@ -635,14 +635,14 @@ m4_define([_AC_TYPE_INT_BODY],
 	 'long long int' 'short int' 'signed char'; do
        AC_COMPILE_IFELSE(
 	 [AC_LANG_BOOL_COMPILE_TRY(
-	    [AC_INCLUDES_DEFAULT],
-	    [enum { N = $[]2 / 2 - 1 };
-	     0 < ($ac_type) ((((($ac_type) 1 << N) << N) - 1) * 2 + 1)])],
+	    [AC_INCLUDES_DEFAULT
+	     enum { N = $[]2 / 2 - 1 };],
+	    [0 < ($ac_type) ((((($ac_type) 1 << N) << N) - 1) * 2 + 1)])],
 	 [AC_COMPILE_IFELSE(
 	    [AC_LANG_BOOL_COMPILE_TRY(
-	       [AC_INCLUDES_DEFAULT],
-	       [enum { N = $[]2 / 2 - 1 };
-		($ac_type) ((((($ac_type) 1 << N) << N) - 1) * 2 + 1)
+	       [AC_INCLUDES_DEFAULT
+	        enum { N = $[]2 / 2 - 1 };],
+	       [($ac_type) ((((($ac_type) 1 << N) << N) - 1) * 2 + 1)
 		 < ($ac_type) ((((($ac_type) 1 << N) << N) - 1) * 2 + 2)])],
 	    [],
 	    [AS_CASE([$ac_type], [int$[]2_t],
@@ -785,25 +785,32 @@ AC_DEFINE_UNQUOTED(AS_TR_CPP(sizeof_$1), $AS_TR_SH([ac_cv_sizeof_$1]),
 
 # AC_CHECK_ALIGNOF(TYPE, [INCLUDES = DEFAULT-INCLUDES])
 # -----------------------------------------------------
+# TYPE can include braces and semicolon, which AS_TR_CPP and AS_TR_SH
+# (correctly) recognize as potential shell metacharacters.  So we
+# have to flatten problematic characters ourselves to guarantee that
+# AC_DEFINE_UNQUOTED will see a literal.
 AC_DEFUN([AC_CHECK_ALIGNOF],
-[AS_LITERAL_IF([$1], [],
-	       [m4_fatal([$0: requires literal arguments])])]dnl
+[m4_if(m4_index(m4_translit([[$1]], [`\"], [$]), [$]), [-1], [],
+       [m4_fatal([$0: requires literal arguments])])]dnl
+[_$0([$1], [$2], m4_translit([[$1]], [{;}], [___]))])
+
+m4_define([_AC_CHECK_ALIGNOF],
 [# The cast to long int works around a bug in the HP C Compiler,
 # see AC_CHECK_SIZEOF for more information.
-_AC_CACHE_CHECK_INT([alignment of $1], [AS_TR_SH([ac_cv_alignof_$1])],
+_AC_CACHE_CHECK_INT([alignment of $1], [AS_TR_SH([ac_cv_alignof_$3])],
   [(long int) offsetof (ac__type_alignof_, y)],
   [AC_INCLUDES_DEFAULT([$2])
 #ifndef offsetof
 # define offsetof(type, member) ((char *) &((type *) 0)->member - (char *) 0)
 #endif
 typedef struct { char x; $1 y; } ac__type_alignof_;],
-  [if test "$AS_TR_SH([ac_cv_type_$1])" = yes; then
+  [if test "$AS_TR_SH([ac_cv_type_$3])" = yes; then
      AC_MSG_FAILURE([cannot compute alignment of $1], 77)
    else
-     AS_TR_SH([ac_cv_alignof_$1])=0
+     AS_TR_SH([ac_cv_alignof_$3])=0
    fi])
 
-AC_DEFINE_UNQUOTED(AS_TR_CPP(alignof_$1), $AS_TR_SH([ac_cv_alignof_$1]),
+AC_DEFINE_UNQUOTED(AS_TR_CPP(alignof_$3), $AS_TR_SH([ac_cv_alignof_$3]),
 		   [The normal alignment of `$1', in bytes.])
 ])# AC_CHECK_ALIGNOF
 
@@ -878,7 +885,8 @@ AC_DEFUN([AC_CHECK_MEMBER],
      INCLUDES, setting cache variable VAR accordingly.])],
     [_$0_BODY])]dnl
 [AS_LITERAL_IF([$1], [], [m4_fatal([$0: requires literal arguments])])]dnl
-[m4_if(m4_index([$1], [.]), -1, [m4_fatal([$0: Did not see any dot in `$1'])])]dnl
+[m4_if(m4_index([$1], [.]), [-1],
+  [m4_fatal([$0: Did not see any dot in `$1'])])]dnl
 [AS_VAR_PUSHDEF([ac_Member], [ac_cv_member_$1])]dnl
 [ac_fn_[]_AC_LANG_ABBREV[]_check_member "$LINENO" ]dnl
 [m4_bpatsubst([$1], [^\([^.]*\)\.\(.*\)], ["\1" "\2"]) "ac_Member" ]dnl
@@ -898,9 +906,9 @@ m4_define([_AC_CHECK_MEMBERS],
     [^\([^.]*\)\.\(.*\)], [[\2' is a member of `\1]])['.])]])
 
 # AC_CHECK_MEMBERS([AGGREGATE.MEMBER, ...],
-#		   [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND]
+#		   [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND],
 #		   [INCLUDES = DEFAULT-INCLUDES])
-# ---------------------------------------------------------
+# ----------------------------------------------------------
 # The first argument is an m4 list.
 AC_DEFUN([AC_CHECK_MEMBERS],
 [m4_map_args_sep([AC_CHECK_MEMBER(_$0(], [)[
@@ -944,11 +952,11 @@ AC_DEFUN([_AC_STRUCT_DIRENT],
 ])
 
 # AC_STRUCT_DIRENT_D_INO
-# -----------------------------------
+# ----------------------
 AC_DEFUN([AC_STRUCT_DIRENT_D_INO], [_AC_STRUCT_DIRENT([d_ino])])
 
 # AC_STRUCT_DIRENT_D_TYPE
-# ------------------------------------
+# -----------------------
 AC_DEFUN([AC_STRUCT_DIRENT_D_TYPE], [_AC_STRUCT_DIRENT([d_type])])
 
 

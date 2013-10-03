@@ -2,7 +2,7 @@
 # Checking for headers.
 #
 # Copyright (C) 1988, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2008,
-# 2009 Free Software Foundation, Inc.
+# 2009, 2010 Free Software Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the
@@ -125,7 +125,7 @@ esac
 #
 # This is not based on _AC_CHECK_HEADER_COMPILE and _AC_CHECK_HEADER_PREPROC
 # because it obfuscate the code to try to factor everything, in particular
-# because of the cache variables, and the `checking...' messages.
+# because of the cache variables, and the `checking ...' messages.
 AC_DEFUN([_AC_CHECK_HEADER_MONGREL],
 [AC_REQUIRE_SHELL_FN([ac_fn_]_AC_LANG_ABBREV[_check_header_mongrel],
   [AS_FUNCTION_DESCRIBE([ac_fn_]_AC_LANG_ABBREV[_check_header_mongrel],

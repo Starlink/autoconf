@@ -2,7 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 # Copyright (C) 1992, 1993, 1994, 1995, 1999, 2000, 2001, 2002, 2003,
-# 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+# 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation,
+# Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,7 +28,8 @@ AC_CONFIG_SRCDIR([ChangeLog])
 
 AC_CONFIG_AUX_DIR([build-aux])
 
-AM_INIT_AUTOMAKE([1.10 dist-bzip2 readme-alpha no-texinfo.tex std-options])
+AM_INIT_AUTOMAKE([1.11 dist-bzip2 dist-xz
+readme-alpha no-texinfo.tex std-options])
 
 # We use `/bin/sh -n script' to check that there are no syntax errors
 # in the scripts.  Although incredible, there are /bin/sh that go into

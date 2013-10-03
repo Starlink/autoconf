@@ -1,6 +1,6 @@
 # This file is part of Autoconf.                       -*- Autoconf -*-
 # Erlang/OTP language support.
-# Copyright (C) 2006, 2008, 2009 Free Software Foundation, Inc.
+# Copyright (C) 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the
@@ -108,7 +108,7 @@ ac_link='$ERLC $ERLCFLAGS -b beam conftest.$ac_ext >&AS_MESSAGE_LOG_FD && echo "
 
 
 # AC_LANG_ERLANG
-# -----------------
+# --------------
 AU_DEFUN([AC_LANG_ERLANG], [AC_LANG(Erlang)])
 
 

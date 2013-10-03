@@ -1,6 +1,6 @@
 # Customize maint.mk for Autoconf.            -*- Makefile -*-
-# Copyright (C) 2003, 2004, 2006, 2008, 2009 Free Software Foundation,
-# Inc.
+# Copyright (C) 2003, 2004, 2006, 2008, 2009, 2010 Free Software
+# Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,18 +23,26 @@ export PATH = $(shell echo "`pwd`/tests:$$PATH")
 # Remove the autoreconf-provided INSTALL, so that we regenerate it.
 _autoreconf = autoreconf -i -v && rm -f INSTALL
 
-# Version management.
-announce_gen   = $(srcdir)/build-aux/announce-gen
-
 # Used in maint.mk's web-manual rule
 manual_title = Creating Automatic Configuration Scripts
 
-# The GnuPG ID of the key used to sign the tarballs.
-gpg_key_ID = F4850180
-
 # The local directory containing the checked-out copy of gnulib used in this
-# release.
+# release (override the default).
 gnulib_dir = '$(abs_srcdir)'/../gnulib
+
+# The bootstrap tools (override the default).
+bootstrap-tools = automake
+
+# Set preferred lists for announcements.
+
+announcement_Cc_ = $(PACKAGE_BUGREPORT), autotools-announce@gnu.org
+announcement_mail-alpha = autoconf@gnu.org
+announcement_mail-beta = autoconf@gnu.org
+announcement_mail-stable = info-gnu@gnu.org, autoconf@gnu.org
+announcement_mail_headers_ =						\
+To: $(announcement_mail-$(RELEASE_TYPE))				\
+CC: $(announcement_Cc_)							\
+Mail-Followup-To: autoconf@gnu.org
 
 # Update files from gnulib.
 .PHONY: fetch gnulib-update autom4te-update
@@ -97,4 +105,6 @@ local-checks-to-skip ?= \
   changelog-check sc_unmarked_diagnostics
 
 # Always use longhand copyrights.
-update-copyright-env = UPDATE_COPYRIGHT_USE_INTERVALS=0
+update-copyright-env = \
+  UPDATE_COPYRIGHT_USE_INTERVALS=0 \
+  UPDATE_COPYRIGHT_MAX_LINE_LENGTH=72

@@ -1,7 +1,7 @@
 # This file is part of Autoconf.                       -*- Autoconf -*-
 # Programming languages support.
-# Copyright (C) 2000, 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2009
-# Free Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2009,
+# 2010 Free Software Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the
@@ -237,7 +237,7 @@ m4_define([_AC_LANG_NULL_PROGRAM()],
 
 
 # _AC_LANG_NULL_PROGRAM
-# ----------------------
+# ---------------------
 # Produce valid source for the current language that does
 # nothing.
 AC_DEFUN([_AC_LANG_NULL_PROGRAM],
@@ -245,7 +245,7 @@ AC_DEFUN([_AC_LANG_NULL_PROGRAM],
 
 
 # _AC_LANG_IO_PROGRAM
-# -----------------------------------
+# -------------------
 # Produce valid source for the current language that creates
 # a file.  (This is used when detecting whether executables
 # work, e.g. to detect cross-compiling.)
@@ -700,7 +700,7 @@ ac_objext=$OBJEXT
 ## ------------------------------- ##
 
 # AC_LANG_WERROR
-# ------------------
+# --------------
 # Treat warnings from the current language's preprocessor, compiler, and
 # linker as fatal errors.
 AC_DEFUN([AC_LANG_WERROR],

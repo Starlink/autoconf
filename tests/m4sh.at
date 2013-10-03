@@ -3,7 +3,7 @@
 AT_BANNER([M4sh.])
 
 # Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-# 2009 Free Software Foundation, Inc.
+# 2009, 2010 Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ AT_CHECK([test -n "${ZSH_VERSION+set}" && exit 77], ignore)
 m4_define([AT_DATA_LINENO],
 [AT_DATA([$1.tas],
 [[AS@&t@_INIT
-m4@&t@_divert_text([0], [
+m4@&t@_divert_text([], [
 if $2; then
   AS@&t@_UNSET([LINENO])
 fi
@@ -124,9 +124,51 @@ AT_CHECK([$CONFIG_SHELL ./script])
 AT_CLEANUP
 
 
-## ------------- ##
-## AS_BASENAME.  ##
-## ------------- ##
+## -------- ##
+## AS_BOX.  ##
+## -------- ##
+
+# Output a framed one-line message.
+AT_SETUP([AS@&t@_BOX])
+AT_KEYWORDS([m4sh])
+
+AT_DATA_M4SH([script.as],
+[[AS_INIT
+echo
+AS_BOX([Send a simple message, to foobar@example.com])
+AS_BOX([Send a simple message, to foobar@example.com], [$])
+m4_define([msg], [$complex])
+complex='Not quite as simple |$[1]'
+AS_BOX([msg])
+AS_BOX([msg], [,])
+AS_EXIT(0)
+]])
+
+AT_CHECK_M4SH
+AT_CHECK([sed -n '/ -\{44\} /,/ -\{44\} /p' script ]dnl
+[| sed '1 s/.*## -/## -/; 3 s/- ##.*/- ##/'], [],
+[[## -------------------------------------------- ##
+## Send a simple message, to foobar@example.com ##
+## -------------------------------------------- ##
+]])
+
+AT_CHECK([$CONFIG_SHELL ./script], [], [[
+## -------------------------------------------- ##
+## Send a simple message, to foobar@example.com ##
+## -------------------------------------------- ##
+## $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ ##
+## Send a simple message, to foobar@example.com ##
+## $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ ##
+## ----------------------- ##
+## Not quite as simple |$1 ##
+## ----------------------- ##
+## ,,,,,,,,,,,,,,,,,,,,,,, ##
+## Not quite as simple |$1 ##
+## ,,,,,,,,,,,,,,,,,,,,,,, ##
+]])
+
+AT_CLEANUP
+
 
 # Strip path from file.
 AT_SETUP([AS@&t@_BASENAME])
@@ -240,6 +282,48 @@ AT_CHECK([$CONFIG_SHELL ./script])
 
 AT_CLEANUP
 
+
+## ---------------- ##
+## AS_SET_CATFILE.  ##
+## ---------------- ##
+
+AT_SETUP([AS@&t@_SET_CATFILE])
+AT_KEYWORDS([m4sh])
+
+AT_DATA_M4SH([script.as],
+[[AS_INIT
+
+# CATFILE_TEST(DIR, FILE, EXPECTED)
+m4_define([CATFILE_TEST],
+[# AS_SET_CATFILE works and can be used in a compound list.
+if AS_SET_CATFILE([var], [$1], [$2]) \
+   && test "$var" = $3; then :; else
+  echo "catfile($1, $2) = $var != $3" >&2
+fi
+# AS_SET_CATFILE can use non-literals in its arguments.
+varname=var2
+dirpart=$1
+filepart=$2
+if AS_SET_CATFILE([$varname], [$dirpart], [$filepart]) \
+   && test "$var2" = $3; then :; else
+  echo "catfile($dirpart, $filepart) = $var2 != $3" >&2
+fi
+])
+
+CATFILE_TEST([dir], [file], [dir/file])
+CATFILE_TEST([.], [file], [file])
+CATFILE_TEST([dir], [.], [dir])
+CATFILE_TEST([dir], [/abs/file], [/abs/file])
+CATFILE_TEST([dir], [C:/abs/file], [C:/abs/file])
+CATFILE_TEST(["dir  name"], ['file  name'], ['dir  name/file  name'])
+
+AS_EXIT(0)
+]])
+
+AT_CHECK_M4SH
+AT_CHECK([$CONFIG_SHELL ./script])
+
+AT_CLEANUP
 
 
 ## --------- ##
@@ -552,7 +636,7 @@ AT_CLEANUP
 
 
 ## --------------------------- ##
-## Nested AS_REQUIRE_SHELL_FN ##
+## Nested AS_REQUIRE_SHELL_FN. ##
 ## --------------------------- ##
 
 # Hypothesis: M4sh expands nested AS_REQUIRE_SHELL_FN
@@ -1035,20 +1119,31 @@ AT_CLEANUP
 ## --------------- ##
 
 AT_SETUP([AS@&t@_LITERAL_IF])
-AT_KEYWORDS([m4sh])
+AT_KEYWORDS([m4sh AS@&t@_LITERAL_WORD_IF])
 
 AT_DATA_M4SH([script.as], [[dnl
 AS_INIT
 echo AS_LITERAL_IF([lit], [ok], [ERR]) 1
-echo AS_LITERAL_IF([l$it], [ERR], [ok]) 2
-echo AS_LITERAL_IF([l`case a in b) ;; esac`it], [ERR], [ok]) 3
-m4_define([mac], [lit])
-echo AS_LITERAL_IF([mac], [ok], [ERR]) 4
-echo AS_LITERAL_IF([mac($, ``)], [ok], [ERR]) 5
+echo AS_LITERAL_IF([l-/.it], [ok], [ERR]) 2
+echo AS_LITERAL_IF([l''it], [ERR], [ok]) 3
+echo AS_LITERAL_IF([l$it], [ERR], [ok]) 4
+echo AS_LITERAL_IF([l$it], [ERR1], [ERR2], [ok]) 5
+echo AS_LITERAL_IF([l${it}], [ERR1], [ERR2], [ok]) 6
+echo AS_LITERAL_IF([l`case a in b) ;; esac`it], [ERR], [ok]) 7
+echo AS_LITERAL_IF([l`case a in b) ;; esac`it], [ERR1], [ok], [ERR2]) 8
+m4_define([mac], [l-/.it])
+echo AS_LITERAL_IF([mac], [ok], [ERR]) 9
+echo AS_LITERAL_IF([mac($, ``)], [ok], [ERR]) 10
 m4_define([mac], [l$it])
-echo AS_LITERAL_IF([mac], [ERR], [ok]) 6
+echo AS_LITERAL_IF([mac], [ERR], [ok]) 11
+echo AS_LITERAL_IF([mac], [ERR1], [ERR2], [ok]) 12
 m4_define([mac], [l``it])
-echo AS_LITERAL_IF([mac], [ERR], [ok]) 7
+echo AS_LITERAL_IF([mac], [ERR], [ok]) 13
+echo AS_LITERAL_IF([mac], [ERR1], [ok], [ERR2]) 14
+echo AS_LITERAL_IF([	a ][
+b], [ok], [ok]) 15
+echo AS_LITERAL_WORD_IF([	a ][
+b], [ERR], [ok]) 16
 ]])
 
 AT_CHECK_M4SH
@@ -1060,6 +1155,92 @@ ok 4
 ok 5
 ok 6
 ok 7
+ok 8
+ok 9
+ok 10
+ok 11
+ok 12
+ok 13
+ok 14
+ok 15
+ok 16
+]])
+
+AT_CLEANUP
+
+
+## --------------------- ##
+## AS_TR_SH, AS_TR_CPP.  ##
+## --------------------- ##
+
+AT_SETUP([AS@&t@_TR_SH and AS@&t@_TR_CPP])
+
+AT_DATA_M4SH([script.as], [[dnl
+AS_INIT
+m4_define([abc], [hI])m4_define([ABC], [Hi])
+m4_define([hi], [oops])m4_define([HI], [OOPS])
+echo AS_TR_SH(abc) AS_TR_SH(aBc) AS_TR_SH(ABC)
+echo AS_TR_SH([abc]) AS_TR_SH([aBc]) AS_TR_SH([ABC])
+echo AS_TR_SH([[abc]]) AS_TR_SH([[aBc]]) AS_TR_SH([[ABC]])
+echo AS_TR_CPP(abc) AS_TR_CPP(aBc) AS_TR_CPP(ABC)
+echo AS_TR_CPP([abc]) AS_TR_CPP([aBc]) AS_TR_CPP([ABC])
+echo AS_TR_CPP([[abc]]) AS_TR_CPP([[aBc]]) AS_TR_CPP([[ABC]])
+echo ===
+[var=abc vAr=aBc VAR=ABC]
+echo AS_TR_SH($var) AS_TR_SH($vAr) AS_TR_SH($VAR)
+echo AS_TR_SH([$var]) AS_TR_SH([$vAr]) AS_TR_SH([$VAR])
+echo AS_TR_SH([[$var]]) AS_TR_SH([[$vAr]]) AS_TR_SH([[$VAR]])
+echo AS_TR_CPP($var) AS_TR_CPP($vAr) AS_TR_CPP($VAR)
+echo AS_TR_CPP([$var]) AS_TR_CPP([$vAr]) AS_TR_CPP([$VAR])
+echo AS_TR_CPP([[$var]]) AS_TR_CPP([[$vAr]]) AS_TR_CPP([[$VAR]])
+echo ===
+var=abc vAr=aBc VAR=ABC
+echo AS_TR_SH(`echo abc`) AS_TR_SH(`echo aBc`) AS_TR_SH(`echo ABC`)
+echo AS_TR_SH([`echo abc`]) AS_TR_SH([`echo aBc`]) AS_TR_SH([`echo ABC`])
+echo AS_TR_SH([[`echo abc`]]) AS_TR_SH([[`echo aBc`]]) AS_TR_SH([[`echo ABC`]])
+echo AS_TR_CPP(`echo abc`) AS_TR_CPP(`echo aBc`) AS_TR_CPP(`echo ABC`)
+echo AS_TR_CPP([`echo abc`]) AS_TR_CPP([`echo aBc`]) AS_TR_CPP([`echo ABC`])
+echo AS_TR_CPP([[`echo abc`]]) AS_TR_CPP([[`echo aBc`]]) AS_TR_CPP([[`echo ABC`]])
+echo ===
+echo AS_TR_SH([a.b/c+*-])
+echo AS_TR_CPP([a.b/c+*-])
+var=a.b/c+*-
+echo AS_TR_SH([$var])
+echo AS_TR_CPP([$var])
+m4_define([macro], [a.b/c+*-])
+echo AS_TR_SH([macro])
+echo AS_TR_CPP([macro])
+]])
+
+AT_CHECK_M4SH
+AT_CHECK([$CONFIG_SHELL ./script], [],
+[[hI aBc Hi
+hI aBc Hi
+abc aBc ABC
+HI ABC HI
+HI ABC HI
+ABC ABC ABC
+===
+abc aBc ABC
+abc aBc ABC
+abc aBc ABC
+ABC ABC ABC
+ABC ABC ABC
+ABC ABC ABC
+===
+hI aBc Hi
+hI aBc Hi
+abc aBc ABC
+HI ABC HI
+HI ABC HI
+ABC ABC ABC
+===
+a_b_cpp_
+A_B_C_P_
+a_b_cpp_
+A_B_C_P_
+a_b_cpp_
+A_B_C_P_
 ]])
 
 AT_CLEANUP

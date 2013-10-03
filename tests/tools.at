@@ -2,8 +2,8 @@
 
 AT_BANNER([Executables (autoheader, autoupdate...).])
 
-# Copyright (C) 2000, 2001, 2003, 2004, 2006, 2007, 2008, 2009 Free
-# Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2003, 2004, 2006, 2007, 2008, 2009, 2010
+# Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -164,7 +164,7 @@ do
 
   cat >"$file" <<'END'
 [m4@&t@_init[]m4@&t@_include(foo.m4)
-m4@&t@_divert(0)d@&t@nl
+m4@&t@_divert([])d@&t@nl
 FOO]
 END
   cat >"$dir"/foo.m4 <<'END'
@@ -186,7 +186,7 @@ END
   cat >"$file" <<'END'
 [m4@&t@_init[]m4@&t@_include(foo.m4)
 m4@&t@_pattern_forbid([^bar$])
-m4@&t@_divert(0)d@&t@nl
+m4@&t@_divert([])d@&t@nl
 FOO]
 END
   rm -rf "$outfile" "$cachedir"
@@ -196,7 +196,7 @@ END
 
   cat >"$file" <<'END'
 [m4@&t@_init[]m4@&t@_include(foo.m4)
-m4@&t@_divert(0)d@&t@nl]
+m4@&t@_divert([])d@&t@nl]
 END
   rm -rf "$file.m4f"
   AT_CHECK_AUTOM4TE([-C "$cachedir" -I "$dir" --language=m4sugar --freeze -o "$file.m4f" "$file"])
@@ -464,7 +464,7 @@ AT_SETUP([autoconf: the empty token])
 
 AT_DATA_M4SH([configure.ac],
 [[m4_init[]m4_pattern_allow([^foo$])
-m4_divert([0])dnl
+m4_divert([])dnl
  line that begins with a space
 ]])
 
@@ -518,7 +518,7 @@ AT_CLEANUP
 
 
 # autoconf: AC_AUTOCONF_VERSION
-# --------------------------------------
+# -----------------------------
 AT_SETUP([autoconf: AC_AUTOCONF_VERSION])
 
 AT_DATA([configure.ac],
@@ -530,6 +530,41 @@ AC_OUTPUT
 AT_CHECK_AUTOCONF
 AT_CHECK([[grep 'version ]]AT_PACKAGE_VERSION[[ version' configure]],
 0, [ignore])
+
+AT_CLEANUP
+
+
+
+# autoconf: AC_PRESERVE_HELP_ORDER
+# --------------------------------
+AT_SETUP([autoconf: AC_PRESERVE_HELP_ORDER])
+AT_KEYWORDS([m4@&t@_divert_text])
+
+AT_DATA_AUTOCONF([configure.ac],
+[[AC_INIT
+AC_PRESERVE_HELP_ORDER
+AC_ARG_WITH([one], [  --with-one])
+AC_ARG_ENABLE([two], [  --enable-two])
+m4_divert_text([HELP_ENABLE], [arbitrary $text])
+AC_ARG_WITH([three], [  --with-three])
+AC_OUTPUT
+]])
+
+AT_CHECK_AUTOCONF
+AT_CHECK_CONFIGURE([--help], [], [stdout])
+AT_CHECK([sed -n '/^Optional/,/^$/p' stdout], [],
+[[Optional Features and Packages:
+  --disable-option-checking  ignore unrecognized --enable/--with options
+  --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
+  --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
+  --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-one
+  --enable-two
+arbitrary $text
+  --with-three
+
+]])
 
 AT_CLEANUP
 
@@ -825,7 +860,7 @@ AT_SETUP([autoupdating AC_PREREQ])
 # Produce `AC_PREREQ(<AUTOUPDATE VERSION>)'.
 AT_CHECK([autoupdate --version | sed 's/.*) //;q'], 0, [stdout])
 autoupdate_version=`cat stdout`
-echo "AC_PREREQ($autoupdate_version)" >expout
+[echo "AC_PREREQ([$autoupdate_version])" >expout]
 
 AT_CHECK([echo "AC_PREREQ(1.0)" | autoupdate -],
 	 0, [expout], [])
@@ -1162,8 +1197,13 @@ AT_CHECK([aclocal], [], [], [ignore])
 AT_CHECK([automake --no-force --add-missing], [], [], [ignore])
 AT_CHECK([autoconf])
 AT_CHECK([test "`find configure -newer newer`" = "" ||
-	  { diff old-requests autom4te.cache/requests; exit 1; }])
-
+	  { diff old-requests autom4te.cache/requests; exit 1; }],
+	 [], [], [],
+	 [extract_version=['s/^[^0-9]*\([0-9][^ ]*\).*/\1/;q']
+	  automake_version=`automake --version | sed "$extract_version"`
+	  used_automake_version=`sed "$extract_version" "$abs_top_srcdir/Makefile.in"`
+	  AT_CHECK([if test "$automake_version" = "$used_automake_version"; ]dnl
+		    [then exit 1; else exit 77; fi])])
 AT_CLEANUP
 
 
@@ -1172,6 +1212,8 @@ AT_CLEANUP
 # Ensure autom4te fails when it cannot create the cache directory
 # or create files there.
 AT_SETUP([autom4te cache creation])
+
+AT_CHECK([test ! -f $HOME/.autom4te.cfg || exit 77], [], [ignore], [ignore])
 
 # Work in a subdirectory so autotest can scribble in the toplevel.
 mkdir sub
@@ -1188,7 +1230,8 @@ end-language: "Autoconf-without-aclocal-m4"
 ]])
 
 # Do not try this when we are root or on systems without permissions.
-AT_CHECK([: > sub/some-file && exit 77], 1, [ignore], [ignore])
+# A failed redirection may cause a status of 2 with FreeBSD sh.
+AT_CHECK([(: > sub/some-file) || exit 1 && exit 77], 1, [ignore], [ignore])
 
 # Failure to create cache directory.
 AT_CHECK_AUTOCONF([], [1], [ignore], [stderr])
@@ -1229,7 +1272,7 @@ AT_CLEANUP
 
 
 # autotools and file names containing whitespace
-# ---------------------------------------------
+# ----------------------------------------------
 
 AT_SETUP([autotools and whitespace in file names])
 
@@ -1241,13 +1284,16 @@ export x
 rm -f a b
 for funny in \
   'with  funny '\'' $x & #! name ' \
-  'with  funny \ '\'' \'\'' " <a >b * ? name '
+  'with  funny \ '\'' \'\'' " <a >b * ? name ' #"
 do
   funny=`func_sanitize_file_name "$funny"`
   file=" file $funny"
   dir=`func_sanitize_dir_name " dir $funny"`
   TMPDIR=" tmp$dir"
   export TMPDIR
+
+  # skip if we cannot create such a file or directory
+  AT_CHECK([mkdir "$dir" "$TMPDIR" && touch "$file.in" || exit 77])
 
   cat >"$file.in" <<'END'
 [AC_INIT(x,0)
@@ -1256,8 +1302,6 @@ AC_CONFIG_HEADERS([config.h:config.hin])
 AC_MACRO
 AC_OUTPUT]
 END
-  # skip if we cannot create such a file or directory
-  AT_CHECK([mkdir "$dir" "$TMPDIR" && test -f "$file.in" || exit 77])
   cat >"$dir"/foo.m4 <<'END'
 [AC_DEFUN([AC_MACRO], [echo hi])]
 END

@@ -2,8 +2,8 @@
 
 AT_BANNER([Semantics.])
 
-# Copyright (C) 2000, 2001, 2002, 2004, 2005, 2006, 2007, 2009 Free
-# Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2002, 2004, 2005, 2006, 2007, 2009, 2010
+# Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -109,9 +109,40 @@ AT_CHECK_MACRO([AC_CHECK_DECLS],
 		   struct { int x[20]; } mystruct;
 		   extern int myfunc();
 		   #define mymacro1(arg) arg
-		   #define mymacro2]])]],
+		   #define mymacro2]])
+  # The difference in space-before-open-paren is intentional.
+  AC_CHECK_DECLS([basenam (char *), dirnam(char *),
+		  [moreargs (char, short, int, long, void *, char [], float, double)]],,,
+		 [[#ifdef __cplusplus
+		   extern "C++" char *basenam (char *);
+		   extern "C++" const char *basenam (const char *);
+		   #else
+		   extern char *basenam (const char *);
+		   #endif
+		   #ifdef __cplusplus
+		   extern "C" {
+		   #endif
+		   extern int moreargs (char, short, int, long, void *,
+					char [], float, double);
+		   #ifdef __cplusplus
+		   }
+		   #endif
+		   ]])
+  AC_CHECK_DECL([declared (char *)],, [AS_EXIT([1])],
+		[[#ifdef __cplusplus
+		  extern "C++" char *declared (char *);
+		  extern "C++" const char *declared (const char *);
+		  #else
+		  extern char *declared (const char *);
+		  #endif
+		]])
+  AC_CHECK_DECL([undeclared (char *)], [AS_EXIT([1])],, [[]])
+]],
 [AT_CHECK_DEFINES(
-[#define HAVE_DECL_MYENUM 1
+[#define HAVE_DECL_BASENAM 1
+#define HAVE_DECL_DIRNAM 0
+#define HAVE_DECL_MOREARGS 1
+#define HAVE_DECL_MYENUM 1
 #define HAVE_DECL_MYFUNC 1
 #define HAVE_DECL_MYMACRO1 1
 #define HAVE_DECL_MYMACRO2 1
@@ -254,7 +285,7 @@ AT_CLEANUP
 
 
 # AC_CHECK_MEMBER
-# ----------------
+# ---------------
 # Check that it performs the correct actions.
 # Must define HAVE_STRUCT_YES_S_YES, but not HAVE_STRUCT_YES_S_NO.
 AT_CHECK_MACRO([AC_CHECK_MEMBER],

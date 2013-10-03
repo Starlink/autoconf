@@ -6,10 +6,10 @@ START-INFO-DIR-ENTRY
 * Standards: (standards).       GNU coding standards.
 END-INFO-DIR-ENTRY
 
-   The GNU coding standards, last updated September 14, 2009.
+   The GNU coding standards, last updated April 12, 2010.
 
    Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software
+2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software
 Foundation, Inc.
 
    Permission is granted to copy, distribute and/or modify this document
@@ -25,10 +25,10 @@ File: standards.info,  Node: Top,  Next: Preface,  Prev: (dir),  Up: (dir)
 Version
 *******
 
-The GNU coding standards, last updated September 14, 2009.
+The GNU coding standards, last updated April 12, 2010.
 
    Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software
+2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software
 Foundation, Inc.
 
    Permission is granted to copy, distribute and/or modify this document
@@ -65,20 +65,30 @@ programs written in C, but many of the rules and principles are useful
 even if you write in another programming language.  The rules often
 state reasons for writing in a certain way.
 
-   This release of the GNU Coding Standards was last updated September
-14, 2009.
-
    If you did not obtain this file directly from the GNU project and
 recently, please check for a newer version.  You can get the GNU Coding
 Standards from the GNU web server in many different formats, including
 the Texinfo source, PDF, HTML, DVI, plain text, and more, at:
 `http://www.gnu.org/prep/standards/'.
 
-   Corrections or suggestions for this document should be sent to
+   If you are maintaining an official GNU package, in addition to this
+document, please read and follow the GNU maintainer information (*note
+Contents: (maintain)Top.).
+
+   If you want to receive diffs for every change to these GNU documents,
+join the mailing list `gnustandards-commit@gnu.org', via the web
+interface at
+`http://lists.gnu.org/mailman/listinfo/gnustandards-commit'.  Archives
+are also available there.
+
+   Please send corrections or suggestions for this document to
 <bug-standards@gnu.org>.  If you make a suggestion, please include a
-suggested new wording for it; our time is limited.  We prefer a context
-diff to the `standards.texi' or `make-stds.texi' files, but if you
-don't have those files, please mail your suggestion anyway.
+suggested new wording for it, to help us consider the suggestion
+efficiently.  We prefer a context diff to the Texinfo source, but if
+that's difficult for you, you can make a context diff for some other
+version of this document, or propose it in any way that makes it clear.
+The source repository for this document can be found at
+`http://savannah.gnu.org/projects/gnustandards'.
 
    These standards cover the minimum of what is important when writing a
 GNU package.  Likely, the need for additional standards will come up.
@@ -95,6 +105,9 @@ more maintainable by others.
    The GNU Hello program serves as an example of how to follow the GNU
 coding standards for a trivial program.
 `http://www.gnu.org/software/hello/hello.html'.
+
+   This release of the GNU Coding Standards was last updated April 12,
+2010.
 
 
 File: standards.info,  Node: Legal Issues,  Next: Design Advice,  Prev: Preface,  Up: Top
@@ -463,7 +476,7 @@ and is not always appropriate, following this policy would have saved
 GCC developers many hours, or even days, per year.
 
    In the case of function-like macros like `REVERSIBLE_CC_MODE' in GCC
-which cannot be simply used in `if( ...)' statements, there is an easy
+which cannot be simply used in `if (...)' statements, there is an easy
 workaround.  Simply introduce another macro `HAS_REVERSIBLE_CC_MODE' as
 in the following example:
 
@@ -637,7 +650,7 @@ instead of `/tmp'.
 creating temporary files in world-writable directories.  In C, you can
 avoid this problem by creating temporary files in this manner:
 
-     fd = open(filename, O_WRONLY | O_CREAT | O_EXCL, 0600);
+     fd = open (filename, O_WRONLY | O_CREAT | O_EXCL, 0600);
 
 or by using the `mkstemps' function from libiberty.
 
@@ -780,20 +793,22 @@ File: standards.info,  Node: Graphical Interfaces,  Next: Command-Line Interface
 ======================================
 
 When you write a program that provides a graphical user interface,
-please make it work with X Windows and the GTK+ toolkit unless the
-functionality specifically requires some alternative (for example,
-"displaying jpeg images while in console mode").
+please make it work with the X Window System and the GTK+ toolkit
+unless the functionality specifically requires some alternative (for
+example, "displaying jpeg images while in console mode").
 
    In addition, please provide a command-line interface to control the
 functionality.  (In many cases, the graphical user interface can be a
 separate program which invokes the command-line program.)  This is so
 that the same jobs can be done from scripts.
 
-   Please also consider providing a CORBA interface (for use from
-GNOME), a library interface (for use from C), and perhaps a
-keyboard-driven console interface (for use by users from console mode).
-Once you are doing the work to provide the functionality and the
-graphical interface, these won't be much extra work.
+   Please also consider providing a D-bus interface for use from other
+running programs, such as within GNOME.  (GNOME used to use CORBA for
+this, but that is being phased out.)  In addition, consider providing a
+library interface (for use from C), and perhaps a keyboard-driven
+console interface (for use by users from console mode).  Once you are
+doing the work to provide the functionality and the graphical
+interface, these won't be much extra work.
 
 
 File: standards.info,  Node: Command-Line Interfaces,  Next: Option Table,  Prev: Graphical Interfaces,  Up: Program Behavior
@@ -939,11 +954,6 @@ LGPL
      GNU Lesser General Public License,
      `http://www.gnu.org/licenses/lgpl.html'.
 
-GPL/Guile
-     GNU GPL with the exception for Guile; for example, GPLv3+/Guile
-     means the GNU GPL version 3 or later, with the extra exception for
-     Guile.
-
 GPL/Ada
      GNU GPL with the exception for Ada.
 
@@ -981,7 +991,7 @@ RBSD
 
 X11
      The simple non-copyleft license used for most versions of the X
-     Window system, `http://www.xfree86.org/3.3.6/COPYRIGHT2.html#3'.
+     Window System, `http://www.xfree86.org/3.3.6/COPYRIGHT2.html#3'.
 
 Zlib
      The license for Zlib, `http://www.gzip.org/zlib/zlib_license.html'.
@@ -2133,7 +2143,9 @@ OID assignments.
 
      1.3.6.1.4.1.11591.5 GNU Mailutils
 
-     1.3.6.1.4.1.11591.5 GNU Shishi
+     1.3.6.1.4.1.11591.6 GNU Shishi
+
+     1.3.6.1.4.1.11591.7 GNU Radio
 
      1.3.6.1.4.1.11591.12 digestAlgorithm
        1.3.6.1.4.1.11591.12.2 TIGER/192
@@ -3329,7 +3341,8 @@ explanation of how the earlier version differed.
 
    The change log file is normally called `ChangeLog' and covers an
 entire directory.  Each directory can have its own change log, or a
-directory can use the change log of its parent directory-it's up to you.
+directory can use the change log of its parent directory--it's up to
+you.
 
    Another alternative is to record change log information with a
 version control system such as RCS or CVS.  This can be converted
@@ -3337,20 +3350,19 @@ automatically to a `ChangeLog' file using `rcs2log'; in Emacs, the
 command `C-x v a' (`vc-update-change-log') does the job.
 
    There's no need to describe the full purpose of the changes or how
-they work together.  If you think that a change calls for explanation,
-you're probably right.  Please do explain it--but please put the
-explanation in comments in the code, where people will see it whenever
-they see the code.  For example, "New function" is enough for the
-change log when you add a function, because there should be a comment
-before the function definition to explain what it does.
+they work together.  However, sometimes it is useful to write one line
+to describe the overall purpose of a change or a batch of changes.  If
+you think that a change calls for explanation, you're probably right.
+Please do explain it--but please put the full explanation in comments
+in the code, where people will see it whenever they see the code.  For
+example, "New function" is enough for the change log when you add a
+function, because there should be a comment before the function
+definition to explain what it does.
 
    In the past, we recommended not mentioning changes in non-software
 files (manuals, help files, etc.) in change logs.  However, we've been
 advised that it is a good idea to include them, for the sake of
 copyright records.
-
-   However, sometimes it is useful to write one line to describe the
-overall purpose of a batch of changes.
 
    The easiest way to add an entry to `ChangeLog' is with the Emacs
 command `M-x add-change-log-entry'.  An entry should have an asterisk,
@@ -3837,7 +3849,7 @@ build in a separate directory using the `--srcdir' option to
 `configure'.  A rule of the form:
 
      foo.1 : foo.man sedscript
-             sed -e sedscript foo.man > foo.1
+             sed -f sedscript foo.man > foo.1
 
 will fail when the build directory is not the source directory, because
 `foo.man' and `sedscript' are in the source directory.
@@ -3862,7 +3874,7 @@ to make the rule work well.  For example, the target above for `foo.1'
 is best written as:
 
      foo.1 : foo.man sedscript
-             sed -e $(srcdir)/sedscript $(srcdir)/foo.man > $@
+             sed -f $(srcdir)/sedscript $(srcdir)/foo.man > $@
 
    GNU distributions usually contain some files which are not source
 files--for example, Info files, and the output from Autoconf, Automake,
@@ -3894,8 +3906,8 @@ or `bash', or POSIX features not widely supported in traditional Bourne
    The `configure' script and the Makefile rules for building and
 installation should not use any utilities directly except these:
 
-     awk cat cmp cp diff echo egrep expr false grep install-info
-     ln ls mkdir mv pwd rm rmdir sed sleep sort tar test touch tr true
+     awk cat cmp cp diff echo egrep expr false grep install-info ln ls
+     mkdir mv printf pwd rm rmdir sed sleep sort tar test touch tr true
 
    Compression programs such as `gzip' can be used in the `dist' rule.
 
@@ -4016,7 +4028,7 @@ command, with the final argument being a directory, as in:
 
 File: standards.info,  Node: DESTDIR,  Next: Directory Variables,  Prev: Command Variables,  Up: Makefile Conventions
 
-7.2.4 `DESTDIR': support for staged installs
+7.2.4 `DESTDIR': Support for Staged Installs
 --------------------------------------------
 
 `DESTDIR' is a variable prepended to each installed target file, like
@@ -4081,6 +4093,9 @@ should be appropriate for these variables on the system they are being
 installed onto: use the default settings specified here so that all GNU
 packages behave identically, allowing the installer to achieve any
 desired layout.
+
+   All installation directories, and their parent directories, should be
+created (if necessary) before they are installed into.
 
    These first two variables set the root for the installation.  All the
 other installation directories should be subdirectories of one of these
@@ -4435,23 +4450,28 @@ All GNU programs should have the following targets in their Makefiles:
      the `install-info' program if it is present.  `install-info' is a
      program that edits the Info `dir' file to add or update the menu
      entry for the given Info file; it is part of the Texinfo package.
-     Here is a sample rule to install an Info file:
 
-          $(DESTDIR)$(infodir)/foo.info: foo.info
-                  $(POST_INSTALL)
-          # There may be a newer info file in . than in srcdir.
-                  -if test -f foo.info; then d=.; \
-                   else d=$(srcdir); fi; \
-                  $(INSTALL_DATA) $$d/foo.info $(DESTDIR)$@; \
+     Here is a sample rule to install an Info file that also tries to
+     handle some additional situations, such as `install-info' not
+     being present.
+
+          do-install-info: foo.info installdirs
+                  $(NORMAL_INSTALL)
+          # Prefer an info file in . to one in srcdir.
+                  if test -f foo.info; then d=.; \
+                   else d="$(srcdir)"; fi; \
+                  $(INSTALL_DATA) $$d/foo.info \
+                    "$(DESTDIR)$(infodir)/foo.info"
           # Run install-info only if it exists.
           # Use `if' instead of just prepending `-' to the
           # line so we notice real errors from install-info.
-          # We use `$(SHELL) -c' because some shells do not
+          # Use `$(SHELL) -c' because some shells do not
           # fail gracefully when there is an unknown command.
+                  $(POST_INSTALL)
                   if $(SHELL) -c 'install-info --version' \
                      >/dev/null 2>&1; then \
-                    install-info --dir-file=$(DESTDIR)$(infodir)/dir \
-                                 $(DESTDIR)$(infodir)/foo.info; \
+                    install-info --dir-file="$(DESTDIR)$(infodir)/dir" \
+                                 "$(DESTDIR)$(infodir)/foo.info"; \
                   else true; fi
 
      When writing the `install' target, you must classify all the
@@ -4641,8 +4661,7 @@ All GNU programs should have the following targets in their Makefiles:
 
      Compress the tar file with `gzip'.  For example, the actual
      distribution file for GCC version 1.40 is called `gcc-1.40.tar.gz'.
-     It is ok to support other free compression formats as well, such as
-     `bzip2' and `lzma'.
+     It is ok to support other free compression formats as well.
 
      The `dist' target should explicitly depend on all non-source files
      that are in the distribution, to make sure they are up to date in
@@ -4666,7 +4685,7 @@ programs in which they are useful.
      It's useful to add a target named `installdirs' to create the
      directories where files are installed, and their parent
      directories.  There is a script called `mkinstalldirs' which is
-     convenient for this; you can find it in the Texinfo package.  You
+     convenient for this; you can find it in the Gnulib package.  You
      can use a rule like this:
 
           # Make sure all installation directories (e.g. $(bindir))
@@ -4676,7 +4695,7 @@ programs in which they are useful.
                                           $(libdir) $(infodir) \
                                           $(mandir)
 
-     or, if you wish to support `DESTDIR',
+     or, if you wish to support `DESTDIR' (strongly encouraged),
 
           # Make sure all installation directories (e.g. $(bindir))
           # actually exist by making them if necessary.
@@ -4847,13 +4866,13 @@ installing the program should *never* be included in the distribution.
 So if you do distribute non-source files, always make sure they are up
 to date when you make a new distribution.
 
-   Make sure that the directory into which the distribution unpacks (as
-well as any subdirectories) are all world-writable (octal mode 777).
-This is so that old versions of `tar' which preserve the ownership and
-permissions of the files from the tar archive will be able to extract
-all the files even if the user is unprivileged.
-
-   Make sure that all the files in the distribution are world-readable.
+   Make sure that all the files in the distribution are world-readable,
+and that directories are world-readable and world-searchable (octal
+mode 755).  We used to recommend that all directories in the
+distribution also be world-writable (octal mode 777), because ancient
+versions of `tar' would otherwise not cope when extracting the archive
+as an unprivileged user.  That can easily lead to security issues when
+creating the archive, however, so now we recommend against that.
 
    Don't include any symbolic links in the distribution itself.  If the
 tar file contains symbolic links, then people cannot even unpack it on
@@ -5497,9 +5516,10 @@ Index
 * behavior, dependent on program's name: User Interfaces.     (line   6)
 * binary packages:                       Install Command Categories.
                                                               (line  80)
-* bindir:                                Directory Variables. (line  54)
+* bindir:                                Directory Variables. (line  57)
 * braces, in C source:                   Formatting.          (line   6)
 * bug reports:                           --help.              (line  11)
+* bug-standards@gnu.org email address:   Preface.             (line  30)
 * canonical name of a program:           --version.           (line  12)
 * casting pointers to integers:          CPU Portability.     (line  89)
 * CGI programs, standard options for:    Command-Line Interfaces.
@@ -5522,19 +5542,22 @@ Index
 * control-L:                             Formatting.          (line 118)
 * conventions for makefiles:             Makefile Conventions.
                                                               (line   6)
-* corba:                                 Graphical Interfaces.
+* CORBA:                                 Graphical Interfaces.
                                                               (line  16)
 * credits for manuals:                   Manual Credits.      (line   6)
+* D-bus:                                 Graphical Interfaces.
+                                                              (line  16)
 * data types, and portability:           CPU Portability.     (line   6)
 * declaration for system functions:      System Functions.    (line  21)
 * DESTDIR:                               DESTDIR.             (line   6)
+* directories, creating installation:    Directory Variables. (line  20)
 * documentation:                         Documentation.       (line   6)
 * doschk:                                Names.               (line  38)
-* downloading this manual:               Preface.             (line  17)
+* downloading this manual:               Preface.             (line  14)
 * encodings:                             Character Set.       (line   6)
 * error messages:                        Semantics.           (line  19)
 * error messages, formatting:            Errors.              (line   6)
-* exec_prefix:                           Directory Variables. (line  36)
+* exec_prefix:                           Directory Variables. (line  39)
 * expressions, splitting:                Formatting.          (line  81)
 * FDL, GNU Free Documentation License:   GNU Free Documentation License.
                                                               (line   6)
@@ -5550,28 +5573,37 @@ Index
                                                               (line   6)
 * gettext:                               Internationalization.
                                                               (line   6)
-* gnome:                                 Graphical Interfaces.
+* GNOME:                                 Graphical Interfaces.
                                                               (line  16)
 * GNOME and Guile:                       Source Language.     (line  38)
+* gnustandards project repository:       Preface.             (line  30)
+* gnustandards-commit@gnu.org mailing list: Preface.          (line  24)
 * graphical user interface:              Graphical Interfaces.
                                                               (line   6)
 * grave accent:                          Quote Characters.    (line   6)
-* gtk+:                                  Graphical Interfaces.
+* GTK+:                                  Graphical Interfaces.
                                                               (line   6)
 * Guile:                                 Source Language.     (line  38)
 * implicit int:                          Syntactic Conventions.
                                                               (line   6)
 * impossible conditions:                 Semantics.           (line  70)
+* installation directories, creating:    Directory Variables. (line  20)
 * installations, staged:                 DESTDIR.             (line   6)
+* interface styles:                      Graphical Interfaces.
+                                                              (line   6)
 * internationalization:                  Internationalization.
                                                               (line   6)
+* keyboard interface:                    Graphical Interfaces.
+                                                              (line  16)
 * LDAP:                                  OID Allocations.     (line   6)
 * left quote:                            Quote Characters.    (line   6)
 * legal aspects:                         Legal Issues.        (line   6)
 * legal papers:                          Contributions.       (line   6)
-* libexecdir:                            Directory Variables. (line  67)
+* libexecdir:                            Directory Variables. (line  70)
 * libraries:                             Libraries.           (line   6)
 * library functions, and portability:    System Functions.    (line   6)
+* library interface:                     Graphical Interfaces.
+                                                              (line  16)
 * license for manuals:                   License for Manuals. (line   6)
 * lint:                                  Syntactic Conventions.
                                                               (line 109)
@@ -5617,7 +5649,7 @@ Index
                                                               (line   6)
 * pre-installation commands:             Install Command Categories.
                                                               (line   6)
-* prefix:                                Directory Variables. (line  26)
+* prefix:                                Directory Variables. (line  29)
 * program configuration:                 Configuration.       (line   6)
 * program design:                        Design Advice.       (line   6)
 * program name and its behavior:         User Interfaces.     (line   6)
@@ -5629,7 +5661,8 @@ Index
 * README file:                           Releases.            (line  21)
 * references to non-free material:       References.          (line   6)
 * releasing:                             Managing Releases.   (line   6)
-* sbindir:                               Directory Variables. (line  60)
+* Savannah repository for gnustandards:  Preface.             (line  30)
+* sbindir:                               Directory Variables. (line  63)
 * signal handling:                       Semantics.           (line  59)
 * SNMP:                                  OID Allocations.     (line   6)
 * spaces before open-paren:              Formatting.          (line  75)
@@ -5648,80 +5681,82 @@ Index
 * texinfo.tex, in a distribution:        Releases.            (line  70)
 * TMPDIR environment variable:           Semantics.           (line  84)
 * trademarks:                            Trademarks.          (line   6)
-* where to obtain standards.texi:        Preface.             (line  17)
+* user interface styles:                 Graphical Interfaces.
+                                                              (line   6)
+* where to obtain standards.texi:        Preface.             (line  14)
 * X.509:                                 OID Allocations.     (line   6)
 
 
 
 Tag Table:
-Node: Top811
-Node: Preface2084
-Node: Legal Issues4204
-Node: Reading Non-Free Code4674
-Node: Contributions6404
-Node: Trademarks8642
-Node: Design Advice10277
-Node: Source Language10869
-Node: Compatibility12995
-Node: Using Extensions14623
-Node: Standard C16199
-Node: Conditional Compilation18602
-Node: Program Behavior20000
-Node: Non-GNU Standards21116
-Node: Semantics23397
-Node: Libraries28116
-Node: Errors29361
-Node: User Interfaces31854
-Node: Graphical Interfaces33459
-Node: Command-Line Interfaces34495
-Node: --version36527
-Node: --help42428
-Node: Option Table43301
-Node: OID Allocations58256
-Node: Memory Usage60017
-Node: File Usage61053
-Node: Writing C61803
-Node: Formatting62775
-Node: Comments67064
-Node: Syntactic Conventions70616
-Node: Names74078
-Node: System Portability76290
-Node: CPU Portability79181
-Node: System Functions83082
-Node: Internationalization88279
-Node: Character Set92273
-Node: Quote Characters93086
-Node: Mmap94606
-Node: Documentation95314
-Node: GNU Manuals96420
-Node: Doc Strings and Manuals102158
-Node: Manual Structure Details103711
-Node: License for Manuals105129
-Node: Manual Credits106103
-Node: Printed Manuals106496
-Node: NEWS File107182
-Node: Change Logs107860
-Node: Change Log Concepts108614
-Node: Style of Change Logs110703
-Node: Simple Changes113203
-Node: Conditional Changes114645
-Node: Indicating the Part Changed116067
-Node: Man Pages116594
-Node: Reading other Manuals118800
-Node: Managing Releases119591
-Node: Configuration120372
-Node: Makefile Conventions129037
-Node: Makefile Basics130036
-Node: Utilities in Makefiles133210
-Node: Command Variables135708
-Node: DESTDIR138954
-Node: Directory Variables141128
-Node: Standard Targets155621
-Ref: Standard Targets-Footnote-1169234
-Node: Install Command Categories169334
-Node: Releases173867
-Node: References177797
-Node: GNU Free Documentation License183644
-Node: Index208811
+Node: Top813
+Node: Preface2088
+Node: Legal Issues4801
+Node: Reading Non-Free Code5271
+Node: Contributions7001
+Node: Trademarks9239
+Node: Design Advice10874
+Node: Source Language11466
+Node: Compatibility13592
+Node: Using Extensions15220
+Node: Standard C16796
+Node: Conditional Compilation19199
+Node: Program Behavior20597
+Node: Non-GNU Standards21713
+Node: Semantics23994
+Node: Libraries28714
+Node: Errors29959
+Node: User Interfaces32452
+Node: Graphical Interfaces34057
+Node: Command-Line Interfaces35241
+Node: --version37273
+Node: --help43010
+Node: Option Table43883
+Node: OID Allocations58838
+Node: Memory Usage60635
+Node: File Usage61671
+Node: Writing C62421
+Node: Formatting63393
+Node: Comments67682
+Node: Syntactic Conventions71234
+Node: Names74696
+Node: System Portability76908
+Node: CPU Portability79799
+Node: System Functions83700
+Node: Internationalization88897
+Node: Character Set92891
+Node: Quote Characters93704
+Node: Mmap95224
+Node: Documentation95932
+Node: GNU Manuals97038
+Node: Doc Strings and Manuals102776
+Node: Manual Structure Details104329
+Node: License for Manuals105747
+Node: Manual Credits106721
+Node: Printed Manuals107114
+Node: NEWS File107800
+Node: Change Logs108478
+Node: Change Log Concepts109232
+Node: Style of Change Logs111335
+Node: Simple Changes113835
+Node: Conditional Changes115277
+Node: Indicating the Part Changed116699
+Node: Man Pages117226
+Node: Reading other Manuals119432
+Node: Managing Releases120223
+Node: Configuration121004
+Node: Makefile Conventions129669
+Node: Makefile Basics130668
+Node: Utilities in Makefiles133842
+Node: Command Variables136347
+Node: DESTDIR139593
+Node: Directory Variables141767
+Node: Standard Targets156389
+Ref: Standard Targets-Footnote-1170161
+Node: Install Command Categories170261
+Node: Releases174794
+Node: References178799
+Node: GNU Free Documentation License184646
+Node: Index209813
 
 End Tag Table

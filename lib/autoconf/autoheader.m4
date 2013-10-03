@@ -2,7 +2,7 @@
 # Interface with autoheader.
 
 # Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
-# 2002, 2008, 2009 Free Software Foundation, Inc.
+# 2002, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the
@@ -45,7 +45,7 @@ m4_define([AH_OUTPUT], [])
 #
 # Quote for Perl '' strings, which are those used by Autoheader.
 m4_define([AH_VERBATIM],
-[AS_LITERAL_IF([$1],
+[AS_LITERAL_WORD_IF([$1],
 	       [AH_OUTPUT(_m4_expand([$1]), AS_ESCAPE([[$2]], [\']))])])
 
 
