@@ -2,8 +2,7 @@
 # M4 sugar for common shell constructs.
 # Requires GNU M4 and M4sugar.
 #
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-# 2009, 2010 Free Software Foundation, Inc.
+# Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the
@@ -193,6 +192,28 @@ m4_define([_AS_DETECT_SUGGESTED_PRUNE],
 #
 # This code is run outside any trap 0 context, hence we can simplify AS_EXIT.
 m4_defun([_AS_DETECT_BETTER_SHELL],
+dnl
+dnl By default, do not force re-execution of the script just because
+dnl the user has pre-set $CONFIG_SHELL; do so only if the m4sh client has
+dnl defined the internal variable `_AS_FORCE_REEXEC_WITH_CONFIG_SHELL' to
+dnl "yes".
+dnl FIXME: This interface is acceptable for the moment, as a private,
+dnl FIXME: internal one; but if we want to make the "always re-execute"
+dnl FIXME: feature public, we should find a better interface!
+[m4_if(_AS_FORCE_REEXEC_WITH_CONFIG_SHELL, [yes],
+  [# Use a proper internal environment variable to ensure we don't fall
+  # into an infinite loop, continuously re-executing ourselves.
+  if test x"${_as_can_reexec}" != xno && test "x$CONFIG_SHELL" != x; then
+    _as_can_reexec=no; export _as_can_reexec;
+    _AS_REEXEC_WITH_SHELL([$CONFIG_SHELL])
+  fi
+  # We don't want this to propagate to other subprocesses.
+  dnl This might be especially important in case an m4sh-generated script
+  dnl is used to later execute other m4sh-generated scripts.  This happens
+  dnl for example in autoconf's own testsuite (and happens *a lot* there,
+  dnl in fact).
+  AS_UNSET([_as_can_reexec])
+])]dnl
 dnl Remove any tests from suggested that are also required
 [m4_set_map([_AS_DETECT_SUGGESTED_BODY], [_AS_DETECT_SUGGESTED_PRUNE])]dnl
 [m4_pushdef([AS_EXIT], [exit m4_default(]m4_dquote([$][1])[, 1)])]dnl
@@ -224,21 +245,8 @@ dnl Remove any tests from suggested that are also required
 	     [CONFIG_SHELL=$SHELL as_have_required=yes])])
 
       AS_IF([test "x$CONFIG_SHELL" != x],
-	[# We cannot yet assume a decent shell, so we have to provide a
-	# neutralization value for shells without unset; and this also
-	# works around shells that cannot unset nonexistent variables.
-	# Preserve -v and -x to the replacement shell.
-	BASH_ENV=/dev/null
-	ENV=/dev/null
-	(unset BASH_ENV) >/dev/null 2>&1 && unset BASH_ENV ENV
-	export CONFIG_SHELL
-	case $- in @%:@ ((((
-	  *v*x* | *x*v* ) as_opts=-vx ;;
-	  *v* ) as_opts=-v ;;
-	  *x* ) as_opts=-x ;;
-	  * ) as_opts= ;;
-	esac
-	exec "$CONFIG_SHELL" $as_opts "$as_myself" ${1+"$[@]"}])
+            [export CONFIG_SHELL
+             _AS_REEXEC_WITH_SHELL([$CONFIG_SHELL])])
 
 dnl Unfortunately, $as_me isn't available here.
     AS_IF([test x$as_have_required = xno],
@@ -263,6 +271,30 @@ export SHELL
 CLICOLOR_FORCE= GREP_OPTIONS=
 unset CLICOLOR_FORCE GREP_OPTIONS
 _m4_popdef([AS_EXIT])])# _AS_DETECT_BETTER_SHELL
+
+# _AS_REEXEC_WITH_SHELL(SHELL)
+# ----------------------------
+# Re-execute the current script with the given shell, trying to preserve
+# portable settings (e.g., the `xtrace' and `verbose' shell flag).
+m4_defun([_AS_REEXEC_WITH_SHELL], [dnl
+# We cannot yet assume a decent shell, so we have to provide a
+# neutralization value for shells without unset; and this also
+# works around shells that cannot unset nonexistent variables.
+# Preserve -v and -x to the replacement shell.
+BASH_ENV=/dev/null
+ENV=/dev/null
+(unset BASH_ENV) >/dev/null 2>&1 && unset BASH_ENV ENV
+case $- in @%:@ ((((
+  *v*x* | *x*v* ) as_opts=-vx ;;
+  *v* ) as_opts=-v ;;
+  *x* ) as_opts=-x ;;
+  * ) as_opts= ;;
+esac
+exec $1 $as_opts "$as_myself" ${1+"$[@]"}
+# Admittedly, this is quite paranoid, since all the known shells bail
+# out after a failed `exec'.
+AS_ECHO(["$[]0: could not re-execute with $1"]) >&2
+AS_EXIT([255])])# _AS_REEXEC_WITH_SHELL
 
 
 # _AS_PREPARE
@@ -481,6 +513,7 @@ m4_define([AS_SHELL_SANITIZE],
 m4_provide_if([AS_INIT], [],
 [m4_provide([AS_INIT])
 _AS_DETECT_REQUIRED([_AS_SHELL_FN_WORK])
+_AS_DETECT_REQUIRED([_AS_TEST_X_WORKS])
 _AS_DETECT_BETTER_SHELL
 _AS_UNSET_PREPARE
 ])])
@@ -591,7 +624,7 @@ done[]_m4_popdef([$1])])
 # | else
 # |   IF-FALSE
 # | fi
-# with simplifications if IF-TRUE1 and/or IF-FALSE is empty.
+# with simplifications when IF-TRUE1 and/or IF-FALSE are empty.
 #
 m4_define([_AS_IF],
 [elif $1; then :
@@ -1052,9 +1085,11 @@ fi
 # AS_TEST_X
 # ---------
 # Check whether a file has executable or search permissions.
+# FIXME: This macro is no longer useful; consider deleting it in 2014
+# after we ensure m4sh scripts can always find a shell with test -x.
 m4_defun_init([AS_TEST_X],
 [AS_REQUIRE([_AS_TEST_PREPARE])],
-[$as_test_x $1[]])# AS_TEST_X
+[test -x $1[]])# AS_TEST_X
 
 
 # AS_EXECUTABLE_P
@@ -1062,7 +1097,7 @@ m4_defun_init([AS_TEST_X],
 # Check whether a file is a regular file that has executable permissions.
 m4_defun_init([AS_EXECUTABLE_P],
 [AS_REQUIRE([_AS_TEST_PREPARE])],
-[{ test -f $1 && AS_TEST_X([$1]); }])# AS_EXECUTABLE_P
+[as_fn_executable_p $1])# AS_EXECUTABLE_P
 
 
 # _AS_EXPR_PREPARE
@@ -1164,6 +1199,10 @@ dnl Eggert wrote the scripts with optimization help from Paolo Bonzini).
   chmod +x "$as_me.lineno"] ||
     AS_ERROR([cannot create $as_me.lineno; rerun with a POSIX shell])
 
+  # If we had to re-execute with $CONFIG_SHELL, we're ensured to have
+  # already done that, so ensure we don't try to do so again and fall
+  # in an infinite loop.  This has already happened in practice.
+  _as_can_reexec=no; export _as_can_reexec
   # Don't try to exec as it changes $[0], causing all sort of problems
   # (the dirname of $[0] is not the place where we might find the
   # original and so on.  Autoconf is especially sensitive to this).
@@ -1179,7 +1218,7 @@ _m4_popdef([AS_MESSAGE_LOG_FD], [AS_ERROR])])# _AS_LINENO_PREPARE
 # Don't use conftest.sym to avoid file name issues on DJGPP, where this
 # would yield conftest.sym.exe for DJGPP < 2.04.  And don't use `conftest'
 # as base name to avoid prohibiting concurrency (e.g., concurrent
-# config.statuses).  On read-only media, assume 'cp -p' and hope we
+# config.statuses).  On read-only media, assume 'cp -pR' and hope we
 # are just running --help anyway.
 m4_defun([_AS_LN_S_PREPARE],
 [rm -f conf$$ conf$$.exe conf$$.file
@@ -1195,16 +1234,16 @@ if (echo >conf$$.file) 2>/dev/null; then
     # ... but there are two gotchas:
     # 1) On MSYS, both `ln -s file dir' and `ln file dir' fail.
     # 2) DJGPP < 2.04 has no symlinks; `ln -s' creates a wrapper executable.
-    # In both cases, we have to default to `cp -p'.
+    # In both cases, we have to default to `cp -pR'.
     ln -s conf$$.file conf$$.dir 2>/dev/null && test ! -f conf$$.exe ||
-      as_ln_s='cp -p'
+      as_ln_s='cp -pR'
   elif ln conf$$.file conf$$ 2>/dev/null; then
     as_ln_s=ln
   else
-    as_ln_s='cp -p'
+    as_ln_s='cp -pR'
   fi
 else
-  as_ln_s='cp -p'
+  as_ln_s='cp -pR'
 fi
 rm -f conf$$ conf$$.exe conf$$.dir/conf$$.file conf$$.file
 rmdir conf$$.dir 2>/dev/null
@@ -1333,43 +1372,22 @@ m4_define([AS_SET_CATFILE],
 esac[]])# AS_SET_CATFILE
 
 
+# _AS_TEST_X_WORKS
+# ----------------
+# These days, we require that `test -x' works.
+m4_define([_AS_TEST_X_WORKS], [test -x /])
+
 # _AS_TEST_PREPARE
 # ----------------
-# Find out whether `test -x' works.  If not, prepare a substitute
-# that should work well enough for most scripts.
-#
-# Here are some of the problems with the substitute.
-# The 'ls' tests whether the owner, not the current user, can execute/search.
-# The eval means '*', '?', and '[' cause inadvertent file name globbing
-# after the 'eval', so jam together as many tokens as we can to minimize
-# the likelihood that the inadvertent globbing will actually do anything.
-# Luckily, this gorp is needed only on really ancient hosts.
-#
+# Provide back-compat to people that hooked into our undocumented
+# internals (here's looking at you, libtool).
 m4_defun([_AS_TEST_PREPARE],
-[if test -x / >/dev/null 2>&1; then
-  as_test_x='test -x'
-else
-  if ls -dL / >/dev/null 2>&1; then
-    as_ls_L_option=L
-  else
-    as_ls_L_option=
-  fi
-  as_test_x='
-    eval sh -c '\''
-      if test -d "$[]1"; then
-	test -d "$[]1/.";
-      else
-	case $[]1 in @%:@(
-	-*)set "./$[]1";;
-	esac;
-	case `ls -ld'$as_ls_L_option' "$[]1" 2>/dev/null` in @%:@((
-	???[[sx]]*):;;*)false;;esac;fi
-    '\'' sh
-  '
-fi
-dnl as_executable_p is present for backward compatibility with Libtool
-dnl 1.5.22, but it should go away at some point.
-as_executable_p=$as_test_x
+[AS_REQUIRE_SHELL_FN([as_fn_executable_p],
+  [AS_FUNCTION_DESCRIBE([as_fn_executable_p], [FILE],
+    [Test if FILE is an executable regular file.])],
+  [  test -f "$[]1" && test -x "$[]1"])]dnl
+[as_test_x='test -x'
+as_executable_p=as_fn_executable_p
 ])# _AS_TEST_PREPARE
 
 
@@ -1584,8 +1602,8 @@ m4_define([AS_LITERAL_IF],
 
 m4_define([_AS_LITERAL_IF],
 [m4_if(m4_index([$1], [@S|@]), [-1], [$0_(m4_translit([$1],
-  [-:%/@{}[]#(),.$2]]]m4_dquote(m4_dquote(m4_defn([m4_cr_symbols2])))[[,
-  [+++++$$`````]))], [$0_NO])])
+  [-:=%/@{}[]#(),.$2]]]m4_dquote(m4_dquote(m4_defn([m4_cr_symbols2])))[[,
+  [++++++$$`````]))], [$0_NO])])
 
 m4_define([_AS_LITERAL_IF_],
 [m4_if(m4_translit([$1], [+]), [], [$0YES],
@@ -1954,7 +1972,7 @@ m4_define([_AS_VAR_ARITH_WORKS],
 # Perform the arithmetic evaluation of the arguments in EXPR, and set
 # contents of the polymorphic shell variable VAR to the result, taking
 # advantage of any shell optimizations that perform arithmetic without
-# forks.  Note that numbers occuring within EXPR must be written in
+# forks.  Note that numbers occurring within EXPR must be written in
 # decimal, and without leading zeroes; variables containing numbers
 # must be expanded prior to arithmetic evaluation; the first argument
 # must not be a negative number; there is no portable equality
@@ -2145,5 +2163,6 @@ m4_divert_text([M4SH-INIT-FN], [m4_text_box([M4sh Shell Functions.])])
 m4_divert([BODY])dnl
 m4_text_box([Main body of script.])
 _AS_DETECT_REQUIRED([_AS_SHELL_FN_WORK])dnl
+_AS_DETECT_REQUIRED([_AS_TEST_X_WORKS])dnl
 AS_REQUIRE([_AS_UNSET_PREPARE], [], [M4SH-INIT-FN])dnl
 ])

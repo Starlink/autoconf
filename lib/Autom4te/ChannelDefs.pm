@@ -1,5 +1,5 @@
-# Copyright (C) 2002, 2003, 2006, 2008, 2009, 2010 Free Software
-# Foundation, Inc.
+# Copyright (C) 2002-2003, 2006, 2008-2012 Free Software Foundation,
+# Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ shorthand function to output on specific channels.
 
 =cut
 
-use 5.005;
+use 5.006;
 use strict;
 use Exporter;
 

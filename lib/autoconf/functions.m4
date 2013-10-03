@@ -1,7 +1,6 @@
 # This file is part of Autoconf.			-*- Autoconf -*-
 # Checking for functions.
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-# 2009, 2010 Free Software Foundation, Inc.
+# Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the
@@ -138,7 +137,7 @@ m4_define([_AC_REPLACE_FUNCS],
 [m4_map_args_w([$1], [_AC_REPLACE_FUNC(], [)
 ])],
 [AC_CHECK_FUNCS([$1],
-  [_AH_CHECK_FUNC([$ac_func])AC_DEFINE(AS_TR_CPP([HAVE_$ac_func]))],
+  [_AH_CHECK_FUNC([$ac_func])],
   [_AC_LIBOBJ([$ac_func])])])])
 
 
@@ -326,23 +325,20 @@ AC_CACHE_CHECK([stack direction for C alloca],
 [AC_RUN_IFELSE([AC_LANG_SOURCE(
 [AC_INCLUDES_DEFAULT
 int
-find_stack_direction ()
+find_stack_direction (int *addr, int depth)
 {
-  static char *addr = 0;
-  auto char dummy;
-  if (addr == 0)
-    {
-      addr = &dummy;
-      return find_stack_direction ();
-    }
-  else
-    return (&dummy > addr) ? 1 : -1;
+  int dir, dummy = 0;
+  if (! addr)
+    addr = &dummy;
+  *addr = addr < &dummy ? 1 : addr == &dummy ? 0 : -1;
+  dir = depth ? find_stack_direction (addr, depth - 1) : 0;
+  return dir + dummy;
 }
 
 int
-main ()
+main (int argc, char **argv)
 {
-  return find_stack_direction () < 0;
+  return find_stack_direction (0, argc + !argv + 20) < 0;
 }])],
 	       [ac_cv_c_stack_direction=1],
 	       [ac_cv_c_stack_direction=-1],

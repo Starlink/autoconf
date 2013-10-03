@@ -1,8 +1,7 @@
 # This file is part of Autoconf.                          -*- Autoconf -*-
 # M4 macros used in building test suites.
 m4_define([_AT_COPYRIGHT_YEARS], [
-Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-2009, 2010 Free Software Foundation, Inc.
+Copyright (C) 2000-2012 Free Software Foundation, Inc.
 ])
 
 # This file is part of Autoconf.  This program is free
@@ -2190,7 +2189,7 @@ m4_define([_AT_CHECK],
 AS_ECHO(["$at_srcdir/AT_LINE: AS_ESCAPE([[$1]])"])
 _AT_DECIDE_TRACEABLE([$1]) _AT_LINE_ESCAPED
 ( $at_check_trace; [$1]
-) >>"$at_stdout" 2>>"$at_stderr"
+) >>"$at_stdout" 2>>"$at_stderr" AS_MESSAGE_LOG_FD>&-
 at_status=$? at_failed=false
 $at_check_filter
 m4_ifdef([AT_DIFF_STDERR($4)], [m4_indir([AT_DIFF_STDERR($4)])],

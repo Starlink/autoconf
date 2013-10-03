@@ -1,9 +1,7 @@
 #                                                       -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-# Copyright (C) 1992, 1993, 1994, 1995, 1999, 2000, 2001, 2002, 2003,
-# 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation,
-# Inc.
+# Copyright (C) 1992-1995, 1999-2012 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,12 +22,11 @@ AC_PREREQ([2.60])
 AC_INIT([GNU Autoconf],
 	m4_esyscmd([build-aux/git-version-gen .tarball-version]),
 	[bug-autoconf@gnu.org])
-AC_CONFIG_SRCDIR([ChangeLog])
+AC_CONFIG_SRCDIR([lib/autoconf/autoconf.m4])
 
 AC_CONFIG_AUX_DIR([build-aux])
 
-AM_INIT_AUTOMAKE([1.11 dist-bzip2 dist-xz
-readme-alpha no-texinfo.tex std-options])
+AM_INIT_AUTOMAKE([1.11 dist-xz readme-alpha no-texinfo.tex std-options])
 
 AB_INIT
 
@@ -137,8 +134,8 @@ AC_SUBST([PERL])dnl
 if test "$PERL" = no; then
   AC_MSG_ERROR([perl is not found])
 fi
-$PERL -e 'require 5.005_03;' || {
-   AC_MSG_ERROR([Perl 5.005_03 or better is required])
+$PERL -e 'require 5.006;' || {
+   AC_MSG_ERROR([Perl 5.006 or better is required])
 }
 
 # Find out whether the system supports flock

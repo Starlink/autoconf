@@ -1,5 +1,45 @@
 GNU Autoconf NEWS - User visible changes.
 
+* Noteworthy changes in release 2.69 (2012-04-24) [stable]
+
+** Autoconf now requires perl 5.6 or better (but generated configure
+   scripts continue to run without perl).
+
+* Noteworthy changes in release 2.68b (2012-03-01) [beta]
+  Released by Eric Blake, based on git versions 2.68.*.
+
+** Autoconf-generated configure scripts now unconditionally re-execute
+   themselves with $CONFIG_SHELL, if that's set in the environment.
+
+** The texinfo documentation no longer specifies "front-cover" or
+   "back-cover" texts, so that it may now be included in Debian's
+   "main" section.
+
+** Support for the Go programming language has been added.  The new macro
+   AC_LANG_GO sets variables GOC and GOFLAGS.
+
+** AS_LITERAL_IF again treats '=' as a literal.  Regression introduced in
+   2.66.
+
+** The macro AS_EXECUTABLE_P, present since 2.50, is now documented.
+
+** Macros
+
+- AC_PROG_LN_S and AS_LN_S now fall back on 'cp -pR' (not 'cp -p') if 'ln -s'
+  does not work.  This works better for symlinks to directories.
+
+- New macro AC_HEADER_CHECK_STDBOOL.
+
+- New and updated macros for Fortran support:
+
+    AC_FC_CHECK_BOUNDS to enable array bounds checking
+    AC_F77_IMPLICIT_NONE and AC_FC_IMPLICIT_NONE to disable implicit integer
+    AC_FC_MODULE_EXTENSION to compute the Fortran 90 module name extension
+    AC_FC_MODULE_FLAG for the Fortran 90 module search path flag
+    AC_FC_MODULE_OUTPUT_FLAG for the Fortran 90 module output directory flag
+    AC_FC_PP_SRCEXT for preprocessed Fortran source files extensions
+    AC_FC_PP_DEFINE for the Fortran preprocessor define flag
+
 * Noteworthy changes in release 2.68 (2010-09-22) [stable]
   Released by Eric Blake, based on git versions 2.67.*.
 
@@ -1223,7 +1263,7 @@ Release tips:
 ** Misc.
 
 - config.log
-  Now contains the list of ouput variables and files (AC_SUBST,
+  Now contains the list of output variables and files (AC_SUBST,
   AC_SUBST_FILES).
 
 * Major changes in Autoconf 2.53
@@ -1312,7 +1352,7 @@ Release tips:
 
 - AC_C_BIGENDIAN supports the cross-compiling case.
 - AC_C_BIGENDIAN accepts ACTION-IF-TRUE, ACTION-IF-FALSE, and
-  ACTION-IF-UNKNOWN arguments.  All are facultative, and the default
+  ACTION-IF-UNKNOWN arguments.  All are optional, and the default
   for ACTION-IF-TRUE is to define WORDS_BIGENDIAN like AC_C_BIGENDIAN
   always did.
 - AC_C_LONG_DOUBLE now succeeds only if `long double' has more range or
@@ -1655,12 +1695,12 @@ Major changes in Autoconf 2.13:
 
   Released 1999-05-01 by Ben Elliston.
 
-* Support for building on Win32 systems where the only available C or
+* Support for building on 32-bit Windows systems where the only available C or
   C++ compiler is the Microsoft Visual C++ command line compiler
-  (`cl').  Additional support for building on Win32 systems which are
+  (`cl').  Additional support for building on 32-bit Windows systems which are
   using the Cygwin or Mingw32 environments.
 * Support for alternative object file and executable file extensions.
-  On Win32, for example, these are .obj and .exe. These are discovered
+  On 32-bit Windows, for example, these are .obj and .exe. These are discovered
   using AC_OBJEXT and AC_EXEEXT, which substitute @OBJEXT@ and
   @EXEEXT@ in the output, respectively.
 * New macros: AC_CACHE_LOAD, AC_CACHE_SAVE, AC_FUNC_SELECT_ARGTYPES,
@@ -2062,9 +2102,7 @@ Various bug fixes.
 
 -----
 
-Copyright (C) 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001, 2002,
-2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation,
-Inc.
+Copyright (C) 1993-1996, 1998-2012 Free Software Foundation, Inc.
 
 Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright

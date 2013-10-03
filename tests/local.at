@@ -1,7 +1,6 @@
 # M4 macros used in building Autoconf test suites.        -*- Autotest -*-
 
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-# 2009, 2010 Free Software Foundation, Inc.
+# Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -48,10 +47,11 @@ AT_CHECK([$at_diff "$1" "$2"])
 # AT_CHECK_SHELL_SYNTAX(PROGRAM)
 # ------------------------------
 # If the shell handles `-n' well, use it to check the syntax of PROGRAM;
-# otherwise, do nothing.
+# otherwise, do nothing.  ksh93 -n also spits outs loads of warnings
+# about older constructs, but we don't care about the warnings.
 m4_define([AT_CHECK_SHELL_SYNTAX],
 [AT_SKIP_IF([test "$ac_cv_sh_n_works" != yes])
-AT_CHECK([/bin/sh -n $1])])
+AT_CHECK([/bin/sh -n $1], [], [], [ignore])])
 
 m4_define([AT_CHECK_PERL_SYNTAX],
 [AT_CHECK([autom4te_perllibdir=$abs_top_srcdir/lib $PERL -c "$abs_top_builddir"/bin/$1],
@@ -298,9 +298,10 @@ test -f state-ls.after \
 # Compare variable space dumps.
 if test -f state-env.before && test -f state-env.after; then
   set +x
+  grep_failed=false
   for act_file in state-env.before state-env.after
   do
-    $EGREP -v '^(m4_join([|],
+    ($EGREP -v '^(m4_join([|],
       [a[cs]_.*],
       [(exec_)?prefix|DEFS|CONFIG_STATUS],
       [CC|CFLAGS|CPP|GCC|CXX|CXXFLAGS|CXXCPP|GXX|F77|FFLAGS|FLIBS|G77],
@@ -308,6 +309,7 @@ if test -f state-env.before && test -f state-env.after; then
       [ERLANG_LIB_DIR_.*|ERLANG_LIB_VER_.*|ERLANG_INSTALL_LIB_DIR],
       [ERLANG_INSTALL_LIB_DIR_.*|ERLANG_ERTS_VER|OBJC|OBJCPP|OBJCFLAGS],
       [OBJCXX|OBJCXXCPP|OBJCXXFLAGS],
+      [GOC|GOFLAGS],
       [OPENMP_CFLAGS],
       [LIBS|LIB@&t@OBJS|LTLIBOBJS|LDFLAGS],
       [INSTALL(_(DATA|PROGRAM|SCRIPT))?],
@@ -316,19 +318,23 @@ if test -f state-env.before && test -f state-env.after; then
       [(host|build|target)(_(alias|cpu|vendor|os))?],
       [cross_compiling|U],
       [interpval|PATH_SEPARATOR],
-      [F77_DUMMY_MAIN|f77_(case|underscore)],
-      [FC(_DUMMY_MAIN|FLAGS|LIBS|FLAGS_f)?],
+      [GFC|F77_DUMMY_MAIN|f77_(case|underscore)],
+      [FC(_DUMMY_MAIN|FLAGS|LIBS|FLAGS_[fF]|_MODEXT|_MODINC|_MODOUT|_DEFINE)?],
       [ALLOCA|GETLOADAVG_LIBS|KMEM_GROUP|NEED_SETGID|POW_LIB],
       [AWK|LEX|LEXLIB|LEX_OUTPUT_ROOT|LN_S|M4|MKDIR_P|RANLIB|SET_MAKE|YACC],
       [GREP|[EF]GREP|SED],
       [[_@]|.[*#?$].],
       [argv|ARGC|LINENO|OLDPWD|PIPESTATUS|RANDOM|SECONDS]))=' \
-     $act_file 2>/dev/null |
+     $act_file ||
+       test $? -eq 1 || echo failed >&2
+    ) 2>stderr-$act_file |
       # There may be variables spread on several lines; remove latter lines.
-      $GREP '^m4_defn([m4_re_word])=' >clean-$act_file
+      $GREP '^m4_defn([m4_re_word])=' >clean-$act_file ||
+        test $? -eq 1 || grep_failed=:
+    test -s stderr-$act_file && grep_failed=:
   done
   $at_traceon
-  $at_diff clean-state-env.before clean-state-env.after
+  $grep_failed || $at_diff clean-state-env.before clean-state-env.after
 fi
 } [#]at_check_env])
 
@@ -368,6 +374,7 @@ do
 	/^m4_defn([m4_re_word])=./ !d
 	/^[[^=]]*='\'''\''$/ d
 	/^a[[cs]]_/ d
+	/^OLDPWD=/ d
 	/^PPID=/ d
 	/^RANDOM=/ d
 	/^SECONDS=/ d

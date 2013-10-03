@@ -1,7 +1,6 @@
 # Make Autoconf.
 
-# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008,
-# 2009, 2010 Free Software Foundation, Inc.
+# Copyright (C) 1999-2004, 2006-2012 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,12 +22,13 @@ SUBDIRS = bin . lib doc tests man
 
 ACLOCAL_AMFLAGS = -I m4
 
-EXTRA_DIST = ChangeLog.0 ChangeLog.1 ChangeLog.2 \
+EXTRA_DIST = ChangeLog.0 ChangeLog.1 ChangeLog.2 ChangeLog.3 \
 	     BUGS COPYINGv3 COPYING.EXCEPTION \
 	     GNUmakefile maint.mk cfg.mk \
 	     build-aux/gendocs.sh \
 	     build-aux/git-version-gen \
 	     build-aux/announce-gen build-aux/gnupload \
+	     build-aux/gitlog-to-changelog \
 	     .prev-version .version
 
 ## --------- ##
@@ -39,13 +39,40 @@ AM_MAKEINFOFLAGS = --no-headers --no-validate --no-split
 
 if MAKE_CASE_SENSITIVE
 pkgdata_DATA = $(srcdir)/INSTALL
-
 MAINTAINERCLEANFILES = $(srcdir)/INSTALL
+
+# Don't leave blank line at end of file.
+OMIT_TRAILING_EMPTY_LINES = '/^$$/H; /^$$/d; x; s/\n//p; s/\n*//; x'
+# Prefer 'plain quotes' over `makeinfo quotes'.
+CONVERT_QUOTES = "s/\`\([^']*\)'/'\1'/g"
+
 $(srcdir)/INSTALL: $(top_srcdir)/doc/install.texi
-	$(MAKEINFO) $(AM_MAKEINFOFLAGS) $(MAKEINFOFLAGS) --plaintext -o $@ \
-	  $(top_srcdir)/doc/install.texi
+	echo @firstparagraphindent insert				\
+	  | cat - $(top_srcdir)/doc/install.texi > tmp.texi
+	$(MAKEINFO) $(AM_MAKEINFOFLAGS) $(MAKEINFOFLAGS)		\
+	     --plaintext tmp.texi					\
+	  | sed -e $(CONVERT_QUOTES) -e $(OMIT_TRAILING_EMPTY_LINES)	\
+	     > $@-t && mv $@-t $@
+	rm -f tmp.texi
 endif
 
+# Generate the ChangeLog from git history.
+gen_start_date = 2012-01-15 18:00:00 UTC
+.PHONY: gen-ChangeLog
+gen-ChangeLog:
+	if test -d $(top_srcdir)/.git; then \
+	  $(top_srcdir)/build-aux/gitlog-to-changelog \
+	    --since='$(gen_start_date)' > $(distdir)/cl-t \
+	    && rm -f $(distdir)/ChangeLog \
+	    && mv $(distdir)/cl-t $(distdir)/ChangeLog; \
+	fi
+
+# Dummy rule, to pacify automake "gnu" strictness and allow a clean
+# bootstrap.  Creates a dummy ChangeLog (unless one is already present,
+# as might be the case for users of vc-dwim) that will be overridden
+# with a proper one at distribution time.
+ChangeLog:
+	@echo dummy > $@
 
 # Version string management.  There are two files to be aware of:
 # .tarball-version - present only in a distribution tarball, and not in
@@ -67,7 +94,7 @@ $(top_srcdir)/.version:
 
 # Arrange so that .tarball-version appears only in distribution tarballs,
 # never in a checked-out repository.
-dist-hook:
+dist-hook: gen-ChangeLog
 	echo $(VERSION) > $(distdir)/.tarball-version
 
 # Arrange to remove the symlink to GNUmakefile in VPATH builds.

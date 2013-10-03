@@ -1,7 +1,6 @@
 # This file is part of Autoconf.			-*- Autoconf -*-
 # Programming languages support.
-# Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-# 2010 Free Software Foundation, Inc.
+# Copyright (C) 2001-2012 Free Software Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the
@@ -191,7 +190,8 @@ choke me
 # errors with `-W error'.
 m4_define([AC_LANG_BOOL_COMPILE_TRY(C)],
 [AC_LANG_PROGRAM([$1], [static int test_array @<:@1 - 2 * !($2)@:>@;
-test_array @<:@0@:>@ = 0
+test_array @<:@0@:>@ = 0;
+return test_array @<:@0@:>@;
 ])])
 
 
@@ -1102,8 +1102,7 @@ AC_DEFUN([_AC_PROG_CC_C89],
 [_AC_C_STD_TRY([c89],
 [[#include <stdarg.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+struct stat;
 /* Most of the following tests are stolen from RCS 5.7's src/conf.sh.  */
 struct buf { int x; };
 FILE * (*rcsopen) (struct buf *, struct stat *, int);
@@ -1341,11 +1340,20 @@ dnl AIX		-qlanglvl=extc99 (unused restrictive mode: -qlanglvl=stdc99)
 dnl HP cc	-AC99
 dnl Intel ICC	-std=c99, -c99 (deprecated)
 dnl IRIX	-c99
-dnl Solaris	-xc99=all (Forte Developer 7 C mishandles -xc99 on Solaris 9,
-dnl		as it incorrectly assumes C99 semantics for library functions)
+dnl Solaris	-D_STDC_C99=
+dnl		cc's -xc99 option uses linker magic to define the external
+dnl		symbol __xpg4 as if by "int __xpg4 = 1;", which enables C99
+dnl		behavior for C library functions.  This is not wanted here,
+dnl		because it means that a single module compiled with -xc99
+dnl		alters C runtime behavior for the entire program, not for
+dnl		just the module.  Instead, define the (private) symbol
+dnl		_STDC_C99, which suppresses a bogus failure in <stdbool.h>.
+dnl		The resulting compiler passes the test case here, and that's
+dnl		good enough.  For more, please see the thread starting at:
+dnl            http://lists.gnu.org/archive/html/autoconf/2010-12/msg00059.html
 dnl Tru64	-c99
 dnl with extended modes being tried first.
-[[-std=gnu99 -std=c99 -c99 -AC99 -xc99=all -qlanglvl=extc99]], [$1], [$2])[]dnl
+[[-std=gnu99 -std=c99 -c99 -AC99 -D_STDC_C99= -qlanglvl=extc99]], [$1], [$2])[]dnl
 ])# _AC_PROG_CC_C99
 
 
@@ -1653,11 +1661,11 @@ esac
 AC_DEFUN([AC_C_CONST],
 [AC_CACHE_CHECK([for an ANSI C-conforming const], ac_cv_c_const,
 [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],
-[[/* FIXME: Include the comments suggested by Paul. */
+[[
 #ifndef __cplusplus
-  /* Ultrix mips cc rejects this.  */
+  /* Ultrix mips cc rejects this sort of thing.  */
   typedef int charset[2];
-  const charset cs;
+  const charset cs = { 0, 0 };
   /* SunOS 4.1.1 cc rejects this.  */
   char const *const *pcpcc;
   char **ppc;
@@ -1674,8 +1682,9 @@ AC_DEFUN([AC_C_CONST],
   ++pcpcc;
   ppc = (char**) pcpcc;
   pcpcc = (char const *const *) ppc;
-  { /* SCO 3.2v4 cc rejects this.  */
-    char *t;
+  { /* SCO 3.2v4 cc rejects this sort of thing.  */
+    char tx;
+    char *t = &tx;
     char const *s = 0 ? (char *) 0 : (char const *) 0;
 
     *t++ = 0;
@@ -1691,10 +1700,10 @@ AC_DEFUN([AC_C_CONST],
     iptr p = 0;
     ++p;
   }
-  { /* AIX XL C 1.02.0.0 rejects this saying
+  { /* AIX XL C 1.02.0.0 rejects this sort of thing, saying
        "k.c", line 2.27: 1506-025 (S) Operand must be a modifiable lvalue. */
-    struct s { int j; const int *ap[3]; };
-    struct s *b; b->j = 5;
+    struct s { int j; const int *ap[3]; } bx;
+    struct s *b = &bx; b->j = 5;
   }
   { /* ULTRIX-32 V3.1 (Rev 9) vcc rejects this */
     const int foo = 10;
@@ -1950,7 +1959,14 @@ m4_copy([_AC_LANG_OPENMP(C)], [_AC_LANG_OPENMP(C++)])
 # _AC_LANG_OPENMP(Fortran 77)
 # ---------------------------
 m4_define([_AC_LANG_OPENMP(Fortran 77)],
-[AC_LANG_FUNC_LINK_TRY([omp_get_num_threads])])
+[
+      program main
+      implicit none
+!$    integer tid
+      tid = 42
+      call omp_set_num_threads(2)
+      end
+])
 
 # _AC_LANG_OPENMP(Fortran)
 # ------------------------
@@ -1985,12 +2001,16 @@ AC_DEFUN([AC_OPENMP],
 	  dnl   SGI C, PGI C         -mp
 	  dnl   Tru64 Compaq C       -omp
 	  dnl   IBM C (AIX, Linux)   -qsmp=omp
+          dnl   Cray CCE             -homp
+          dnl   NEC SX               -Popenmp
+          dnl   Lahey Fortran (Linux)  --openmp
 	  dnl If in this loop a compiler is passed an option that it doesn't
 	  dnl understand or that it misinterprets, the AC_LINK_IFELSE test
 	  dnl will fail (since we know that it failed without the option),
 	  dnl therefore the loop will continue searching for an option, and
 	  dnl no output file called 'penmp' or 'mp' is created.
-	  for ac_option in -fopenmp -xopenmp -openmp -mp -omp -qsmp=omp; do
+	  for ac_option in -fopenmp -xopenmp -openmp -mp -omp -qsmp=omp -homp \
+                           -Popenmp --openmp; do
 	    ac_save_[]_AC_LANG_PREFIX[]FLAGS=$[]_AC_LANG_PREFIX[]FLAGS
 	    _AC_LANG_PREFIX[]FLAGS="$[]_AC_LANG_PREFIX[]FLAGS $ac_option"
 	    AC_LINK_IFELSE([_AC_LANG_OPENMP],

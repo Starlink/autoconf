@@ -1,7 +1,6 @@
 # Freeze M4 files.
 
-# Copyright (C) 2002, 2004, 2006, 2007, 2008, 2009, 2010 Free Software
-# Foundation, Inc.
+# Copyright (C) 2002, 2004, 2006-2012 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -89,6 +88,7 @@ autoconf_m4f_dependencies =			\
 	$(src_libdir)/autoconf/c.m4		\
 	$(src_libdir)/autoconf/fortran.m4	\
 	$(src_libdir)/autoconf/erlang.m4	\
+	$(src_libdir)/autoconf/go.m4		\
 	$(src_libdir)/autoconf/functions.m4	\
 	$(src_libdir)/autoconf/headers.m4	\
 	$(src_libdir)/autoconf/types.m4		\

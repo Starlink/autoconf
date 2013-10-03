@@ -1,6 +1,6 @@
 # Validation suite for Autoconf                           -*- Autotest -*-
 
-# Copyright (C) 2000, 2001, 2003, 2004, 2005, 2009, 2010 Free Software
+# Copyright (C) 2000-2001, 2003-2005, 2009-2012 Free Software
 # Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -52,6 +52,8 @@ m4_include([acc.at])
 m4_include([fortran.at])
 m4_include([acfortran.at])
 m4_include([erlang.at])
+m4_include([go.at])
+m4_include([acgo.at])
 
 # Checking that AC_CHECK_FOO macros work properly.
 m4_include([semantics.at])

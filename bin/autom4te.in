@@ -6,8 +6,7 @@ eval 'case $# in 0) exec @PERL@ -S "$0";; *) exec @PERL@ -S "$0" "$@";; esac'
     if 0;
 
 # autom4te - Wrapper around M4 libraries.
-# Copyright (C) 2001, 2002, 2003, 2005, 2006, 2007, 2008, 2009, 2010
-# Free Software Foundation, Inc.
+# Copyright (C) 2001-2003, 2005-2012 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -839,7 +838,7 @@ EOF
 
   # This is dubious: should we really transform the quadrigraphs in
   # traces?  It might break balanced [ ] etc. in the output.  The
-  # consensus seeems to be that traces are more useful this way.
+  # consensus seems to be that traces are more useful this way.
   while ($_ = $in->getline)
     {
       # It makes no sense to try to transform __oline__.

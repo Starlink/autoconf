@@ -2,8 +2,7 @@
 
 AT_BANNER([M4sh.])
 
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-# 2009, 2010 Free Software Foundation, Inc.
+# Copyright (C) 2000-2012 Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,6 +16,127 @@ AT_BANNER([M4sh.])
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+## --------------------------- ##
+## Re-exec with CONFIG_SHELL.  ##
+## --------------------------- ##
+
+AT_SETUP([No extra re-exec with CONFIG_SHELL])
+AT_KEYWORDS([CONFIG_SHELL])
+AT_DATA_M4SH([script.as],
+[[
+dnl We have to muck with internal details to goad the script into
+dnl thinking that the default shell is always good enough.
+m4_define([_AS_DETECT_REQUIRED_BODY], [])dnl
+m4_define([_AS_DETECT_SUGGESTED_BODY], [])dnl
+AS_INIT
+echo foo > ok
+]])
+AT_CHECK_M4SH
+AT_CHECK([CONFIG_SHELL=/bin/false ./script], [0], [], [])
+AT_CHECK([test -f ok], [0])
+rm -f ok
+
+AT_CLEANUP
+
+AT_SETUP([Forced re-exec with CONFIG_SHELL])
+AT_KEYWORDS([CONFIG_SHELL])
+
+AT_DATA_M4SH([script.as],
+[[m4_define([_AS_FORCE_REEXEC_WITH_CONFIG_SHELL], [yes])
+AS_INIT
+echo foo > sentinel
+]])
+AT_CHECK_M4SH
+
+# Calling the script simply 'script' could cause problems with
+# Solaris /usr/xpg4/bin/sh in the invocation 'sh script' below.
+mv -f script script2
+
+AT_DATA([fake-shell],
+[[#!/bin/sh
+echo 'Fake shell executed.'
+shift # fake shell
+echo "nargs = @S|@#"
+for i
+do
+  printf ' :%s:\n' "$i"
+done
+]])
+chmod a+x fake-shell
+
+AT_CHECK([CONFIG_SHELL=./fake-shell ./script2 1 2 4 8], [0],
+[Fake shell executed.
+nargs = 4
+ :1:
+ :2:
+ :4:
+ :8:
+], [])
+AT_CHECK([test ! -f sentinel], [0])
+test ! -f sentinel || rm -f sentinel # Cleanup for next test.
+
+AT_CHECK(
+[CONFIG_SHELL=`pwd`/fake-shell sh script2 a 'b  c' '  d	   e '],
+[0],
+[Fake shell executed.
+nargs = 3
+ :a:
+ :b  c:
+ :  d	   e :
+], [])
+AT_CHECK([test ! -f sentinel], [0])
+test ! -f sentinel || rm -f sentinel # Cleanup for next test.
+
+AT_CHECK([(PATH=`pwd`:$PATH; export PATH;
+CONFIG_SHELL=fake-shell script2 '' '&' '!;*' '<($[]@%:@)>,' 'x
+y  z
+1 2 3')], [0],
+[Fake shell executed.
+nargs = 5
+ ::
+ :&:
+ :!;*:
+ :<($[]@%:@)>,:
+ :x
+y  z
+1 2 3:
+], [])
+AT_CHECK([test ! -f sentinel], [0])
+test ! -f sentinel || rm -f sentinel # Cleanup for next test.
+
+AT_CLEANUP
+
+AT_SETUP([Configure re-execs self with CONFIG_SHELL])
+
+AT_DATA([configure.ac],
+[[AC_INIT
+echo foobar >> quux
+]])
+
+AT_CHECK_AUTOCONF
+
+AT_DATA([cfg-sh],
+[[#!/bin/sh
+: > cfg-sh-has-run
+exec sh "@S|@@"
+]])
+chmod a+x cfg-sh
+
+AT_CAPTURE_FILE([config.log])
+# Export CONFIG_SITE to /dev/null to avoid spurious diffs in expected
+# stdout/stderr.
+AT_CHECK([env CONFIG_SITE=/dev/null CONFIG_SHELL=./cfg-sh ./configure],
+         [0], [], [])
+# ./configure re-executed itself.
+AT_CHECK([test -f cfg-sh-has-run], [0])
+# And did that not to cause extra execution of later commands.
+AT_CHECK([cat quux], [0], [foobar
+], [])
+
+rm -f quux cfg-sh*
+AT_CLEANUP
+
 
 ## ------------------- ##
 ## AS_WARN, AS_ERROR.  ##
@@ -434,6 +554,58 @@ AS_EXIT(0)
 
 AT_CHECK_M4SH
 AT_CHECK([$CONFIG_SHELL ./script])
+
+AT_CLEANUP
+
+
+
+## ----------------- ##
+## AS_EXECUTABLE_P.  ##
+## ----------------- ##
+
+# Check for executable regular files.
+AT_SETUP([AS@&t@_EXECUTABLE_P])
+AT_KEYWORDS([m4sh])
+
+AT_DATA_M4SH([script.as],
+[[AS_INIT
+
+if AS_EXECUTABLE_P([/]); then
+  echo fail
+else
+  echo 1
+fi
+cat > foo.sh <<\EOF || AS_EXIT([1])
+#!/bin/sh
+exit 0
+EOF
+# File systems like FAT tend to fake executable permissions on all files.
+# At this point, foo.sh should be executable iff permissions are faked.
+AS_EXECUTABLE_P([foo.sh])
+st1=$?
+(./foo.sh) >/dev/null 2>&1
+st2=$?
+case $st1:$st2 in
+  *[[1-9]]*:*[[1-9]]* | 0:0 ) echo 2 ;;
+  *) echo "fail ($st1:$st2)" ;;
+esac
+# Now things better be executable
+chmod a+x foo.sh || AS_EXIT([2])
+mkdir 'two  spaces' || AS_EXIT([3])
+'two  spaces'/../foo.sh || AS_EXIT([4])
+if AS_EXECUTABLE_P(["two  spaces/../foo.sh"]); then
+  echo 3
+else
+  echo fail
+fi
+]])
+
+AT_CHECK_M4SH
+AT_CHECK([$CONFIG_SHELL ./script], [],
+[[1
+2
+3
+]])
 
 AT_CLEANUP
 
@@ -1278,6 +1450,10 @@ echo AS_LITERAL_HEREDOC_IF([(a)], [ok], [ERR]) 20
 echo AS_LITERAL_IF([@S|@a], [ERR], [ok]) 21
 echo AS_LITERAL_WORD_IF([@S|@a], [ERR], [ok]) 22
 echo AS_LITERAL_HEREDOC_IF([@S|@a], [ERR], [ok]) 23
+echo AS_LITERAL_IF([${a+b}], [ERR1], [ok], [ERR2]) 24
+echo AS_LITERAL_IF([${a=b}], [ERR1], [ok], [ERR2]) 25
+echo AS_LITERAL_IF([a+b], [ok], [ERR1], [ERR2]) 26
+echo AS_LITERAL_IF([a=b], [ok], [ERR1], [ERR2]) 27
 ]])
 
 AT_CHECK_M4SH
@@ -1305,6 +1481,10 @@ ok 20
 ok 21
 ok 22
 ok 23
+ok 24
+ok 25
+ok 26
+ok 27
 ]])
 
 AT_CLEANUP
@@ -1342,12 +1522,13 @@ echo AS_TR_CPP(`echo abc`) AS_TR_CPP(`echo aBc`) AS_TR_CPP(`echo ABC`)
 echo AS_TR_CPP([`echo abc`]) AS_TR_CPP([`echo aBc`]) AS_TR_CPP([`echo ABC`])
 echo AS_TR_CPP([[`echo abc`]]) AS_TR_CPP([[`echo aBc`]]) AS_TR_CPP([[`echo ABC`]])
 echo ===
-echo AS_TR_SH([a.b/c+*-])
-echo AS_TR_CPP([a.b/c+*-])
-var=a.b/c+*-
+# start here
+echo AS_TR_SH([a.b/c+*-=])
+echo AS_TR_CPP([a.b/c+*-=])
+var=a.b/c+*-=
 echo AS_TR_SH([$var])
 echo AS_TR_CPP([$var])
-m4_define([macro], [a.b/c+*-])
+m4_define([macro], [a.b/c+*-=])
 echo AS_TR_SH([macro])
 echo AS_TR_CPP([macro])
 ]])
@@ -1375,12 +1556,20 @@ HI ABC HI
 HI ABC HI
 ABC ABC ABC
 ===
-a_b_cpp_
-A_B_C_P_
-a_b_cpp_
-A_B_C_P_
-a_b_cpp_
-A_B_C_P_
+a_b_cpp__
+A_B_C_P__
+a_b_cpp__
+A_B_C_P__
+a_b_cpp__
+A_B_C_P__
+]])
+
+dnl Check that of the last 6 macros, only 2 needed command substitution.
+dnl This test abuses our knowledge of m4sh internals a bit; oh well.
+AT_CHECK([tab='	' # a single ASCII tab character
+sed -n '/start here/,$ {
+/`.*`/p
+}' script | wc -l | sed "s/[[ $tab]]//g" ], [], [[2
 ]])
 
 AT_CLEANUP

@@ -21,6 +21,7 @@ Alec Wolman                 wolman@cs.washington.edu
 Alex Unleashed              unledev@gmail.com
 Alexander Kurz              alexander.kurz@qsc.de
 Alexander Mai               ?
+Alexander Pletzer           pletzer@txcorp.com
 Alexandre Duret-Lutz        duret_g@epita.fr
 Alexandre Julliard          ?
 Alexandre Oliva             oliva@lsd.ic.unicamp.br
@@ -49,6 +50,7 @@ Axel Thimm                  Axel.Thimm@physik.fu-berlin.de
 Bart Oldeman                bartoldeman@users.sourceforge.net
 Ben Elliston                bje@redhat.com
 Ben Pfaff                   pfaffben@debian.org
+Benoit Sigoure              tsunanet@gmail.com
 Bill Moseley                moseley@hank.org
 Bill Northcott              w.northcott@unsw.edu.au
 Bill Sommerfeld             sommerfeld@apollo.hp.com
@@ -80,9 +82,11 @@ Christian Cornelssen        ccorn@cs.tu-berlin.de
 Christian Krackowizer       ckrackowiz@std.schuler-ag.com
 Christian Krone             krischan@sql.de
 Christian Rössel            christian.roessel@gmx.de
+Christophe Jarry            christophe.jarry@ouvaton.org
 Christopher Hulbert         cchgroupmail@gmail.com
 Christopher Lee             chrislee@ri.cmu.edu
 Clinton Roy                 clinton.roy@gmail.com
+Colin Watson                cjwatson@debian.org
 Corinna Vinschen            corinna-cygwin@cygwin.com
 Cort Dougan                 cort@cs.nmt.edu
 D'Arcy A MacIsaac           ?
@@ -151,6 +155,7 @@ Greg A. Woods               woods@weird.com
 Greg Schafer                gschafer@zip.com.au
 Gregorio Guidi              ?
 Gregory Giannoni            sand@narguile.org
+Giulio Paci                 giuliopaci@interfree.it
 Guido Draheim               Guido.Draheim@gmx.de
 Guido Flohr                 gufl0000@stud.uni-sb.de
 Guido van Rossum            ?
@@ -190,6 +195,7 @@ Jeremy Yallop               jeremy@yallop.org
 Jerker Bäck                 jerker.back@home.se
 Jim Blandy                  jimb@wookumz.gnu.ai.mit.edu
 Jim Meyering                meyering@ascend.com
+Jim Warhol                  jrw@jwarhol.com
 Jiro Takabatake             jiro@din.or.jp
 Jochen Friedrich            jochen@scram.de
 Joel E. Denny               jdenny@ces.clemson.edu
@@ -206,8 +212,10 @@ Jonathan Kamens             jik@kamens.brookline.ma.us
 Josef Tran                  josef@timetrackertechnology.com
 Josef Vukovic               josefvukovic@googlemail.com
 Joseph S. Myers             jsm28@cam.ac.uk
+Joshua G. Hale              jgh.emc@gmail.com
 Juan Carlos Hurtado         adso.lists@gmail.com
 Jules Colding               colding@42tools.com
+Julian C. Cummings          cummings@cacr.caltech.edu
 Julian Onions               j.onions@nexor.co.uk
 Julien Danjou               acid@debian.org
 Julien Élie                 julien@trigofacile.com
@@ -229,6 +237,7 @@ Kevin Ryde                  user42@zip.com.au
 Klee Dienes                 kdienes@apple.com
 Koji Arai                   JCA02266@nifty.ne.jp
 Kristian Kvilekval          kris@cs.ucsb.edu
+Křištof Želechovski         giecrilj@stegny.2a.pl
 Kurt D. Zeilenga            kurt@openldap.org
 Larry Jones                 larry.jones@sdrc.com
 Larry Schmitt               larry@mail.haleakalawebdesigns.com
@@ -238,6 +247,7 @@ Lars J. Aas                 larsa@sim.no
 Laurence Darbe              ldarby@tuffmail.com
 Leo Moisio                  leo.moisio@gmail.com
 Loulou Pouchet              loulou@lrde.epita.fr
+Luc Maisonobe               luc@spaceroots.org
 Ludovic Courtes             ?
 Luke Dalessandro            luked@cs.rochester.edu
 Magnus Therning             therning@gforge.natlab.research.philips.com
@@ -254,6 +264,7 @@ Mark Hessling               mark@rexx.org
 Mark Kettenis               kettenis@gnu.org
 Markku Savela               msa@msa.tte.vtt.fi
 Markus Oberhumer            markus.oberhumer@jk.uni-linz.ac.at
+Markus Geimer               m.geimer@fz-juelich.de
 Martin Buchholz             martin@xemacs.org
 Martin Costabel             costabel@wanadoo.fr
 Martin Frydl                martin@systinet.com
@@ -262,6 +273,7 @@ Martin Mokrejs              mmokrejs@natur.cuni.cz
 Martin Wilck                martin@tropos.de
 Martyn Johnson              Martyn.Johnson@cl.cam.ac.uk
 Matěj Týč                   matej.tyc@gmail.com
+Matt Kraai                  kraai@ftbfs.org
 Matteo Frigo                ?
 Matthew D. Langston         langston@SLAC.Stanford.EDU
 Matthew Mueller             donut@azstarnet.com
@@ -282,12 +294,14 @@ Mo DeJong                   mdejong@cygnus.com
 Momchil Velkov              velco@fadata.bg
 Monty Taylor                mordred@inaugust.com
 Morten Eriksen              mortene@sim.no
+Mostafa                     mostafa_working_away@yahoo.com
 Motoyuki Kasahara           m-kasahr@sra.co.jp
 Nathan Schulte              reklipz@gmail.com
 Nathanael Nerode            neroden@gcc.gnu.org
 Nelson H. F. Beebe          beebe@math.utah.edu
 Nicolas Joly                njoly@pasteur.fr
 Nicolás Lichtmaier          jnl@synapsis-sa.com.ar
+Nick Bowler                 nbowler@elliptictech.com
 NightStrike                 nightstrike@gmail.com
 Nishio Futoshi              fut_nis@d3.dion.ne.jp
 Noah Elliott                elliott@hera.llnl.gov
@@ -312,6 +326,7 @@ Paul Martinolich            martinol@datasync.com
 Paul Pogonyshev             ?
 Paul Townsend               ?
 Pavel Roskin                pavel_roskin@geocities.com
+Pádraig Brady               P@draigbrady.com
 Per Øyvind Karlsen          peroyvind@mandriva.org
 Peter Breitenlohner         peb@mppmu.mpg.de
 Peter Eisentraut            peter_e@gmx.net
@@ -392,6 +407,7 @@ Tim Freeman                 tim@fungible.com
 Tim Mooney                  mooney@dogbert.cc.ndsu.NoDak.edu
 Tim Rice                    tim@multitalents.net
 Tim Van Holder              tim.van.holder@pandora.be
+Tobias Burnus               burnus@net-b.de
 Tom Browder                 tom.browder@gmail.com
 Tom Epperly                 tepperly@llnl.gov
 Tom Lane                    tgl@sss.pgh.pa.us
@@ -432,8 +448,7 @@ mode: text
 coding: utf-8
 End:
 
-Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-2008, 2009, 2010 Free Software Foundation, Inc.
+Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

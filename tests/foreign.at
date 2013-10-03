@@ -2,8 +2,7 @@
 
 AT_BANNER([Compatibility with other tools.])
 
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2009,
-# 2010 Free Software Foundation, Inc.
+# Copyright (C) 2000-2007, 2009-2012 Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -104,7 +103,7 @@ AC_OUTPUT
 
 AT_DATA([Makefile.in],
 [[SHTOOL = @SHTOOL@
-# fake these, so that we use shtool whereever possible.
+# fake these, so that we use shtool wherever possible.
 INSTALL_PROGRAM = $(ac_install_sh)
 INSTALL_DATA = $(ac_install_sh) -m 644
 prefix = @prefix@

@@ -1,8 +1,8 @@
 # This file is part of Autoconf.                       -*- Autoconf -*-
 # Interface with autoupdate.
 
-# Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
-# 2003, 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
+# Copyright (C) 1992-1996, 1998-2001, 2003-2004, 2006, 2009-2012 Free
+# Software Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the
@@ -96,7 +96,7 @@ $2])])
 #
 # Moreover, we have to take care that calls without parameters are
 # expanded to calls without parameters, not with one empty parameter.
-# This is not only an aesthetical improvement of autoupdate, it also
+# This is not only an aesthetic improvement of autoupdate, it also
 # matters with poorly written macros which test for $# = 0.
 #
 m4_define([AU_ALIAS],

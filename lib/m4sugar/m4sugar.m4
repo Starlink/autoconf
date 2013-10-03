@@ -3,8 +3,7 @@ divert(-1)#                                                  -*- Autoconf -*-
 # Base M4 layer.
 # Requires GNU M4.
 #
-# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-# 2008, 2009, 2010 Free Software Foundation, Inc.
+# Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the
@@ -951,7 +950,7 @@ m4_define([m4_make_list], [m4_join([,
 # m4_noquote(STRING)
 # ------------------
 # Return the result of ignoring all quotes in STRING and invoking the
-# macros it contains.  Amongst other things, this is useful for enabling
+# macros it contains.  Among other things, this is useful for enabling
 # macro invocations inside strings with [] blocks (for instance regexps
 # and help-strings).  On the other hand, since all quotes are disabled,
 # any macro expanded during this time that relies on nested [] quoting
@@ -2101,7 +2100,8 @@ m4_provide_if([$1], [m4_set_remove([_m4_provide], [$1])],
 m4_define([_m4_require_check],
 [m4_if(_m4_defn([_m4_diverting]), [$2], [m4_ignore],
        m4_ifdef([_m4_diverting([$2])], [-]), [-], [m4_warn([syntax],
-   [$3: `$1' was expanded before it was required])_m4_require_call],
+   [$3: `$1' was expanded before it was required
+http://www.gnu.org/software/autoconf/manual/autoconf.html#Expanded-Before-Required])_m4_require_call],
        [m4_ignore])])
 
 
@@ -2647,7 +2647,7 @@ dnl prefix1 shorter: pad to length of prefix, and reset cursor
 [$2]m4_define([m4_Cursor], m4_Indent)],
 	      [m4_format([%*s], m4_max([0],
   m4_eval(m4_Indent - m4_Cursor)), [])m4_define([m4_Cursor], m4_Indent)])]],
-dnl now, for each word, compute the curser after the word is output, then
+dnl now, for each word, compute the cursor after the word is output, then
 dnl check if the cursor would exceed the wrap column
 dnl if so, reset cursor, and insert newline and prefix
 dnl if not, insert the separator (usually a space)
