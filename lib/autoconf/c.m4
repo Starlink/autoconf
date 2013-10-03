@@ -389,12 +389,20 @@ AC_DEFUN([_AC_ARG_VAR_CPPFLAGS],
 # _AC_ARG_VAR_LDFLAGS
 # -------------------
 # Document and register LDFLAGS, which is used by
-# AC_PROG_{CC, CXX, F77}.
+# AC_PROG_{CC, CXX, F77, FC, OBJC}.
 AC_DEFUN([_AC_ARG_VAR_LDFLAGS],
 [AC_ARG_VAR([LDFLAGS],
 	    [linker flags, e.g. -L<lib dir> if you have libraries in a
 	     nonstandard directory <lib dir>])])
 
+
+# _AC_ARG_VAR_LIBS
+# ----------------
+# Document and register LIBS, which is used by
+# AC_PROG_{CC, CXX, F77, FC, OBJS}.
+AC_DEFUN([_AC_ARG_VAR_LIBS],
+[AC_ARG_VAR([LIBS],
+	    [libraries to pass to the linker, e.g. -l<library>])])
 
 
 # AC_LANG_PREPROC(C)
@@ -408,7 +416,6 @@ AC_DEFUN([AC_LANG_PREPROC(C)],
 # -----------------------------------------------
 # Check if $ac_cpp is a working preprocessor that can flag absent
 # includes either by the exit status or by warnings.
-# Set ac_cpp_err to a non-empty value if the preprocessor failed.
 # This macro is for all languages, not only C.
 AC_DEFUN([_AC_PROG_PREPROC_WORKS_IFELSE],
 [ac_preproc_ok=false
@@ -517,6 +524,7 @@ AC_DEFUN([AC_PROG_CC],
 AC_ARG_VAR([CC],     [C compiler command])dnl
 AC_ARG_VAR([CFLAGS], [C compiler flags])dnl
 _AC_ARG_VAR_LDFLAGS()dnl
+_AC_ARG_VAR_LIBS()dnl
 _AC_ARG_VAR_CPPFLAGS()dnl
 m4_ifval([$1],
       [AC_CHECK_TOOLS(CC, [$1])],
@@ -603,7 +611,8 @@ fi[]dnl
 # -----------------------
 AN_FUNCTION([ioctl],   [AC_PROG_GCC_TRADITIONAL])
 AC_DEFUN([AC_PROG_GCC_TRADITIONAL],
-[if test $ac_cv_c_compiler_gnu = yes; then
+[AC_REQUIRE([AC_PROG_CC])dnl
+if test $ac_cv_c_compiler_gnu = yes; then
     AC_CACHE_CHECK(whether $CC needs -traditional,
       ac_cv_prog_gcc_traditional,
 [  ac_pattern="Autoconf.*'x'"
@@ -952,6 +961,7 @@ AC_DEFUN([AC_PROG_CXX],
 AC_ARG_VAR([CXX],      [C++ compiler command])dnl
 AC_ARG_VAR([CXXFLAGS], [C++ compiler flags])dnl
 _AC_ARG_VAR_LDFLAGS()dnl
+_AC_ARG_VAR_LIBS()dnl
 _AC_ARG_VAR_CPPFLAGS()dnl
 _AC_ARG_VAR_PRECIOUS([CCC])dnl
 if test -z "$CXX"; then
@@ -1122,6 +1132,7 @@ AC_DEFUN([AC_PROG_OBJC],
 AC_ARG_VAR([OBJC],      [Objective C compiler command])dnl
 AC_ARG_VAR([OBJCFLAGS], [Objective C compiler flags])dnl
 _AC_ARG_VAR_LDFLAGS()dnl
+_AC_ARG_VAR_LIBS()dnl
 _AC_ARG_VAR_CPPFLAGS()dnl
 _AC_ARG_VAR_PRECIOUS([OBJC])dnl
 AC_CHECK_TOOLS(OBJC,
@@ -1305,8 +1316,11 @@ AS_IF([test "x$ac_cv_prog_cc_$1" != xno], [$5], [$6])
 # If the C compiler is not in ISO C99 mode by default, try to add an
 # option to output variable CC to make it so.  This macro tries
 # various options that select ISO C99 on some system or another.  It
-# considers the compiler to be in ISO C99 mode if it handles mixed
-# code and declarations, _Bool, inline and restrict.
+# considers the compiler to be in ISO C99 mode if it handles _Bool,
+# // comments, flexible array members, inline, long long int, mixed
+# code and declarations, named initialization of structs, restrict,
+# va_copy, varargs macros, variable declarations in for loops and
+# variable length arrays.
 AC_DEFUN([_AC_PROG_CC_C99],
 [_AC_C_STD_TRY([c99],
 [[#include <stdarg.h>
@@ -1314,6 +1328,35 @@ AC_DEFUN([_AC_PROG_CC_C99],
 #include <stdlib.h>
 #include <wchar.h>
 #include <stdio.h>
+
+// Check varargs macros.  These examples are taken from C99 6.10.3.5.
+#define debug(...) fprintf (stderr, __VA_ARGS__)
+#define showlist(...) puts (#__VA_ARGS__)
+#define report(test,...) ((test) ? puts (#test) : printf (__VA_ARGS__))
+static void
+test_varargs_macros (void)
+{
+  int x = 1234;
+  int y = 5678;
+  debug ("Flag");
+  debug ("X = %d\n", x);
+  showlist (The first, second, and third items.);
+  report (x>y, "x is %d but y is %d", x, y);
+}
+
+// Check long long types.
+#define BIG64 18446744073709551615ull
+#define BIG32 4294967295ul
+#define BIG_OK (BIG64 / BIG32 == 4294967297ull && BIG64 % BIG32 == 0)
+#if !BIG_OK
+  your preprocessor is broken;
+#endif
+#if BIG_OK
+#else
+  your preprocessor is broken;
+#endif
+static long long int bignum = -9223372036854775807LL;
+static unsigned long long int ubignum = BIG64;
 
 struct incomplete_array
 {
@@ -1330,7 +1373,7 @@ struct named_init {
 typedef const char *ccp;
 
 static inline int
-test_restrict(ccp restrict text)
+test_restrict (ccp restrict text)
 {
   // See if C++-style comments work.
   // Iterate through items via the restricted pointer.
@@ -1340,14 +1383,14 @@ test_restrict(ccp restrict text)
   return 0;
 }
 
-// Check varargs and va_copy work.
+// Check varargs and va_copy.
 static void
-test_varargs(const char *format, ...)
+test_varargs (const char *format, ...)
 {
   va_list args;
-  va_start(args, format);
+  va_start (args, format);
   va_list args_copy;
-  va_copy(args_copy, args);
+  va_copy (args_copy, args);
 
   const char *str;
   int number;
@@ -1358,44 +1401,43 @@ test_varargs(const char *format, ...)
       switch (*format++)
 	{
 	case 's': // string
-	  str = va_arg(args_copy, const char *);
+	  str = va_arg (args_copy, const char *);
 	  break;
 	case 'd': // int
-	  number = va_arg(args_copy, int);
+	  number = va_arg (args_copy, int);
 	  break;
 	case 'f': // float
-	  fnumber = (float) va_arg(args_copy, double);
+	  fnumber = va_arg (args_copy, double);
 	  break;
 	default:
 	  break;
 	}
     }
-  va_end(args_copy);
-  va_end(args);
+  va_end (args_copy);
+  va_end (args);
 }
 ]],
 [[
-  // Check bool and long long datatypes.
+  // Check bool.
   _Bool success = false;
-  long long int bignum = -1234567890LL;
-  unsigned long long int ubignum = 1234567890uLL;
 
   // Check restrict.
-  if (test_restrict("String literal") != 0)
+  if (test_restrict ("String literal") == 0)
     success = true;
   char *restrict newvar = "Another string";
 
   // Check varargs.
-  test_varargs("s, d' f .", "string", 65, 34.234);
+  test_varargs ("s, d' f .", "string", 65, 34.234);
+  test_varargs_macros ();
 
-  // Check incomplete arrays work.
+  // Check flexible array members.
   struct incomplete_array *ia =
-    malloc(sizeof(struct incomplete_array) + (sizeof(double) * 10));
+    malloc (sizeof (struct incomplete_array) + (sizeof (double) * 10));
   ia->datasize = 10;
   for (int i = 0; i < ia->datasize; ++i)
-    ia->data[i] = (double) i * 1.234;
+    ia->data[i] = i * 1.234;
 
-  // Check named initialisers.
+  // Check named initializers.
   struct named_init ni = {
     .number = 34,
     .name = L"Test wide string",
@@ -1405,10 +1447,11 @@ test_varargs(const char *format, ...)
   ni.number = 58;
 
   int dynamic_array[ni.number];
-  dynamic_array[43] = 543;
+  dynamic_array[ni.number - 1] = 543;
 
   // work around unused variable warnings
-  return  bignum == 0LL || ubignum == 0uLL || newvar[0] == 'x';
+  return (!success || bignum == 0LL || ubignum == 0uLL || newvar[0] == 'x'
+	  || dynamic_array[ni.number - 1] != 543);
 ]],
 dnl Try
 dnl GCC		-std=gnu99 (unused restrictive modes: -std=c99 -std=iso9899:1999)
@@ -1512,7 +1555,8 @@ AC_DEFUN([AC_C_BIGENDIAN],
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <sys/types.h>
 #include <sys/param.h>
 ],
-[#if !BYTE_ORDER || !BIG_ENDIAN || !LITTLE_ENDIAN
+[#if  ! (defined BYTE_ORDER && defined BIG_ENDIAN && defined LITTLE_ENDIAN \
+	&& BYTE_ORDER && BIG_ENDIAN && LITTLE_ENDIAN)
  bogus endian macros
 #endif
 ])],
@@ -1632,10 +1676,10 @@ AC_DEFUN([AC_C_CONST],
 #ifndef __cplusplus
   /* Ultrix mips cc rejects this.  */
   typedef int charset[2];
-  const charset x;
+  const charset cs;
   /* SunOS 4.1.1 cc rejects this.  */
-  char const *const *ccp;
-  char **p;
+  char const *const *pcpcc;
+  char **ppc;
   /* NEC SVR4.0.2 mips cc rejects this.  */
   struct point {int x, y;};
   static struct point const zero = {0,0};
@@ -1644,11 +1688,11 @@ AC_DEFUN([AC_C_CONST],
      an arm of an if-expression whose if-part is not a constant
      expression */
   const char *g = "string";
-  ccp = &g + (g ? g-g : 0);
+  pcpcc = &g + (g ? g-g : 0);
   /* HPUX 7.0 cc rejects these. */
-  ++ccp;
-  p = (char**) ccp;
-  ccp = (char const *const *) p;
+  ++pcpcc;
+  ppc = (char**) pcpcc;
+  pcpcc = (char const *const *) ppc;
   { /* SCO 3.2v4 cc rejects this.  */
     char *t;
     char const *s = 0 ? (char *) 0 : (char const *) 0;
@@ -1675,7 +1719,7 @@ AC_DEFUN([AC_C_CONST],
     const int foo = 10;
     if (!foo) return 0;
   }
-  return !x[0] && !zero.x;
+  return !cs[0] && !zero.x;
 #endif
 ]])],
 		   [ac_cv_c_const=yes],
@@ -1793,6 +1837,61 @@ else
   AC_MSG_RESULT([no])
 fi
 ])# AC_C_PROTOTYPES
+
+
+# AC_C_FLEXIBLE_ARRAY_MEMBER
+# --------------------------
+# Check whether the C compiler supports flexible array members.
+AC_DEFUN([AC_C_FLEXIBLE_ARRAY_MEMBER],
+[
+  AC_CACHE_CHECK([for flexible array members],
+    ac_cv_c_flexmember,
+    [AC_COMPILE_IFELSE(
+       [AC_LANG_PROGRAM(
+	  [[#include <stdlib.h>
+	    #include <stdio.h>
+	    #include <stddef.h>
+	    struct s { int n; double d[]; };]],
+	  [[int m = getchar ();
+	    struct s *p = malloc (offsetof (struct s, d)
+				  + m * sizeof (double));
+	    p->d[0] = 0.0;
+	    return p->d != (double *) NULL;]])],
+       [ac_cv_c_flexmember=yes],
+       [ac_cv_c_flexmember=no])])
+  if test $ac_cv_c_flexmember = yes; then
+    AC_DEFINE([FLEXIBLE_ARRAY_MEMBER], [],
+      [Define to nothing if C supports flexible array members, and to
+       1 if it does not.  That way, with a declaration like `struct s
+       { int n; double d@<:@FLEXIBLE_ARRAY_MEMBER@:>@; };', the struct hack
+       can be used with pre-C99 compilers.
+       When computing the size of such an object, don't use 'sizeof (struct s)'
+       as it overestimates the size.  Use 'offsetof (struct s, d)' instead.
+       Don't use 'offsetof (struct s, d@<:@0@:>@)', as this doesn't work with
+       MSVC and with C++ compilers.])
+  else
+    AC_DEFINE([FLEXIBLE_ARRAY_MEMBER], 1)
+  fi
+])
+
+
+# AC_C_VARARRAYS
+# --------------
+# Check whether the C compiler supports variable-length arrays.
+AC_DEFUN([AC_C_VARARRAYS],
+[
+  AC_CACHE_CHECK([for variable-length arrays],
+    ac_cv_c_vararrays,
+    [AC_COMPILE_IFELSE(
+       [AC_LANG_PROGRAM([],
+	  [[static int x; char a[++x]; a[sizeof a - 1] = 0; return a[0];]])],
+       [ac_cv_c_vararrays=yes],
+       [ac_cv_c_vararrays=no])])
+  if test $ac_cv_c_vararrays = yes; then
+    AC_DEFINE([HAVE_C_VARARRAYS], 1,
+      [Define to 1 if C supports variable-length arrays.])
+  fi
+])
 
 
 # AC_C_TYPEOF

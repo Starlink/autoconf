@@ -31,8 +31,8 @@ dnl  Include the TARNAME field, not because we want to distribute
 dnl  this package, but so that autoconf uses this when building some
 dnl  installation locations rather than the "starlink-autoconf" it
 dnl  would otherwise construct.
-AC_INIT([Starlink Autoconf], [2.60], [starlink@jiscmail.ac.uk], autoconf)
-dnl AC_INIT([GNU Autoconf], [2.60], [bug-autoconf@gnu.org])
+AC_INIT([Starlink Autoconf], [2.61-starlink], [starlink@jiscmail.ac.uk], autoconf)
+dnl AC_INIT([GNU Autoconf], [2.61], [bug-autoconf@gnu.org])
 AC_SUBST([PACKAGE_NAME])dnl
 AC_CONFIG_SRCDIR([ChangeLog])
 
@@ -41,8 +41,7 @@ AC_CONFIG_SRCDIR([ChangeLog])
 : ${STAR_MANIFEST_DIR='$(prefix)/manifests'}
 AC_SUBST(STAR_MANIFEST_DIR)
 
-AC_CONFIG_AUX_DIR([config])
-AC_CONFIG_FILES([config/Makefile])
+AC_CONFIG_AUX_DIR([build-aux])
 
 AM_INIT_AUTOMAKE([check-news 1.7.9 dist-bzip2 readme-alpha])
 

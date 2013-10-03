@@ -149,16 +149,16 @@
 # constructs in general.
 m4_define([_AC_CHECK_TYPE_NEW],
 [AS_VAR_PUSHDEF([ac_Type], [ac_cv_type_$1])dnl
-AC_CACHE_CHECK([for $1], ac_Type,
+AC_CACHE_CHECK([for $1], [ac_Type],
 [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT([$4])
 typedef $1 ac__type_new_;],
 [if ((ac__type_new_ *) 0)
   return 0;
 if (sizeof (ac__type_new_))
   return 0;])],
-		   [AS_VAR_SET(ac_Type, yes)],
-		   [AS_VAR_SET(ac_Type, no)])])
-AS_IF([test AS_VAR_GET(ac_Type) = yes], [$2], [$3])[]dnl
+		   [AS_VAR_SET([ac_Type], [yes])],
+		   [AS_VAR_SET([ac_Type], [no])])])
+AS_IF([test AS_VAR_GET([ac_Type]) = yes], [$2], [$3])[]dnl
 AS_VAR_POPDEF([ac_Type])dnl
 ])# _AC_CHECK_TYPE_NEW
 
@@ -472,10 +472,40 @@ AC_DEFUN([AC_TYPE_LONG_LONG_INT],
   AC_CACHE_CHECK([for long long int], [ac_cv_type_long_long_int],
     [AC_LINK_IFELSE(
        [AC_LANG_PROGRAM(
-	  [long long int ll = 1LL; int i = 63;],
-	  [long long int llmax = (long long int) -1;
-	   return ll << i | ll >> i | llmax / ll | llmax % ll;])],
-       [ac_cv_type_long_long_int=yes],
+	  [[long long int ll = 9223372036854775807ll;
+	    long long int nll = -9223372036854775807LL;
+	    typedef int a[((-9223372036854775807LL < 0
+			    && 0 < 9223372036854775807ll)
+			   ? 1 : -1)];
+	    int i = 63;]],
+	  [[long long int llmax = 9223372036854775807ll;
+	    return ((ll << 63) | (ll >> 63) | (ll < i) | (ll > i)
+		    | (llmax / ll) | (llmax % ll));]])],
+       [dnl This catches a bug in Tandem NonStop Kernel (OSS) cc -O circa 2004.
+	dnl If cross compiling, assume the bug isn't important, since
+	dnl nobody cross compiles for this platform as far as we know.
+	AC_RUN_IFELSE(
+	  [AC_LANG_PROGRAM(
+	     [[@%:@include <limits.h>
+	       @%:@ifndef LLONG_MAX
+	       @%:@ define HALF \
+			(1LL << (sizeof (long long int) * CHAR_BIT - 2))
+	       @%:@ define LLONG_MAX (HALF - 1 + HALF)
+	       @%:@endif]],
+	     [[long long int n = 1;
+	       int i;
+	       for (i = 0; ; i++)
+		 {
+		   long long int m = n << i;
+		   if (m >> i != n)
+		     return 1;
+		   if (LLONG_MAX / 2 < m)
+		     break;
+		 }
+	       return 0;]])],
+	  [ac_cv_type_long_long_int=yes],
+	  [ac_cv_type_long_long_int=no],
+	  [ac_cv_type_long_long_int=yes])],
        [ac_cv_type_long_long_int=no])])
   if test $ac_cv_type_long_long_int = yes; then
     AC_DEFINE([HAVE_LONG_LONG_INT], 1,
@@ -492,9 +522,13 @@ AC_DEFUN([AC_TYPE_UNSIGNED_LONG_LONG_INT],
     [ac_cv_type_unsigned_long_long_int],
     [AC_LINK_IFELSE(
        [AC_LANG_PROGRAM(
-	  [unsigned long long int ull = 1ULL; int i = 63;],
-	  [unsigned long long int ullmax = (unsigned long long int) -1;
-	   return ull << i | ull >> i | ullmax / ull | ullmax % ull;])],
+	  [[unsigned long long int ull = 18446744073709551615ULL;
+	    typedef int a[(18446744073709551615ULL <= (unsigned long long int) -1
+			   ? 1 : -1)];
+	   int i = 63;]],
+	  [[unsigned long long int ullmax = 18446744073709551615ull;
+	    return (ull << 63 | ull >> 63 | ull << i | ull >> i
+		    | ullmax / ull | ullmax % ull);]])],
        [ac_cv_type_unsigned_long_long_int=yes],
        [ac_cv_type_unsigned_long_long_int=no])])
   if test $ac_cv_type_unsigned_long_long_int = yes; then
@@ -670,20 +704,20 @@ AC_DEFUN([AC_CHECK_SIZEOF],
 [AS_LITERAL_IF([$1], [],
 	       [AC_FATAL([$0: requires literal arguments])])dnl
 AC_CHECK_TYPE([$1], [], [], [$3])
-AC_CACHE_CHECK([size of $1], AS_TR_SH([ac_cv_sizeof_$1]),
-[if test "$AS_TR_SH([ac_cv_type_$1])" = yes; then
-  # The cast to long int works around a bug in the HP C Compiler
-  # version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
-  # declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
-  # This bug is HP SR number 8606223364.
-  _AC_COMPUTE_INT([(long int) (sizeof (ac__type_sizeof_))],
-		  [AS_TR_SH([ac_cv_sizeof_$1])],
-		  [AC_INCLUDES_DEFAULT([$3])
-		   typedef $1 ac__type_sizeof_;],
-		  [AC_MSG_FAILURE([cannot compute sizeof ($1)], 77)])
-else
-  AS_TR_SH([ac_cv_sizeof_$1])=0
-fi])dnl
+# The cast to long int works around a bug in the HP C Compiler
+# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
+# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
+# This bug is HP SR number 8606223364.
+_AC_CACHE_CHECK_INT([size of $1], [AS_TR_SH([ac_cv_sizeof_$1])],
+  [(long int) (sizeof (ac__type_sizeof_))],
+  [AC_INCLUDES_DEFAULT([$3])
+   typedef $1 ac__type_sizeof_;],
+  [if test "$AS_TR_SH([ac_cv_type_$1])" = yes; then
+     AC_MSG_FAILURE([cannot compute sizeof ($1)], 77)
+   else
+     AS_TR_SH([ac_cv_sizeof_$1])=0
+   fi])
+
 AC_DEFINE_UNQUOTED(AS_TR_CPP(sizeof_$1), $AS_TR_SH([ac_cv_sizeof_$1]),
 		   [The size of `$1', as computed by sizeof.])
 ])# AC_CHECK_SIZEOF
@@ -695,21 +729,21 @@ AC_DEFUN([AC_CHECK_ALIGNOF],
 [AS_LITERAL_IF([$1], [],
 	       [AC_FATAL([$0: requires literal arguments])])dnl
 AC_CHECK_TYPE([$1], [], [], [$2])
-AC_CACHE_CHECK([alignment of $1], AS_TR_SH([ac_cv_alignof_$1]),
-[if test "$AS_TR_SH([ac_cv_type_$1])" = yes; then
-  # The cast to long int works around a bug in the HP C Compiler,
-  # see AC_CHECK_SIZEOF for more information.
-  _AC_COMPUTE_INT([(long int) offsetof (ac__type_alignof_, y)],
-		  [AS_TR_SH([ac_cv_alignof_$1])],
-		  [AC_INCLUDES_DEFAULT([$2])
+# The cast to long int works around a bug in the HP C Compiler,
+# see AC_CHECK_SIZEOF for more information.
+_AC_CACHE_CHECK_INT([alignment of $1], [AS_TR_SH([ac_cv_alignof_$1])],
+  [(long int) offsetof (ac__type_alignof_, y)],
+  [AC_INCLUDES_DEFAULT([$2])
 #ifndef offsetof
 # define offsetof(type, member) ((char *) &((type *) 0)->member - (char *) 0)
 #endif
 typedef struct { char x; $1 y; } ac__type_alignof_;],
-		  [AC_MSG_FAILURE([cannot compute alignment of ($1)], 77)])
-else
-  AS_TR_SH([ac_cv_alignof_$1])=0
-fi])dnl
+  [if test "$AS_TR_SH([ac_cv_type_$1])" = yes; then
+     AC_MSG_FAILURE([cannot compute alignment of $1], 77)
+   else
+     AS_TR_SH([ac_cv_alignof_$1])=0
+   fi])
+
 AC_DEFINE_UNQUOTED(AS_TR_CPP(alignof_$1), $AS_TR_SH([ac_cv_alignof_$1]),
 		   [The normal alignment of `$1', in bytes.])
 ])# AC_CHECK_ALIGNOF
@@ -764,23 +798,23 @@ m4_bmatch([$1], [\.], ,
 	 [m4_fatal([$0: Did not see any dot in `$1'])])dnl
 AS_VAR_PUSHDEF([ac_Member], [ac_cv_member_$1])dnl
 dnl Extract the aggregate name, and the member name
-AC_CACHE_CHECK([for $1], ac_Member,
+AC_CACHE_CHECK([for $1], [ac_Member],
 [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT([$4])],
 [dnl AGGREGATE ac_aggr;
 static m4_bpatsubst([$1], [\..*]) ac_aggr;
 dnl ac_aggr.MEMBER;
 if (ac_aggr.m4_bpatsubst([$1], [^[^.]*\.]))
 return 0;])],
-		[AS_VAR_SET(ac_Member, yes)],
+		[AS_VAR_SET([ac_Member], [yes])],
 [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT([$4])],
 [dnl AGGREGATE ac_aggr;
 static m4_bpatsubst([$1], [\..*]) ac_aggr;
 dnl sizeof ac_aggr.MEMBER;
 if (sizeof ac_aggr.m4_bpatsubst([$1], [^[^.]*\.]))
 return 0;])],
-		[AS_VAR_SET(ac_Member, yes)],
-		[AS_VAR_SET(ac_Member, no)])])])
-AS_IF([test AS_VAR_GET(ac_Member) = yes], [$2], [$3])dnl
+		[AS_VAR_SET([ac_Member], [yes])],
+		[AS_VAR_SET([ac_Member], [no])])])])
+AS_IF([test AS_VAR_GET([ac_Member]) = yes], [$2], [$3])dnl
 AS_VAR_POPDEF([ac_Member])dnl
 ])# AC_CHECK_MEMBER
 
@@ -909,7 +943,9 @@ AC_DEFUN([AC_STRUCT_TM],
 [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <sys/types.h>
 #include <time.h>
 ],
-				    [struct tm *tp; tp->tm_sec;])],
+				    [struct tm tm;
+				     int *p = &tm.tm_sec;
+ 				     return !p;])],
 		   [ac_cv_struct_tm=time.h],
 		   [ac_cv_struct_tm=sys/time.h])])
 if test $ac_cv_struct_tm = sys/time.h; then

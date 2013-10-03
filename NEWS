@@ -1,3 +1,60 @@
+* Major changes in Autoconf 2.61 (2006-11-17)
+
+** New macros AC_C_FLEXIBLE_ARRAY_MEMBER, AC_C_VARARRAYS.
+
+** AC_ARG_ENABLE and AC_ARG_WITH now allow '.' in feature and package names.
+
+* Major changes in Autoconf 2.60b (2006-10-22)
+
+** BIN_SH
+  Autoconf-generated shell scripts no longer export BIN_SH, due to
+  configuration hassles with this.  Installers who need BIN_SH in
+  their environment should set it before invoking 'configure' and
+  'make'.  As far as we know, this affects only Unixware installations.
+
+** Obsolescent macros
+  The documentation now says that the following macros are obsolescent,
+  as they are superseded by Gnulib:
+
+    AC_FUNC_FNMATCH  AC_FUNC_FNMATCH_GNU  AC_FUNC_GETLOADVG  AC_REPLACE_FNMATCH
+
+  New programs should use the Gnulib counterparts of these macros.
+  We have no current plans to remove them from Autoconf.
+
+** AC_COMPUTE_INT no longer caches or reports results.
+
+** AC_CHECK_DECL now also works with aggregate objects.
+
+** AC_USE_SYSTEM_EXTENSIONS now defines _TANDEM_SOURCE for NonStop platforms.
+
+** GNU M4 1.4.7 or later is now recommended.
+
+** m4_mkstemp
+  New M4sugar macro, which is more secure than the POSIX M4 maketemp.
+
+** m4_maketemp
+  Now an alias for m4_mkstemp.
+
+* Major changes in Autoconf 2.60a (2006-08-25)
+
+** GNU M4 1.4.6 or later is now recommended.
+
+** The check for C99 now tests for varargs macros, as documented.
+  It also tests that the preprocessor supports 64-bit integers.
+
+** Autoconf now uses constructs like "#ifdef HAVE_STDLIB_H" rather than
+  "#if HAVE_STDLIB_H", so that it now works with "gcc -Wundef -Werror".
+
+** The functionality of the undocumented _AC_COMPUTE_INT is now provided
+  by a public and documented macro, AC_COMPUTE_INT.  The parameters to the
+  two macros are different, so autoupdate will not change the old private name
+  to the new one.  _AC_COMPUTE_INT may be removed in a future release.
+
+** AC_TYPE_LONG_LONG_INT and AC_TYPE_UNSIGNED_LONG_LONG_INT now require
+   that long long types be at least 64 bits wide, as C99 and tradition
+   requires.  Formerly, they accepted implementations of any width.
+
+
 * Major changes in Autoconf 2.60
 
   Released 2006-06-23, by Ralf Wildenhues.

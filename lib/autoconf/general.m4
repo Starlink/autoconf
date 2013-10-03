@@ -626,13 +626,7 @@ do
   | --dataroot=* | --dataroo=* | --dataro=* | --datar=*)
     datarootdir=$ac_optarg ;;
 
-  -disable-* | --disable-*)
-    ac_feature=`expr "x$ac_option" : 'x-*disable-\(.*\)'`
-    # Reject names that are not valid shell variable names.
-    expr "x$ac_feature" : "[.*[^-_$as_cr_alnum]]" >/dev/null &&
-      AC_MSG_ERROR([invalid feature name: $ac_feature])
-    ac_feature=`echo $ac_feature | sed 's/-/_/g'`
-    eval enable_$ac_feature=no ;;
+  _AC_INIT_PARSE_ENABLE([disable], [feature], [no])
 
   -docdir | --docdir | --docdi | --doc | --do)
     ac_prev=docdir ;;
@@ -644,13 +638,7 @@ do
   -dvidir=* | --dvidir=* | --dvidi=* | --dvid=* | --dvi=* | --dv=*)
     dvidir=$ac_optarg ;;
 
-  -enable-* | --enable-*)
-    ac_feature=`expr "x$ac_option" : 'x-*enable-\([[^=]]*\)'`
-    # Reject names that are not valid shell variable names.
-    expr "x$ac_feature" : "[.*[^-_$as_cr_alnum]]" >/dev/null &&
-      AC_MSG_ERROR([invalid feature name: $ac_feature])
-    ac_feature=`echo $ac_feature | sed 's/-/_/g'`
-    eval enable_$ac_feature=\$ac_optarg ;;
+  _AC_INIT_PARSE_ENABLE([enable], [feature], [\$ac_optarg])
 
   -exec-prefix | --exec_prefix | --exec-prefix | --exec-prefi \
   | --exec-pref | --exec-pre | --exec-pr | --exec-p | --exec- \
@@ -840,21 +828,9 @@ do
   -version | --version | --versio | --versi | --vers | -V)
     ac_init_version=: ;;
 
-  -with-* | --with-*)
-    ac_package=`expr "x$ac_option" : 'x-*with-\([[^=]]*\)'`
-    # Reject names that are not valid shell variable names.
-    expr "x$ac_package" : "[.*[^-_$as_cr_alnum]]" >/dev/null &&
-      AC_MSG_ERROR([invalid package name: $ac_package])
-    ac_package=`echo $ac_package| sed 's/-/_/g'`
-    eval with_$ac_package=\$ac_optarg ;;
+  _AC_INIT_PARSE_ENABLE([with],    [package], [\$ac_optarg])
 
-  -without-* | --without-*)
-    ac_package=`expr "x$ac_option" : 'x-*without-\(.*\)'`
-    # Reject names that are not valid shell variable names.
-    expr "x$ac_package" : "[.*[^-_$as_cr_alnum]]" >/dev/null &&
-      AC_MSG_ERROR([invalid package name: $ac_package])
-    ac_package=`echo $ac_package | sed 's/-/_/g'`
-    eval with_$ac_package=no ;;
+  _AC_INIT_PARSE_ENABLE([without], [package], [no])
 
   --x)
     # Obsolete; use --with-x.
@@ -941,6 +917,21 @@ test "$silent" = yes && exec AS_MESSAGE_FD>/dev/null
 
 m4_divert_pop([PARSE_ARGS])dnl
 ])# _AC_INIT_PARSE_ARGS
+
+
+# _AC_INIT_PARSE_ENABLE(OPTION-NAME, FEATURE, VALUE)
+# --------------------------------------------------
+# Handle an `--enable' or a `--with' option.
+#
+m4_define([_AC_INIT_PARSE_ENABLE],
+[-$1-* | --$1-*)
+    ac_$2=`expr "x$ac_option" : 'x-*$1-\(m4_bmatch([$1], [^\(enable\|with\)$], [[[^=]]], [.])*\)'`
+    # Reject names that are not valid shell variable names.
+    expr "x$ac_$2" : "[.*[^-._$as_cr_alnum]]" >/dev/null &&
+      AC_MSG_ERROR([invalid $2 name: $ac_$2])
+    [ac_$2=`echo $ac_$2 | sed 's/[-.]/_/g'`]
+    eval m4_bmatch([$1], [^\(enable\|disable\)$], [enable], [with])_$ac_$2=$3 ;;dnl
+])
 
 
 # _AC_INIT_HELP
@@ -1361,7 +1352,7 @@ m4_define([_m4_divert(HELP_ENABLE)],    _m4_divert(HELP_WITH))
 #
 m4_define([_AC_ENABLE_IF],
 [# Check whether --$1-$2 was given.
-_AC_ENABLE_IF_ACTION([$1], m4_bpatsubst([$2], -, _), [$3], [$4])[]dnl
+_AC_ENABLE_IF_ACTION([$1], m4_translit([$2], [-.], [__]), [$3], [$4])[]dnl
 ])
 
 m4_define([_AC_ENABLE_IF_ACTION],
@@ -1627,15 +1618,7 @@ AC_PROVIDE([AC_CONFIG_AUX_DIR_DEFAULT])dnl
 # AC_CONFIG_MACRO_DIR(DIR)
 # ------------------------
 # Declare directory containing additional macros for aclocal.
-# DIR can be either absolute or relative to $srcdir.
-AC_DEFUN([AC_CONFIG_MACRO_DIR],
-[case $1 in
-  [[\\/]]* | ?:[[\\/]]* ) ac_macro_dir=$1         ;;
-  *)                      ac_macro_dir=$srcdir/$1 ;;
-esac
-test -d "$ac_macro_dir" ||
-  AC_MSG_ERROR([cannot find macro directory `$1'])
-])# AC_CONFIG_MACRO_DIR
+AC_DEFUN([AC_CONFIG_MACRO_DIR], [])
 
 
 
@@ -1933,6 +1916,14 @@ AS_LITERAL_IF([$2],
 	      [ac_res=AS_VAR_GET([$2])
 	       AC_MSG_RESULT([$ac_res])])dnl
 ])
+
+# _AC_CACHE_CHECK_INT(MESSAGE, CACHE-ID, EXPRESSION,
+#                     [PROLOGUE = DEFAULT-INCLUDES], [IF-FAILS])
+# -------------------------------------------------------------
+AC_DEFUN([_AC_CACHE_CHECK_INT],
+[AC_CACHE_CHECK([$1], [$2],
+   [AC_COMPUTE_INT([$2], [$3], [$4], [$5])])
+])# _AC_CACHE_CHECK_INT
 
 
 
@@ -2272,23 +2263,15 @@ AC_DEFUN([AC_RUN_LOG],
 # Try to preprocess PROGRAM.
 #
 # This macro can be used during the selection of a preprocessor.
-# Run cpp and set ac_cpp_err to "yes" for an error, to
-# "$ac_(c,cxx)_preproc_warn_flag" if there are warnings or to "" if
-# neither warnings nor errors have been detected.  eval is necessary
-# to expand ac_cpp.
+# eval is necessary to expand ac_cpp.
 AC_DEFUN([_AC_PREPROC_IFELSE],
 [m4_ifvaln([$1], [AC_LANG_CONFTEST([$1])])dnl
-if _AC_DO_STDERR([$ac_cpp conftest.$ac_ext]) >/dev/null; then
-  if test -s conftest.err; then
-    ac_cpp_err=$ac_[]_AC_LANG_ABBREV[]_preproc_warn_flag
-    ac_cpp_err=$ac_cpp_err$ac_[]_AC_LANG_ABBREV[]_werror_flag
-  else
-    ac_cpp_err=
-  fi
-else
-  ac_cpp_err=yes
-fi
-AS_IF([test -z "$ac_cpp_err"], [$2], [_AC_MSG_LOG_CONFTEST
+AS_IF([_AC_DO_STDERR([$ac_cpp conftest.$ac_ext]) >/dev/null && {
+	 test -z "$ac_[]_AC_LANG_ABBREV[]_preproc_warn_flag$ac_[]_AC_LANG_ABBREV[]_werror_flag" ||
+	 test ! -s conftest.err
+       }],
+  [$2],
+  [_AC_MSG_LOG_CONFTEST
   $3])
 rm -f conftest.err m4_ifval([$1], [conftest.$ac_ext])[]dnl
 ])# _AC_PREPROC_IFELSE
@@ -2357,9 +2340,10 @@ AC_DEFUN([AC_EGREP_HEADER],
 m4_define([_AC_COMPILE_IFELSE],
 [m4_ifvaln([$1], [AC_LANG_CONFTEST([$1])])dnl
 rm -f conftest.$ac_objext
-AS_IF([_AC_DO_STDERR($ac_compile) &&
-	 _AC_DO_TOKENS([test -z "$ac_[]_AC_LANG_ABBREV[]_werror_flag" || test ! -s conftest.err]) &&
-	 _AC_DO_TOKENS([test -s conftest.$ac_objext])],
+AS_IF([_AC_DO_STDERR($ac_compile) && {
+	 test -z "$ac_[]_AC_LANG_ABBREV[]_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext],
       [$2],
       [_AC_MSG_LOG_CONFTEST
 	$3])
@@ -2397,13 +2381,18 @@ AU_DEFUN([AC_TRY_COMPILE],
 m4_define([_AC_LINK_IFELSE],
 [m4_ifvaln([$1], [AC_LANG_CONFTEST([$1])])dnl
 rm -f conftest.$ac_objext conftest$ac_exeext
-AS_IF([_AC_DO_STDERR($ac_link) &&
-	 _AC_DO_TOKENS([test -z "$ac_[]_AC_LANG_ABBREV[]_werror_flag" || test ! -s conftest.err]) &&
-	 _AC_DO_TOKENS([test -s conftest$ac_exeext])],
+AS_IF([_AC_DO_STDERR($ac_link) && {
+	 test -z "$ac_[]_AC_LANG_ABBREV[]_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       AS_TEST_X([conftest$ac_exeext])],
       [$2],
       [_AC_MSG_LOG_CONFTEST
 	$3])
-rm -f core conftest.err conftest.$ac_objext \
+dnl Delete also the IPA/IPO (Inter Procedural Analysis/Optimization)
+dnl information created by the PGI compiler (conftest_ipa8_conftest.oo),
+dnl as it would interfere with the next link command.
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext m4_ifval([$1], [conftest.$ac_ext])[]dnl
 ])# _AC_LINK_IFELSE
 
@@ -2503,15 +2492,15 @@ AC_DEFUN([AC_CHECK_FILE],
 [AC_DIAGNOSE([cross],
 	     [cannot check for file existence when cross compiling])dnl
 AS_VAR_PUSHDEF([ac_File], [ac_cv_file_$1])dnl
-AC_CACHE_CHECK([for $1], ac_File,
+AC_CACHE_CHECK([for $1], [ac_File],
 [test "$cross_compiling" = yes &&
   AC_MSG_ERROR([cannot check for file existence when cross compiling])
 if test -r "$1"; then
-  AS_VAR_SET(ac_File, yes)
+  AS_VAR_SET([ac_File], [yes])
 else
-  AS_VAR_SET(ac_File, no)
+  AS_VAR_SET([ac_File], [no])
 fi])
-AS_IF([test AS_VAR_GET(ac_File) = yes], [$2], [$3])[]dnl
+AS_IF([test AS_VAR_GET([ac_File]) = yes], [$2], [$3])[]dnl
 AS_VAR_POPDEF([ac_File])dnl
 ])# AC_CHECK_FILE
 
@@ -2537,19 +2526,18 @@ $2],
 #               [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND],
 #               [INCLUDES = DEFAULT-INCLUDES])
 # -------------------------------------------------------
-# Check if SYMBOL (a variable or a function) is declared.
+# Check whether SYMBOL (a function, variable, or constant) is declared.
 AC_DEFUN([AC_CHECK_DECL],
 [AS_VAR_PUSHDEF([ac_Symbol], [ac_cv_have_decl_$1])dnl
-AC_CACHE_CHECK([whether $1 is declared], ac_Symbol,
+AC_CACHE_CHECK([whether $1 is declared], [ac_Symbol],
 [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT([$4])],
 [#ifndef $1
-  char *p = (char *) $1;
-  return !p;
+  (void) $1;
 #endif
 ])],
-		   [AS_VAR_SET(ac_Symbol, yes)],
-		   [AS_VAR_SET(ac_Symbol, no)])])
-AS_IF([test AS_VAR_GET(ac_Symbol) = yes], [$2], [$3])[]dnl
+		   [AS_VAR_SET([ac_Symbol], [yes])],
+		   [AS_VAR_SET([ac_Symbol], [no])])])
+AS_IF([test AS_VAR_GET([ac_Symbol]) = yes], [$2], [$3])[]dnl
 AS_VAR_POPDEF([ac_Symbol])dnl
 ])# AC_CHECK_DECL
 
@@ -2716,14 +2704,27 @@ m4_define([_AC_COMPUTE_INT_RUN],
 		[$2=`cat conftest.val`], [$4])])
 
 
-# _AC_COMPUTE_INT(EXPRESSION, VARIABLE, PROLOGUE, IF-FAILS)
-# ---------------------------------------------------------
-m4_define([_AC_COMPUTE_INT],
+# AC_COMPUTE_INT(VARIABLE, EXPRESSION, PROLOGUE, [IF-FAILS])
+# ----------------------------------------------------------
+AC_DEFUN([AC_COMPUTE_INT],
 [AC_LANG_COMPILER_REQUIRE()dnl
 if test "$cross_compiling" = yes; then
-  _AC_COMPUTE_INT_COMPILE([$1], [$2], [$3], [$4])
+  _AC_COMPUTE_INT_COMPILE([$2], [$1], [$3], [$4])
 else
-  _AC_COMPUTE_INT_RUN([$1], [$2], [$3], [$4])
+  _AC_COMPUTE_INT_RUN([$2], [$1], [$3], [$4])
 fi
 rm -f conftest.val[]dnl
+])# _AC_COMPUTE_INT
+
+# _AC_COMPUTE_INT(EXPRESSION, VARIABLE, PROLOGUE, [IF-FAILS])
+# -----------------------------------------------------------
+# FIXME: this private interface was used by several packages.
+# Give them time to transition to AC_COMPUTE_INT and then delete this one.
+AC_DEFUN([_AC_COMPUTE_INT],
+[AC_COMPUTE_INT([$2], [$1], [$3], [$4])
+AC_DIAGNOSE([obsolete],
+[The macro `_AC_COMPUTE_INT' is obsolete and will be deleted in a
+future version or Autoconf.  Hence, it is suggested that you use
+instead the public AC_COMPUTE_INT macro.  Note that the arguments are
+slightly different between the two.])dnl
 ])# _AC_COMPUTE_INT
