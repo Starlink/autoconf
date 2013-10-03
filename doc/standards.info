@@ -6,7 +6,7 @@ START-INFO-DIR-ENTRY
 * Standards: (standards).       GNU coding standards.
 END-INFO-DIR-ENTRY
 
-   The GNU coding standards, last updated February 23, 2008.
+   The GNU coding standards, last updated July 25, 2008.
 
    Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software
@@ -25,7 +25,7 @@ File: standards.info,  Node: Top,  Next: Preface,  Prev: (dir),  Up: (dir)
 Version
 *******
 
-The GNU coding standards, last updated February 23, 2008.
+The GNU coding standards, last updated July 25, 2008.
 
    Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software
@@ -65,8 +65,8 @@ programs written in C, but many of the rules and principles are useful
 even if you write in another programming language.  The rules often
 state reasons for writing in a certain way.
 
-   This release of the GNU Coding Standards was last updated February
-23, 2008.
+   This release of the GNU Coding Standards was last updated July 25,
+2008.
 
    If you did not obtain this file directly from the GNU project and
 recently, please check for a newer version.  You can get the GNU Coding
@@ -284,12 +284,13 @@ interpreter for a language that is higher level than C.  Often much of
 the program is written in that language, too.  The Emacs editor
 pioneered this technique.
 
-   The standard extensibility interpreter for GNU software is GUILE
+   The standard extensibility interpreter for GNU software is Guile
 (`http://www.gnu.org/software/guile/'), which implements the language
-Scheme (an especially clean and simple dialect of Lisp).  We don't
-reject programs written in other "scripting languages" such as Perl and
-Python, but using GUILE is very important for the overall consistency
-of the GNU system.
+Scheme (an especially clean and simple dialect of Lisp).  Guile also
+includes bindings for GTK+/GNOME, making it practical to write modern
+GUI functionality within Guile.  We don't reject programs written in
+other "scripting languages" such as Perl and Python, but using Guile is
+very important for the overall consistency of the GNU system.
 
 
 File: standards.info,  Node: Compatibility,  Next: Using Extensions,  Prev: Source Language,  Up: Design Advice
@@ -942,6 +943,7 @@ GPL/Guile
      means the GNU GPL version 3 or later, with the extra exception for
      Guile.
 
+GPL/Ada
      GNU GPL with the exception for Ada.
 
 Apache
@@ -1046,10 +1048,10 @@ meanings, so we can update the table.
      `-v' in `gawk'.
 
 `assume-new'
-     `-W' in Make.
+     `-W' in `make'.
 
 `assume-old'
-     `-o' in Make.
+     `-o' in `make'.
 
 `auto-check'
      `-a' in `recode'.
@@ -1169,7 +1171,7 @@ meanings, so we can update the table.
      `-d' in `touch'.
 
 `debug'
-     `-d' in Make and `m4'; `-t' in Bison.
+     `-d' in `make' and `m4'; `-t' in Bison.
 
 `define'
      `-D' in `m4'.
@@ -1214,7 +1216,7 @@ meanings, so we can update the table.
      `-X' in `strip'.
 
 `dry-run'
-     `-n' in Make.
+     `-n' in `make'.
 
 `ed'
      `-e' in `diff'.
@@ -1232,7 +1234,7 @@ meanings, so we can update the table.
      `-N' in `diff'.
 
 `environment-overrides'
-     `-e' in Make.
+     `-e' in `make'.
 
 `eof'
      `-e' in `xargs'.
@@ -1283,8 +1285,7 @@ meanings, so we can update the table.
      `-E' in `m4'.
 
 `file'
-     `-f' in `info', `gawk', Make, `mt', and `tar'; `-n' in `sed'; `-r'
-     in `touch'.
+     `-f' in `gawk', `info', `make', `mt', `sed', and `tar'.
 
 `field-separator'
      `-F' in `gawk'.
@@ -1393,7 +1394,7 @@ meanings, so we can update the table.
      `-f' in `look' and `ptx'; `-i' in `diff' and `wdiff'.
 
 `ignore-errors'
-     `-i' in Make.
+     `-i' in `make'.
 
 `ignore-file'
      `-i' in `ptx'.
@@ -1420,7 +1421,7 @@ meanings, so we can update the table.
      `-i' in `etags'; `-I' in `m4'.
 
 `include-dir'
-     `-I' in Make.
+     `-I' in `make'.
 
 `incremental'
      `-G' in `tar'.
@@ -1452,13 +1453,13 @@ meanings, so we can update the table.
      Used in `date'
 
 `jobs'
-     `-j' in Make.
+     `-j' in `make'.
 
 `just-print'
-     `-n' in Make.
+     `-n' in `make'.
 
 `keep-going'
-     `-k' in Make.
+     `-k' in `make'.
 
 `keep-files'
      `-k' in `csplit'.
@@ -1498,7 +1499,7 @@ meanings, so we can update the table.
      `-N' in `ls'.
 
 `load-average'
-     `-l' in Make.
+     `-l' in `make'.
 
 `login'
      Used in `su'.
@@ -1516,7 +1517,7 @@ meanings, so we can update the table.
      `-d' in `cpio'.
 
 `makefile'
-     `-f' in Make.
+     `-f' in `make'.
 
 `mapped'
      Used in GDB.
@@ -1531,7 +1532,7 @@ meanings, so we can update the table.
      `-l' in `xargs'.
 
 `max-load'
-     `-l' in Make.
+     `-l' in `make'.
 
 `max-procs'
      `-P' in `xargs'.
@@ -1567,10 +1568,10 @@ meanings, so we can update the table.
      `-a' in `shar'.
 
 `new-file'
-     `-W' in Make.
+     `-W' in `make'.
 
 `no-builtin-rules'
-     `-r' in Make.
+     `-r' in `make'.
 
 `no-character-count'
      `-w' in `shar'.
@@ -1597,7 +1598,7 @@ meanings, so we can update the table.
      `-2' in `wdiff'.
 
 `no-keep-going'
-     `-S' in Make.
+     `-S' in `make'.
 
 `no-lines'
      `-l' in Bison.
@@ -1672,7 +1673,7 @@ meanings, so we can update the table.
      `-o' in `tar'.
 
 `old-file'
-     `-o' in Make.
+     `-o' in `make'.
 
 `one-file-system'
      `-l' in `tar', `cp', and `du'.
@@ -1756,10 +1757,10 @@ meanings, so we can update the table.
      `-L' in `cmp'.
 
 `print-data-base'
-     `-p' in Make.
+     `-p' in `make'.
 
 `print-directory'
-     `-w' in Make.
+     `-w' in `make'.
 
 `print-file-name'
      `-o' in `nm'.
@@ -1780,7 +1781,7 @@ meanings, so we can update the table.
      `-X' in `shar'.
 
 `question'
-     `-q' in Make.
+     `-q' in `make'.
 
 `quiet'
      Used in many programs to inhibit the usual output.  Every program
@@ -1805,7 +1806,7 @@ meanings, so we can update the table.
      Used in GDB.
 
 `recon'
-     `-n' in Make.
+     `-n' in `make'.
 
 `record-number'
      `-R' in `tar'.
@@ -1813,8 +1814,8 @@ meanings, so we can update the table.
 `recursive'
      Used in `chgrp', `chown', `cp', `ls', `diff', and `rm'.
 
-`reference-limit'
-     Used in `makeinfo'.
+`reference'
+     `-r' in `touch'.
 
 `references'
      `-r' in `ptx'.
@@ -1945,7 +1946,7 @@ meanings, so we can update the table.
      `-S' in `shar'.
 
 `stop'
-     `-S' in Make.
+     `-S' in `make'.
 
 `strict'
      `-s' in `recode'.
@@ -2014,7 +2015,7 @@ meanings, so we can update the table.
      `-c' in `du'.
 
 `touch'
-     `-t' in Make, `ranlib', and `recode'.
+     `-t' in `make', `ranlib', and `recode'.
 
 `trace'
      `-t' in `m4'.
@@ -2078,7 +2079,7 @@ meanings, so we can update the table.
      `-V' in `tar'.
 
 `what-if'
-     `-W' in Make.
+     `-W' in `make'.
 
 `whole-size-limit'
      `-l' in `shar'.
@@ -3545,16 +3546,24 @@ File: standards.info,  Node: Configuration,  Next: Makefile Conventions,  Up: Ma
 
 Each GNU distribution should come with a shell script named
 `configure'.  This script is given arguments which describe the kind of
-machine and system you want to compile the program for.
+machine and system you want to compile the program for.  The
+`configure' script must record the configuration options so that they
+affect compilation.
 
-   The `configure' script must record the configuration options so that
-they affect compilation.
+   The description here is the specification of the interface for the
+`configure' script in GNU packages.  Many packages implement it using
+GNU Autoconf (*note Introduction: (autoconf)Top.)  and/or GNU Automake
+(*note Introduction: (automake)Top.), but you do not have to use these
+tools.  You can implement it any way you like; for instance, by making
+`configure' be a wrapper around a completely different configuration
+system.
 
-   One way to do this is to make a link from a standard name such as
-`config.h' to the proper configuration file for the chosen system.  If
-you use this technique, the distribution should _not_ contain a file
-named `config.h'.  This is so that people won't be able to build the
-program without configuring it first.
+   Another way for the `configure' script to operate is to make a link
+from a standard name such as `config.h' to the proper configuration
+file for the chosen system.  If you use this technique, the
+distribution should _not_ contain a file named `config.h'.  This is so
+that people won't be able to build the program without configuring it
+first.
 
    Another thing that `configure' can do is to edit the Makefile.  If
 you do this, the distribution should _not_ contain a file named
@@ -4577,6 +4586,8 @@ All GNU programs should have the following targets in their Makefiles:
 
      Compress the tar file with `gzip'.  For example, the actual
      distribution file for GCC version 1.40 is called `gcc-1.40.tar.gz'.
+     It is ok to support other free compression formats as well, such as
+     `bzip2' and `lzma'.
 
      The `dist' target should explicitly depend on all non-source files
      that are in the distribution, to make sure they are up to date in
@@ -5432,12 +5443,13 @@ Index
                                                               (line   6)
 * gnome:                                 Graphical Interfaces.
                                                               (line  16)
+* GNOME and Guile:                       Source Language.     (line  38)
 * graphical user interface:              Graphical Interfaces.
                                                               (line   6)
 * grave accent:                          Quote Characters.    (line   6)
 * gtk+:                                  Graphical Interfaces.
                                                               (line   6)
-* GUILE:                                 Source Language.     (line  38)
+* Guile:                                 Source Language.     (line  38)
 * implicit int:                          Syntactic Conventions.
                                                               (line   6)
 * impossible conditions:                 Semantics.           (line  70)
@@ -5477,7 +5489,7 @@ Index
 * non-standard extensions:               Using Extensions.    (line   6)
 * NUL characters:                        Semantics.           (line  11)
 * open brace:                            Formatting.          (line   6)
-* optional features, configure-time:     Configuration.       (line  92)
+* optional features, configure-time:     Configuration.       (line 100)
 * options for compatibility:             Compatibility.       (line  14)
 * options, standard command-line:        Command-Line Interfaces.
                                                               (line  31)
@@ -5529,73 +5541,73 @@ Index
 
 
 Tag Table:
-Node: Top803
-Node: Preface2069
-Node: Legal Issues4188
-Node: Reading Non-Free Code4658
-Node: Contributions6388
-Node: Trademarks8626
-Node: Design Advice10261
-Node: Source Language10853
-Node: Compatibility12865
-Node: Using Extensions14493
-Node: Standard C16069
-Node: Conditional Compilation18472
-Node: Program Behavior19870
-Node: Non-GNU Standards20926
-Node: Semantics23207
-Node: Libraries27926
-Node: Errors29171
-Node: User Interfaces31664
-Node: Graphical Interfaces33269
-Node: Command-Line Interfaces34305
-Node: --version36337
-Node: --help42230
-Node: Option Table42784
-Node: Memory Usage57725
-Node: File Usage58756
-Node: Writing C59506
-Node: Formatting60478
-Node: Comments64767
-Node: Syntactic Conventions68319
-Node: Names71781
-Node: System Portability73993
-Node: CPU Portability76884
-Node: System Functions80785
-Node: Internationalization85982
-Node: Character Set89976
-Node: Quote Characters90789
-Node: Mmap92309
-Node: Documentation93017
-Node: GNU Manuals94123
-Node: Doc Strings and Manuals99861
-Node: Manual Structure Details101414
-Node: License for Manuals102832
-Node: Manual Credits103806
-Node: Printed Manuals104199
-Node: NEWS File104885
-Node: Change Logs105563
-Node: Change Log Concepts106317
-Node: Style of Change Logs108406
-Node: Simple Changes110906
-Node: Conditional Changes112348
-Node: Indicating the Part Changed113770
-Node: Man Pages114297
-Node: Reading other Manuals116609
-Node: Managing Releases117400
-Node: Configuration118181
-Node: Makefile Conventions126343
-Node: Makefile Basics127342
-Node: Utilities in Makefiles130516
-Node: Command Variables133011
-Node: DESTDIR136257
-Node: Directory Variables138431
-Node: Standard Targets152924
-Ref: Standard Targets-Footnote-1166439
-Node: Install Command Categories166539
-Node: Releases171072
-Node: References174999
-Node: GNU Free Documentation License180846
-Node: Index203278
+Node: Top799
+Node: Preface2061
+Node: Legal Issues4176
+Node: Reading Non-Free Code4646
+Node: Contributions6376
+Node: Trademarks8614
+Node: Design Advice10249
+Node: Source Language10841
+Node: Compatibility12967
+Node: Using Extensions14595
+Node: Standard C16171
+Node: Conditional Compilation18574
+Node: Program Behavior19972
+Node: Non-GNU Standards21028
+Node: Semantics23309
+Node: Libraries28028
+Node: Errors29273
+Node: User Interfaces31766
+Node: Graphical Interfaces33371
+Node: Command-Line Interfaces34407
+Node: --version36439
+Node: --help42340
+Node: Option Table42894
+Node: Memory Usage57846
+Node: File Usage58877
+Node: Writing C59627
+Node: Formatting60599
+Node: Comments64888
+Node: Syntactic Conventions68440
+Node: Names71902
+Node: System Portability74114
+Node: CPU Portability77005
+Node: System Functions80906
+Node: Internationalization86103
+Node: Character Set90097
+Node: Quote Characters90910
+Node: Mmap92430
+Node: Documentation93138
+Node: GNU Manuals94244
+Node: Doc Strings and Manuals99982
+Node: Manual Structure Details101535
+Node: License for Manuals102953
+Node: Manual Credits103927
+Node: Printed Manuals104320
+Node: NEWS File105006
+Node: Change Logs105684
+Node: Change Log Concepts106438
+Node: Style of Change Logs108527
+Node: Simple Changes111027
+Node: Conditional Changes112469
+Node: Indicating the Part Changed113891
+Node: Man Pages114418
+Node: Reading other Manuals116730
+Node: Managing Releases117521
+Node: Configuration118302
+Node: Makefile Conventions126923
+Node: Makefile Basics127922
+Node: Utilities in Makefiles131096
+Node: Command Variables133591
+Node: DESTDIR136837
+Node: Directory Variables139011
+Node: Standard Targets153504
+Ref: Standard Targets-Footnote-1167117
+Node: Install Command Categories167217
+Node: Releases171750
+Node: References175677
+Node: GNU Free Documentation License181524
+Node: Index203956
 
 End Tag Table

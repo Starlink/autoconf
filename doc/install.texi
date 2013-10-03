@@ -2,11 +2,12 @@
 @c the INSTALL file.
 
 @ifclear autoconf
+@firstparagraphindent insert
 
 @unnumbered Installation Instructions
 
 Copyright @copyright{} 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2004,
-2005, 2006, 2007 Free Software Foundation, Inc.
+2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 This file is free documentation; the Free Software Foundation gives
 unlimited permission to copy, distribute and modify it.
@@ -120,6 +121,22 @@ architecture at a time in the source code directory.  After you have
 installed the package for one architecture, use @samp{make distclean}
 before reconfiguring for another architecture.
 
+On MacOS X 10.5 and later systems, you can create libraries and
+executables that work on multiple system types---known as @dfn{fat} or
+@dfn{universal} binaries---by specifying multiple @option{-arch} options
+to the compiler but only a single @option{-arch} option to the
+preprocessor.  Like this:
+
+@example
+./configure CC="gcc -arch i386 -arch x86_64 -arch ppc -arch ppc64" \
+            CXX="g++ -arch i386 -arch x86_64 -arch ppc -arch ppc64" \
+            CPP="gcc -E" CXXCPP="g++ -E"
+@end example
+
+This is not guaranteed to produce working output in all cases, you may
+have to build one architecture at a time and combine the results
+using the @command{lipo} tool if you have problems.
+
 @node Installation Names
 @section Installation Names
 
@@ -162,6 +179,36 @@ usually find the X include and library files automatically, but if it
 doesn't, you can use the @command{configure} options
 @option{--x-includes=@var{dir}} and @option{--x-libraries=@var{dir}} to
 specify their locations.
+
+@node Particular Systems
+@section Particular systems
+
+On HP-UX, the default C compiler is not ANSI C compatible.  If GNU CC is
+not installed, it is recommended to use the following options in order to
+use an ANSI C compiler:
+
+@example
+./configure CC="cc -Ae"
+@end example
+
+@noindent
+and if that doesn't work, install pre-built binaries of GCC for HP-UX.
+
+On OSF/1 a.k.a.@: Tru64, some versions of the default C compiler cannot
+parse its @code{<wchar.h>} header file.  The option @option{-nodtk} can be
+used as a workaround.  If GNU CC is not installed, it is therefore
+recommended to try
+
+@example
+./configure CC="cc"
+@end example
+
+@noindent
+and if that doesn't work, try
+
+@example
+./configure CC="cc -nodtk"
+@end example
 
 @node System Type
 @section Specifying the System Type
@@ -248,7 +295,14 @@ operates.
 @table @option
 @item --help
 @itemx -h
-Print a summary of the options to @command{configure}, and exit.
+Print a summary of all of the options to @command{configure}, and exit.
+
+@item --help=short
+@itemx --help=recursive
+Print a summary of the options unique to this package's
+@command{configure}, and exit.  The @code{short} variant lists options
+used only in the top level, while the @code{recursive} variant lists
+options also present in any nested packages.
 
 @item --version
 @itemx -V
@@ -275,8 +329,24 @@ will still be shown).
 @item --srcdir=@var{dir}
 Look for the package's source code in directory @var{dir}.  Usually
 @command{configure} can determine that directory automatically.
+
+@item --prefix=@var{dir}
+Use @var{dir} as the installation prefix.  @ref{Installation Names}
+for more details, including other options available for fine-tuning
+the installation locations.
+
+@item --no-create
+@itemx -n
+Run the configure checks, but stop before creating any output files.
 @end table
 
 @noindent
 @command{configure} also accepts some other, not widely useful, options.
 Run @samp{configure --help} for more details.
+
+@c Local Variables:
+@c fill-column: 72
+@c ispell-local-dictionary: "american"
+@c indent-tabs-mode: nil
+@c whitespace-check-buffer-indent: nil
+@c End:

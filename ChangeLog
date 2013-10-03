@@ -1,3 +1,801 @@
+2008-09-09  Eric Blake  <ebb9@byu.net>
+
+	Release Version 2.63.
+	* NEWS: Mention the release.
+
+	Formatting tweaks to the manual.
+	* doc/autoconf.texi (Introduction, Systemology)
+	(File System Conventions, Portable C and C++)
+	(Floating Point Portability): Allow URLs to split as needed.
+	(Indices): Add entries, to work around texinfo bug on indices that
+	start too close to a page break.
+	(Particular Functions): Mention ftello.
+	(Introduction, Language Choice): Use @enddots at sentence end.
+
+	Resync from gnulib.
+	* cfg.mk (cvs_executable_files, cvs_files): Update list of files,
+	although for now, they are still manually sync'd.
+	* build-aux/gnupload: Update.
+	* build-aux/config.sub: Likewise.
+	* GNUmakefile: Likewise.
+
+2008-09-06  Eric Blake  <ebb9@byu.net>
+
+	Mention that Automake already supports VPATH.
+	* doc/autoconf.texi (Build Directories): Details in this section
+	only apply to users avoiding automake.
+	* THANKS: Update.
+	Reported by Matej Tyc.
+
+	Relax tone when warning about cross-compiler names.
+	* lib/autoconf/programs.m4 (_AC_TOOL_WARN): Support cross-compiles
+	with poorly named tools; the issue has been reported too many
+	times in the last four years to pull support.
+	* doc/autoconf.texi (Specifying Names, Generic Programs): Update
+	documentation accordingly.
+	* THANKS: Update.
+	Reported by Josef Tran and others, wording suggested by Ralf
+	Wildenhues.
+
+2008-09-01  Eric Blake  <ebb9@byu.net>
+
+	Improve AC_C_BIGENDIAN.
+	* doc/autoconf.texi (C Compiler) <AC_C_BIGENDIAN>: Mention that
+	universal builds require a config header.
+	* lib/autoconf/c.m4 (AC_C_BIGENDIAN): Enhance comments.  Check
+	AH_HEADER at the last possible moment, so that users can use
+	AC_CONFIG_HEADER after this macro.
+	Reported by Stepan Kasal.
+
+	Fix manual date information.
+	* doc/autoconf.tex: UPDATED refers to the day the manual was
+	built, not the release date of Autoconf.
+	Based on a bison patch by Akim Demaille.
+
+2008-08-27  Eric Blake  <ebb9@byu.net>
+
+	Fix off-by-one bug in _m4_shiftn.
+	* lib/m4sugar/foreach.m4 (_m4_shiftn): Handle case when shifting
+	all arguments.
+	* tests/m4sugar.at (M4 loops): Test it.
+	Reported by Akim Demaille.
+
+2008-08-26  Eric Blake  <ebb9@byu.net>
+
+	Improve INSTALL formatting.
+	* doc/install.texi [!autoconf]: Ensure first paragraphs are
+	indented like all others in a plain text rendering.
+	* Makefile.am ($(srcdir)/INSTALL): Ensure plaintext formatting.
+	Reported by Bruno Haible.
+
+2008-08-26  Stepan Kasal  <skasal@redhat.com>
+
+	Check for case sensitive make.
+	* m4/make-check.m4 (AC_PROG_MAKE_CASE_SENSITIVE): New macro,...
+	* configure.ac: ... called here.
+	* Makefile.am ($(abs_srcdir)/INSTALL, INSTALL): Return to...
+	($(srcdir)/INSTALL): ...this, but enclose the rule in
+	"if MAKE_CASE_SENSITIVE".
+
+2008-08-26  Eric Blake  <ebb9@byu.net>
+
+	Update invocation documentation.
+	* doc/autoconf.texi (autoscan Invocation): Mention --debug.
+	(autoreconf Invocation): Mention -v.
+	(autom4te Invocation): Tie --freeze to -F, not -f.
+	(autoupdate Invocation): Mention --prepend-include.
+	* doc/install.texi (configure Invocation): Mention --help=short,
+	--help=recursive, -n/--no-create, --prefix.  Avoid TABs.
+	* bin/autoscan.in ($help): Omit space before `...'.
+	* bin/ifnames.in ($help): Likewise.
+	* bin/autoconf.as (Usage): Likewise.
+	* bin/autoreconf.in ($help): Likewise.
+	* bin/autoheader.in ($help): Likewise.
+	* bin/autom4te.in ($help): Likewise.
+	* bin/autoupdate.in ($help): Likewise.
+	* lib/autoconf/status.m4 (_AC_OUTPUT_CONFIG_STATUS): Use
+	`[OPTION]...', rather than `[OPTIONS]'.  Mention --silent.  Indent
+	--file correctly.
+
+	Don't let frozen __m4_version__ break downgrade to m4 1.4.x.
+	* bin/autom4te.in: Adjust comments, now that we rely on 1.4.5+.
+	(files_to_options): Avoid inheriting __m4_version__ from frozen
+	file if current M4 does not support it.
+
+2008-08-25  Eric Blake  <ebb9@byu.net>
+
+	Adjust to recent m4 1.6 change to support m4_debugmode(d).
+	* lib/m4sugar/m4sugar.m4 (m4_defn, m4_popdef, m4_undefine): Move
+	freeze-time decision of using faster 1.6 implementation...
+	(m4_init): ...to a runtime decision, and add use of new debugmode
+	flag.
+
+2008-08-22  Peter O'Gorman  <pogma@thewrittenword.com>
+
+	Limit AC_C_BIGENDIAN univeral checks to Mac OS X.
+	* lib/autoconf/c.m4 (AC_C_BIGENDIAN): Limit the check to
+	__APPLE_CC__ with possible -arch flags.
+	* NEWS: Document it.
+
+2008-08-22  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* NEWS: Fix typo.
+
+2008-08-22  Eric Blake  <ebb9@byu.net>
+
+	* TODO: Add an item for additional m4sugar looping constructs.
+	Suggested by Ralf Wildenhues.
+
+	Add reminder to keep dual implementations in sync.
+	* lib/m4sugar/m4sugar.m4: Add comments.
+	* lib/m4sugar/foreach.m4: Likewise.
+	Suggested by Ralf Wildenhues.
+
+2008-08-22  Peter Eisentraut  <peter_e@gmx.net>  (tiny change)
+
+	Format warning and error messages to match GCS.
+	* lib/autoconf/general.m4 (_AC_INIT_DIRCHECK)
+	(_AC_INIT_PARSE_ARGS, _AC_CACHE_DUMP): Start warning and error
+	messages with a lowercase letter, end them without punctuation.
+	* lib/autoconf/lang.m4 (AC_NO_EXECUTABLES): Likewise.
+	* lib/autoconf/libs.m4 (AC_PATH_X): Likewise.
+	* lib/autoconf/status.m4 (AC_OUTPUT, _AC_OUTPUT_MAIN_LOOP):
+	Likewise.
+	* tests/fortran.at (GNU Fortran): Likewise.
+	* tests/torture.at (Deep Package): Likewise.
+
+2008-08-21  Eric Blake  <ebb9@byu.net>
+
+	Avoid extra side effects in m4sugar list expansion.
+	* lib/m4sugar/m4sugar.m4 (m4_mapall_sep, m4_list_cmp): Wrap
+	around...
+	(_m4_mapall_sep, _m4_list_cmp_raw): ...new helpers, to avoid
+	duplicate side effects.
+	(m4_version_compare): Adjust caller.
+	* lib/m4sugar/foreach.m4 (m4_list_cmp): Rename...
+	(_m4_list_cmp_raw): ...to match m4sugar.
+	* doc/autoconf.texi (Looping constructs): Document the behavior of
+	side effects.
+	* tests/m4sugar.at (M4 loops, m4@&t@_map, m4@&t@_version_compare):
+	Ensure only one side effect.
+	(recursion): Fix test typo.
+	Reported by Ralf Wildenhues.
+
+2008-08-21  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* TODO: Add item for compiler default flags.
+	Suggested by Bruno Haible.
+
+	* tests/m4sh.at (AS_IF and AS_CASE): Set the expansion limit
+	back to 1000.
+
+2008-08-21  Eric Blake  <ebb9@byu.net>
+
+	Formatting improvements.
+	* doc/autoconf.texi: Use @file and @command, rather than @code,
+	where appropriate.
+
+	Document another make bug.
+	* doc/autoconf.texi (The Make Macro SHELL): Mention bug in BSD
+	make, GNU make <= 3.80.
+
+	Tweak wording about SHELL in Makefile.
+	* doc/autoconf.texi (The Make Macro SHELL): Stronger wording on
+	the importance of proper SHELL settings.
+	Reported by Bruno Haible, in
+	http://lists.gnu.org/archive/html/bug-libtool/2008-04/msg00029.html.
+
+2008-08-20  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Avoid timestamp races for updated input.
+	* tests/m4sh.at (AS_IF and AS_CASE): Use `autom4te --force' for
+	second script.
+	* tests/tools.at (autotools and whitespace in file names): Add
+	--force for repeated invocations.
+
+2008-08-20  Bruno Haible  <bruno@clisp.org>
+
+	Add section to INSTALL about particular systems.
+	* doc/install.texi (Particular systems): New node.
+	* doc/autoconf.texi: Adjust menus.
+
+2008-08-19  Bruno Haible  <bruno@clisp.org>
+	and Peter O'Gorman  <peter@pogma.com>
+
+	Mention universal binaries in INSTALL.
+	* doc/install.texi (Compiling For Multiple Architectures): Explain
+	how to create universal binaries on MacOS X.
+
+2008-08-19  Jim Meyering  <jim@meyering.net>
+	    Eric Blake  <ebb9@byu.net>
+	    Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Avoid shell parse errors after interrupt due to empty ``.
+	* doc/autoconf.texi (Shell Substitutions): Document the issue.
+	* lib/m4sugar/m4sh.m4 (AS_VAR_IF): New function.
+	* lib/autoconf/functions.m4 (AC_CHECK_FUNC): Use it in place of
+	"test AS_VAR_GET([...]) = yes"
+	* lib/autoconf/general.m4 (AC_CHECK_FILE, AC_CHECK_DECL): Likewise.
+	* lib/autoconf/headers.m4 (_AC_CHECK_HEADER_MONGREL): Likewise.
+	(_AC_CHECK_HEADER_NEW, _AC_CHECK_HEADER_OLD): Likewise.
+	(_AC_CHECK_HEADER_DIRENT): Likewise.
+	* lib/autoconf/libs.m4 (AC_CHECK_LIB): Likewise.
+	* lib/autoconf/types.m4 (_AC_CHECK_TYPE_NEW, AC_CHECK_MEMBER): Likewise.
+	* lib/autoconf/status.m4 (_AC_OUTPUT_FILES_PREPARE): Use
+	temporary variable to work around the issue.
+	* tests/foreign.at (Libtool): Quote result of command
+	substitution.
+
+2008-08-18  Eric Blake  <ebb9@byu.net>
+
+	Test m4_transform without tickling shell bugs.
+	* tests/m4sh.at (AS@&t@_IF and AS@&t@_CASE): Relax test to
+	something more manageable.
+	* tests/m4sugar.at (recursion): Move stress test of
+	m4_transform_pair here.
+	Reported by Ralf Wildenhues.
+
+	Let 'git diff' give better context for doc updates.
+	* .gitattributes (*.texi*): Add new entry.
+	* README-hacking: Mention how to use it.
+	Inspired by a coreutils patch by Jim Meyering.
+
+2008-08-15  Eric Blake  <ebb9@byu.net>
+
+	Fix m4_map regression from 2007-10-16.
+	* lib/m4sugar/m4sugar.m4 (_m4_apply): New macro.
+	(m4_map): Ignore empty sublists.  For a list consisting of only an
+	empty sublist, this restores 2.61 behavior of being a no-op.
+	(m4_map_sep): Likewise, and expand separator.
+	(m4_mapall, m4_mapall_sep): New macros, to regain 2.62 behavior.
+	(_m4_map): Rewrite, to be common base for all four variants.
+	* lib/m4sugar/foreach.m4 (_m4_map): Adjust to new prototype.
+	* tests/m4sugar.at (m4@&t@_map): Add tests.
+	* doc/autoconf.texi (Looping constructs) <m4_map>: Document new
+	macros, and mention ramifications of expanded separator.
+	* NEWS: Mention the change.
+
+2008-08-14  Eric Blake  <ebb9@byu.net>
+
+	Implement m4_transform_pair, to speed up AS_IF.
+	* lib/m4sugar/m4sugar.m4 (m4_transform, m4_transform_pair): New
+	macros, undocumented for now.
+	* lib/m4sugar/foreach.m4 (m4_transform, m4_transform_pair): Also
+	the m4 1.4.x counterparts.
+	* lib/m4sugar/m4sh.m4 (AS_IF, AS_CASE): Use it.
+	* tests/m4sh.at (AS@&t@_IF and AS@&t@_CASE): Test it.
+
+2008-08-14  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* lib/autoconf/programs.m4 (AC_PATH_TARGET_TOOL)
+	(AC_CHECK_TARGET_TOOL, AC_CHECK_TARGET_TOOLS): Require, do not
+	warn about previous AC_CANONICAL_TARGET.
+	(AC_CHECK_TARGET_TOOL): Add missing `$' making the macro
+	unusable in the non-cross-compiling case.
+	* NEWS, THANKS: Update.
+	Report by Dave Erickson.
+
+2008-08-12  Eric Blake  <ebb9@byu.net>
+
+	Optimize m4_bmatch.
+	* lib/m4sugar/foreach.m4 (m4_bmatch): Provide linear
+	implementation for m4 1.4.x.
+	* tests/m4sugar.at (m4@&t@_bmatch): New test.
+	(recursion): Test the linear nature.
+	* NEWS: Document the fix.
+
+	Fix m4_cond corner case.
+	* lib/m4sugar/foreach.m4 (_m4_cond): Ensure alternate
+	implementation allows concatenation with subsequent text.
+	* tests/m4sugar.at (m4@&t@_cond): Enhance test.
+
+	Add test for m4_cond.
+	* tests/m4sugar.at (m4@&t@_cond): New test.
+	Reported by Ralf Wildenhues.
+
+2008-08-06  Eric Blake  <ebb9@byu.net>
+
+	Fix autoheader 2.62 regression on AC_DEFINE([__EXTENSIONS__]).
+	* lib/autoconf/specific.m4 (AC_USE_SYSTEM_EXTENSIONS): Use a
+	unique key for the AH_VERBATIM.
+	* tests/c.at (AC_USE_SYSTEM_EXTENSIONS): New test.
+	* NEWS: Mention the fix.
+	Reported by Andreas Schwab, analyzed by Stepan Kasal.
+
+	Add linear m4_cond for m4 1.4.x.
+	* lib/m4sugar/m4sugar.m4 (m4_cond): Split into...
+	(_m4_cond): ...this, for fewer macros per iteration.
+	* lib/m4sugar/foreach.m4 (_m4_cond): New implementation.
+	* tests/m4sugar.at (recursion): Test it.
+	* NEWS: Document the linear guarantee.
+
+	Speed up diversion handling.
+	* lib/m4sugar/m4sugar.m4 (m4_divert, m4_divert_push)
+	(m4_divert_pop, m4_divert_text): Avoid dnl for fewer macro
+	expansions.
+
+	AC_C_CHAR_UNSIGNED is not strictly necessary.
+	* doc/autoconf.texi (C Compiler) <AC_C_CHAR_UNSIGNED>: Mention a
+	portable alternative to this macro.
+	* THANKS: Update.
+	Reported by Hallvard B Furuseth.
+
+	Update some files from upstream.
+	* GNUmakefile: Update.
+	* build-aux/announce-gen: Likewise.
+	* build-aux/config.guess: Likewise.
+	* build-aux/config.sub: Likewise.
+	* build-aux/git-version-gen: Likewise.
+	* build-aux/texinfo.tex: Likewise.
+	* build-aux/vc-list-files: Likewise.
+	* doc/make-stds.texi: Likewise.
+	* doc/standards.texi: Likewise.
+
+2008-08-04  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Fix AC_CONFIG_FILES([$var]) 2.62 regression.
+	* lib/autoconf/status.m4 (_AC_OUTPUT_CONFIG_STATUS): Flatten
+	whitespace in $ac_config_files and $ac_config_headers.
+	* tests/torture.at (Parameterized AC_CONFIG_FILES): New test.
+	Report by Andreas Schwab and Per Øyvind Karlsen.
+	* THANKS: Update.
+
+2008-07-30  Eric Blake  <ebb9@byu.net>
+
+	Fix bugs in previous version of m4_bpatsubsts.
+	* lib/m4sugar/foreach.m4 (_m4_bpatsubsts): Don't expand $1, and
+	allow concatenation with subsequent text.
+	* tests/m4sugar.at (m4@&t@_bpatsubsts): Enhance test.
+
+2008-07-29  Eric Blake  <ebb9@byu.net>
+
+	Add linear m4_bpatsubsts for m4 1.4.x.
+	* lib/m4sugar/m4sugar.m4 (m4_bpatsubsts): Match documentation
+	about anchors, even for only one substitution.
+	* lib/m4sugar/foreach.m4 (_m4_bpatsubsts): New implementation.
+	* doc/autoconf.texi (Conditional constructs) <m4_bpatsubsts>:
+	Clarify behavior with regard to quoting.
+	* tests/m4sugar.at (recursion): Test scaling of m4_bpatsubsts.
+	(m4@&t@_bpatsubsts): New test.
+	* NEWS: Document the linear guarantee.
+
+	Tweak m4_do semantics.
+	* lib/m4sugar/m4sugar.m4 (m4_do): Don't concat final argument with
+	subsequent text.
+	* lib/m4sugar/foreach.m4 (m4_do): Don't concat intermediate
+	arguments, and avoid infinite loop.
+	* doc/autoconf.texi (Evaluation Macros) <m4_do>: Document the
+	behavior.
+	* tests/m4sugar.at (m4@&t@_do): New test.
+
+	Optimize m4_for.
+	* lib/m4sugar/m4sugar.m4 (m4_for): Use fewer macros.
+	(_m4_for): Take additional parameter, for fewer m4_indir calls.
+	* lib/m4sugar/foreach.m4 (_m4_foreach, _m4_shiftn, m4_do)
+	(m4_reverse, _m4_list_pad, _m4_list_cmp): Adjust all callers.
+	* doc/autoconf.texi (Looping constructs) <m4_for>: Document subtle
+	semantic change caused by the optimization.
+	* tests/m4sugar.at (M4 loops): Test the new semantics.
+
+	One more m4_list_cmp tweak.
+	* lib/m4sugar/m4sugar.m4 (_m4_list_cmp_1): Don't defer shift.
+	* lib/m4sugar/foreach.m4 (m4_list_cmp): Fix comment.
+	* tests/m4sugar.at (recursion): Test both directions of list
+	disparity.
+
+	Add m4_reverse, and improve m4_list_cmp.
+	* lib/m4sugar/m4sugar.m4 (m4_reverse): New macro.
+	(m4_list_cmp): Rewrite to give linear behavior with M4 1.6 on an
+	m4_reverse'd list.
+	* lib/m4sugar/foreach.m4 (m4_reverse): Add the M4 1.4.x
+	counterpart.
+	* tests/m4sugar.at (recursion): Test it.
+	* doc/autoconf.texi (Evaluation Macros) <m4_reverse>: Document
+	it.
+	(Text processing Macros) <m4_append>: Cross-reference to m4_set.
+	* NEWS: Mention new macro.
+
+2008-07-28  Eric Blake  <ebb9@byu.net>
+
+	Avoid _m4_shiftn for m4 1.6 speedup.
+	* lib/m4sugar/m4sugar.m4 (m4_foreach, _m4_foreach, m4_map)
+	(_m4_map, m4_map_sep): Rewrite recursion to use one less m4_if.
+	* lib/m4sugar/foreach.m4 (_m4_map): Accomodate changed signature.
+
+	Implement O(n) unique element set creation.
+	* lib/m4sugar/m4sugar.m4 (m4_set_add, m4_set_add_all)
+	(m4_set_contains, m4_set_contents, m4_set_delete)
+	(m4_set_difference, m4_set_dump, m4_set_empty, m4_set_foreach)
+	(m4_set_intersection, m4_set_list, m4_set_listc, m4_set_remove)
+	(m4_set_size, m4_set_union): New macros.
+	* lib/m4sugar/foreach.m4 (m4_set_add_all): Add O(n) fallback for
+	m4 1.4.x.
+	* lib/autoconf/general.m4 (_AC_INIT_DEFAULTS, AC_SUBST): Use
+	new m4_set API for the set most likely to be large.
+	* doc/autoconf.texi (Set manipulation Macros): New node.
+	* NEWS: Mention new macros.
+	* tests/m4sugar.at (m4@&t@_set): New test.
+
+2008-07-25  Eric Blake  <ebb9@byu.net>
+
+	Avoid infinite aclocal loop.
+	* lib/m4sugar/m4sugar.m4 (m4_init): Bypass m4_include tracing, so
+	that aclocal doesn't insist on finding m4sugar/foreach.m4.
+
+	Provide O(n) replacement macros for M4 1.4.x.
+	* lib/m4sugar/foreach.m4: New file.
+	(m4_foreach, m4_case, _m4_shiftn, m4_do, m4_dquote_elt, _m4_map)
+	(m4_join, m4_joinall, m4_list_cmp, _m4_minmax): Replace m4sugar
+	macros based on $@ recursion [fast on M4 1.6, but quadratic on M4
+	1.4.x] with versions based on m4_for/m4_foreach [slow on 1.6, but
+	linear on 1.4.x].
+	* lib/m4sugar/m4sugar.m4 (m4_init): Dynamically load new file if
+	older M4 is assumed.
+	(m4_map_sep): Optimize.
+	(m4_max, m4_min): Refactor, by adding...
+	(_m4_max, _m4_min, _m4_minmax): ...more efficient helpers.
+	(m4_defn, m4_popdef, m4_undefine): Use foreach recursion.
+	* lib/m4sugar/Makefile.am (dist_m4sugarlib_DATA): Distribute new
+	file.
+	* tests/m4sugar.at (M4 loops): Add a stress test that takes
+	forever if m4_foreach and friends are quadratic.
+	* NEWS: Mention this.
+
+2008-07-21  Eric Blake  <ebb9@byu.net>
+
+	Ignore undefined macros, necessary with m4 1.6.
+	* bin/autoupdate.in (_au___undefine): New macro,...
+	(_au__undefine): ...wrapped by ifdef to silence m4 warnings.
+	Reported by Ralf Wildenhues.
+
+	Resync with gnulib.
+	* GNUmakefile: Grab from upstream, to fix issue where 'make
+	install' would allow installation of stale version string.
+
+2008-07-19  Eric Blake  <ebb9@byu.net>
+
+	Support multiple arguments to m4_defn, m4_popdef, and m4_undefine.
+	* lib/m4sugar/m4sugar.m4 (m4_defn, m4_popdef, m4_undefine): Loop
+	through all variables, per POSIX and newer m4.
+	(_m4_text_wrap): Exploit the looping capabilities.
+	* tests/m4sugar.at (m4@&t@_defn): Test this.
+	* NEWS: Document it.
+	* doc/autoconf.texi (Redefined M4 Macros) <m4_defn, m4_popdef>
+	<m4_undefine>: Likewise.
+
+	Reduce overhead of m4_builtin([defn]).
+	* lib/m4sugar/m4sugar.m4 (_m4_defn, _m4_popdef, _m4_undefine): New
+	internal macros, which are slightly more efficient than
+	m4_builtin([defn]) and company.
+	(m4_defn, m4_popdef, m4_undefine, m4_warn, m4_ifset)
+	(_m4_dumpdefs_up, _m4_dumpdefs_down, _m4_wrap, m4_for)
+	(_m4_divert_n_stack, m4_divert_pop, m4_expansion_stack_push)
+	(m4_expansion_stack_dump, _m4_defun_pro, _m4_defun_epi)
+	(_m4_defun_epi_outer, _m4_require_call, m4_combine, m4_append)
+	(_m4_append_uniq, m4_append_uniq_w, _m4_text_wrap, m4_text_box)
+	(m4_version_prereq): Use them.
+
+	Use warnings from m4 when available.
+	* lib/m4sugar/m4sugar.m4 (m4_defn, m4_popdef, m4_undefine): Don't
+	define slower wrapper if m4 will warn on our behalf; key off of
+	__m4_version__, added alongside the new warnings in m4 1.6.
+	* tests/m4sugar.at (m4@&t@_defn): New test.
+
+2008-07-18  Eric Blake  <ebb9@byu.net>
+
+	Add m4_joinall.
+	* lib/m4sugar/m4sugar.m4 (m4_joinall, _m4_joinall): New macros.
+	* tests/m4sugar.at (m4@&t@_join): Test them.
+	* doc/autoconf.texi (Text processing Macros) <m4_join>: Document
+	m4_joinall.
+	* NEWS: Likewise.
+
+2008-07-17  Stepan Kasal  <skasal@redhat.com>
+	and Eric Blake  <ebb9@byu.net>
+
+	Improve documentation of config.h.in template rules.
+	* doc/autoconf.texi (Header Templates): Mention rules on comments
+	and whitespace, and that the user cannot rely on #undef to survive
+	through config.status.
+
+2008-07-16  Eric Blake  <ebb9@byu.net>
+
+	Revert m4_prepend; it is less efficient, and unused by bison.
+	* lib/m4sugar/m4sugar.m4 (m4_prepend, m4_prepend_uniq)
+	(m4_prepend_uniq_w): Delete addition from 2008-07-11.
+	(_m4_grow_uniq_1): Rename back...
+	(_m4_append_uniq): ...to this.
+	* NEWS: Revert NEWS blurb.
+	* doc/autoconf.texi (Text processing Macros) <m4_prepend>: Delete.
+	* tests/m4sugar.at (m4@&t@_prepend): Delete.
+
+2008-07-15  Eric Blake  <ebb9@byu.net>
+
+	Avoid failure if version.m4 is omitted but m4_PACKAGE_* unused.
+	* lib/m4sugar/m4sugar.m4 (m4_version_compare): Provide alternate
+	definition for non-Autoconf clients of m4sugar.
+
+2008-07-14  Eric Blake  <ebb9@byu.net>
+
+	Tighten bound of potential speed of m4_append.
+	* doc/autoconf.texi (Text processing Macros) <m4_append>
+	<m4_prepend>: If m4 is fixed, m4_append can be linear rather than
+	O(n log n).
+	* lib/m4sugar/m4sugar.m4 (m4_append, m4_append_uniq): Fix comments.
+	Analysis by Bruno Haible.
+
+2008-07-11  Eric Blake  <ebb9@byu.net>
+
+	Inherit improvements from bison's fork of m4sugar.
+	* lib/m4sugar/m4sugar.m4 (m4_PACKAGE_VERSION): Ignore failure to
+	find version.texi, since bison does not provide it.
+	(m4_prepend): Add new macro, from bison.
+	(m4_prepend_uniq, m4_prepend_uniq_w): Add new macros, for
+	completeness.
+	(_m4_append_uniq): Rename...
+	(_m4_grow_uniq_1): ...to this to share implementation, and
+	optimize initial assignment.
+	(m4_append_uniq_w): Adjust caller.
+	* NEWS: Document new macros.
+	* doc/autoconf.texi (Text processing Macros) <m4_append>: Mention
+	speed consideration.
+	<m4_prepend>: Document the new prepend variants.
+	* tests/m4sugar.at (m4@&t@_prepend): New test.
+
+	Work around M4 1.6 warning on undefined macros.
+	* lib/m4sugar/m4sugar.m4 (changeword, symbols): Don't rename if
+	not already available as builtins.
+
+2008-07-06  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* doc/autoconf.texi (@dvar): Remove trailing newline.
+	(@ovar): Likewise.  Fix macro documentation.
+
+2008-07-02  Stepan Kasal  <skasal@redhat.com>
+
+	Add quotes to the header of autoscan-generated source.
+	* bin/autoscan.in: Add quotes to AC_PREREQ and AC_INIT.
+
+2008-06-28  Andreas Schwab  <schwab@suse.de>
+
+	* doc/autoconf.texi (autoscan Invocation): Fix spacing.
+	(autoconf Invocation): Likewise.
+	(autoreconf Invocation): Likewise.
+	(autoheader Invocation): Likewise.
+	(autom4te Invocation): Likewise.
+
+2008-06-19  Eric Blake  <ebb9@byu.net>
+
+	Add comment explaining recent patch.
+	* lib/autotest/general.m4 (AT_INIT) <at_pass_list>: Explain choice
+	of * vs. ? globbing.
+
+2008-06-19  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* lib/autoconf/status.m4 (_AC_OUTPUT_LINK): Do not warn when not
+	linking a file to itself.
+	Report by Bruno Haible.
+
+2008-06-19  Eric Blake  <ebb9@byu.net>
+
+	Resync with gnulib.
+	* GNUmakefile: Grab from upstream, to fix VPATH 'make dist' bug.
+	Reported by Stepan Kasal.
+
+2008-06-18  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Reorganize autotest files, factorize for parallel execution.
+	* lib/autotest/general.m4 (AS_MESSAGE_LOG_FD): Move definition
+	earlier in the file.
+	(AT_INIT): Create line number cache in
+	$at_suite_dir/at-source-lines.
+	<at_helper_dir>: New directory at-groups below $at_suite_dir.
+	Add comment explaining the new directory structure.
+	(at_func_group_prepare, at_func_group_postprocess): New shell
+	functions to factorize per-test group work.  Keep the actual
+	test execution outside of a shell function in order to avoid
+	zsh 4.x exit status bugs.
+	<at_check_line_file, at_status_file, at_stdout, at_stder1>
+	<at_stderr, at_test_source>: Turn these into per-group files
+	below $at_helper_dir.  Also store test results there in files
+	named pass, fail, xpass, xfail, skip.  Let the parent collect
+	results from $at_helper_dir.  Adjust summary statistics
+	computation and result output.
+
+2008-06-17  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Fix '#undef variable /* comment */' transform in config headers.
+	* lib/autoconf/status.m4 (_AC_OUTPUT_HEADERS_PREPARE): For
+	undefined preprocessor macros that are followed by a comment
+	in the header template, do not create nested comments in the
+	output.
+	* tests/torture.at (@%:@define header templates): Extend test.
+	* NEWS: Update.
+	Report by Karsten Hopp <karsten@redhat.com>.
+
+2008-06-09  Eric Blake  <ebb9@byu.net>
+
+	Mark AC_TYPE_SIGNAL as obsolete.
+	* lib/autoconf/types.m4 (AC_TYPE_SIGNAL): Switch to AU_DEFUN.
+	* doc/autoconf.texi (Function Portability): Update documentation.
+	(Particular Types): Move AC_TYPE_SIGNAL...
+	(Obsolete Macros): ...here, and mention why.
+	* NEWS: Mention the change.
+
+	Allow lib64 as a default X library location.
+	* lib/autoconf/libs.m4 (_AC_PATH_X_XMKMF): Add lib64.
+	* NEWS: Mention the change.
+	* THANKS: Update.
+	Reported by Brad Walker.
+
+2008-06-05  Eric Blake  <ebb9@byu.net>
+
+	Fix regression in AT_KEYWORDS([Macro]), from 2007-10-18.
+	* lib/autotest/general.m4 (AT_KEYWORDS): Expand argument prior to
+	converting it to lower case.
+	* tests/autotest.at (Keywords and ranges): Test this.
+	* NEWS: Document the fix.
+	* THANKS: Update.
+	Reported via Karsten Hopp, by Jochen Schmitt in
+	https://bugzilla.redhat.com/show_bug.cgi?id=449973
+
+2008-06-03  Eric Blake  <ebb9@byu.net>
+
+	Fix 'make dist' regression from 2008-05-08.
+	* Makefile.am (INSTALL): Add rule, to accomodate 'make dist' after
+	GNUmakefile's _autoconf rule removes INSTALL.
+
+2008-05-27  Eric Blake  <ebb9@byu.net>
+
+	Document Solaris /bin/sh redirection pitfall.
+	* doc/autoconf.texi (File Descriptors): Mention redirection bug.
+
+2008-05-14  Eric Blake  <ebb9@byu.net>
+
+	Improve documentation of ! issues.
+	* doc/autoconf.texi (Limitations of Builtins) <!>: Touch up.
+	Reported by Noah Misch.
+
+	Document some FreeBSD shell bugs.
+	* doc/autoconf.texi (Limitations of Builtins) <!>: Mention ! issue
+	in compound pipe commands.
+	<export>: Mention difference of exporting an undefined variable.
+	(Shell Functions): Mention loss of $? in entry to shell functions.
+	Extracted from the git mailing list.
+
+2008-05-13  Stepan Kasal  <kasal@ucw.cz>
+
+	Work around MSYS and Cygwin bugs when dealing with trailing space.
+	* tests/atlocal.in (func_sanitize_dir_name): Let atlocal succeed,
+	even when platform bugs are tickled.
+	Reported by Keith Marshall and Eric Blake.
+
+2008-05-12  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Let AC_MSG_FAILURE report pwd.
+	* lib/autoconf/general.m4 (_AC_ARG_VAR_VALIDATE, AC_MSG_FAILURE):
+	Output $ac_pwd along with fatal failure.
+	* tests/torture.at (Deep Package): Extend test.
+	Reported numerous times against GCC, and probably other packages.
+
+2008-05-12  Eric Blake  <ebb9@byu.net>
+
+	Enforce --help and --version compliance.
+	* configure.ac (AM_INIT_AUTOMAKE): Add std-options option.
+
+2008-05-08  Keith Marshall  <keithmarshall@users.sourceforge.net>  (tiny change)
+
+	Avoid case-insensitive `make install' vs. `INSTALL' conflict.
+	* Makefile.am ($(srcdir)/INSTALL): Replace all references...
+	($(abs_srcdir)/INSTALL): ...with this.
+
+2008-05-06  Eric Blake  <ebb9@byu.net>
+
+	Fix typo.
+	* doc/autoconf.texi (Shell Substitutions): Drop at_ prefix.
+
+	Avoid overfull \hbox.
+	* doc/autoconf.texi (Versioning): Reword to fit line size.
+
+	Document $(( )) pitfalls.
+	* doc/autoconf.texi (Shell Substitutions): Mention octal
+	vs. decimal.  Mention autotest's at_func_arith.
+
+	Improve behavior of './testsuite 01'.
+	* lib/autotest/general.m4 (AT_INIT) <at_func_validate_ranges>:
+	Alter usage to eval its arguments, in order to normalize away
+	leading zero.  All callers updated.
+	* tests/autotest.at (Keywords and ranges): Test range
+	normalization with leading 0.
+
+2008-04-26  Eric Blake  <ebb9@byu.net>
+
+	Mention Solaris /usr/ucb/tr pitfall.
+	* doc/autoconf.texi (Limitations of Usual Tools) <tr>: Add section.
+	Reported by Bruno Haible and Jim Meyering.
+
+2008-04-24  Eric Blake  <ebb9@byu.net>
+
+	Mention m4sugar's internal quote strings.
+	* doc/autoconf.texi (Quadrigraphs): Mention alternate quote used
+	in m4sugar, and how to still output it literally.
+	* tests/m4sugar.at (m4@&t@_split): And test it.
+	Reported by Joel E. Denny.
+
+2008-04-23  Eric Blake  <ebb9@byu.net>
+
+	Allow unbalanced () in m4_expand.
+	* lib/m4sugar/m4sugar.m4 (m4_expand, _m4_expand): Use more complex
+	quotes.
+	(m4_noquote, _m4_split): Use consistent complex quote.
+	* tests/autotest.at (Left paren, Right paren): Test this.
+	(Parentheses): Ensure new quadrigraphs still work.
+	(AT_CHECK_AT_TITLE_CHAR): All title char tests exercise m4_expand.
+	* NEWS: Mention the fix.
+	* doc/autoconf.texi (Quadrigraphs): Revert mention of macros that
+	require quadrigraphs for ().
+	(Evaluation Macros) <m4_expand>: Relax the restriction against
+	unbalanced ().
+	(Pretty Help Strings) <AS_HELP_STRING>: Likewise.
+	(Writing Testsuites) <AT_SETUP>: Likewise.
+	Reported by Joel E. Denny, fix suggested by Noah Misch.
+
+2008-04-22  Eric Blake  <ebb9@byu.net>
+
+	Support unbalanced () in AT_SETUP by adding two new quadrigraphs.
+	* bin/autom4te.in (handle_output): Substitute @{:@ and @:}@.
+	(handle_traces): Likewise.
+	* lib/m4sugar/m4sugar.m4 (m4_qlen): Account for new quadrigraphs.
+	* tests/autotest.at (AT_CHECK_AT_TITLE_CHAR): Add new tests.
+	* doc/autoconf.texi (Quadrigraphs): Document them.
+	(Evaluation Macros) <m4_expand>: Enhance documentation.
+	(Text processing Macros) <m4_text_box>: Document cases where
+	quadrigraphs can help for problemetic unbalanced parentheses.
+	(Pretty Help Strings) <AS_HELP_STRING>: Likewise.
+	(Writing Testsuites) <AT_SETUP>: Likewise.
+	(Limitations of Builtins) <case>: Consolidate text on unbalanced
+	parentheses, and add an example of creative comments.
+	* NEWS: Document the addition.
+	Reported by Joel E. Denny.
+
+2008-04-16  Eric Blake  <ebb9@byu.net>
+
+	Document pdksh exec behavior.
+	* doc/autoconf.texi (Limitations of Builtins) <exec>: New
+	subsection.
+	Discovered by Jim Meyering.
+
+2008-04-14  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* tests/autotest.at (AT_CHECK_AT): Allow to pass additional
+	arguments to the inner suite.
+	(errexit, input from stdin): New tests.
+
+2008-04-13  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* NEWS: Post-release update.
+
+2008-04-10  Eric Blake  <ebb9@byu.net>
+
+	AC_AUTOCONF_VERSION might contain arbitrary macro names.
+	* doc/autoconf.texi (Versioning): Mention problem with expansion.
+	* tests/tools.at (autoconf: AC_AUTOCONF_VERSION): Adjust test.
+
+2008-04-09  Slava Sysoltsev <Viatcheslav.Sysoltsev@h-d-gmbh.de>  (tiny change)
+
+	Flush buffered output before exit.
+	* bin/autom4te.in (handle_output): Explicitly close file.
+	* THANKS: Update.
+	See http://lists.gnu.org/archive/html/autoconf/2008-04/msg00026.html.
+
+2008-04-08  Eric Blake  <ebb9@byu.net>
+
+	Generate web docs for 2.62.
+	* doc/autoconf.texi (Evaluation Macros): Fix typo.
+	(Notices): Use recommended means to escape RCS keyword.
+	* cfg.mk (gnulib_dir): New macro.
+	(web-manual): New target.
+
 2008-04-05  Eric Blake  <ebb9@byu.net>
 
 	Release Version 2.62.

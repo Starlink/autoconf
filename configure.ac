@@ -42,7 +42,7 @@ AC_SUBST(STAR_MANIFEST_DIR)
 
 AC_CONFIG_AUX_DIR([build-aux])
 
-AM_INIT_AUTOMAKE([1.10 dist-bzip2 readme-alpha no-texinfo.tex])
+AM_INIT_AUTOMAKE([1.10 dist-bzip2 readme-alpha no-texinfo.tex std-options])
 
 # We use `/bin/sh -n script' to check that there are no syntax errors
 # in the scripts.  Although incredible, there are /bin/sh that go into
@@ -160,6 +160,12 @@ AM_PATH_LISPDIR
 AC_PROG_GREP
 AC_PROG_EGREP
 AC_PROG_SED
+
+
+## ----- ##
+## Make. ##
+## ----- ##
+AC_PROG_MAKE_CASE_SENSITIVE
 
 
 ## ------------ ##
