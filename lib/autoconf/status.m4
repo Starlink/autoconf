@@ -1102,7 +1102,7 @@ AC_DEFUN([AC_CONFIG_SUBDIRS],
   _AC_CONFIG_COMPUTE_DEST(], [))])]dnl
 [m4_append([_AC_LIST_SUBDIRS], [$1], [
 ])]dnl
-[AS_LITERAL_WORD_IF([$1], [],
+[AS_LITERAL_IF([$1], [],
 	       [AC_DIAGNOSE([syntax], [$0: you should use literals])])]dnl
 [AC_SUBST([subdirs], ["$subdirs m4_normalize([$1])"])])
 
@@ -1464,9 +1464,14 @@ ac_need_defaults=:
 while test $[#] != 0
 do
   case $[1] in
-  --*=*)
+  --*=?*)
     ac_option=`expr "X$[1]" : 'X\([[^=]]*\)='`
     ac_optarg=`expr "X$[1]" : 'X[[^=]]*=\(.*\)'`
+    ac_shift=:
+    ;;
+  --*=)
+    ac_option=`expr "X$[1]" : 'X\([[^=]]*\)='`
+    ac_optarg=
     ac_shift=:
     ;;
   *)
@@ -1491,6 +1496,7 @@ m4_ifdef([_AC_SEEN_CONFIG(FILES)], [dnl
     $ac_shift
     case $ac_optarg in
     *\'*) ac_optarg=`AS_ECHO(["$ac_optarg"]) | sed "s/'/'\\\\\\\\''/g"` ;;
+    '') AC_MSG_ERROR([missing file argument]) ;;
     esac
     AS_VAR_APPEND([CONFIG_FILES], [" '$ac_optarg'"])
     ac_need_defaults=false;;

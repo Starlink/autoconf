@@ -1,5 +1,32 @@
 GNU Autoconf NEWS - User visible changes.
 
+* Major changes in Autoconf 2.67 (2010-07-21) [stable]
+  Released by Eric Blake, based on git versions 2.66.*.
+
+** AC_CONFIG_SUBDIRS with more than one subdirectory at a time works again.
+   Regression introduced in 2.66.
+
+** AC_CHECK_SIZEOF of a pointer type works again.  Regression introduced in
+   2.66.
+
+** New macro AC_FC_LINE_LENGTH to accept long Fortran source code lines.
+
+** AC_PREPROC_IFELSE now keeps the preprocessed output in the conftest.i
+   file for inspection by the commands in the ACTION-IF-TRUE argument.
+
+** AC_INIT again allows parentheses and other characters that are literal
+   in single- or double-quoted strings, and in quoted and unquoted
+   here-documents, for its PACKAGE and VERSION arguments.  Regression
+   introduced in 2.66.
+
+** autoreconf passes warning flags to new enough versions of aclocal.
+
+** Running an Autotest testsuite in parallel mode no longer triggers a
+   race condition that could cause the testsuite run to end early,
+   fixing a sporadic failure in autoconf's own testsuite.  Bug present
+   since introduction of parallel tests in 2.63b.
+
+
 * Major changes in Autoconf 2.66 (2010-07-02) [stable]
   Released by Eric Blake, based on git versions 2.65.*.
 

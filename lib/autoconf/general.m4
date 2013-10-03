@@ -224,13 +224,21 @@ AU_ALIAS([AC_HELP_STRING], [AS_HELP_STRING])
 # The solution is to require AC_INIT in each of these macros.  AC_INIT
 # has the needed magic so that it can't be expanded twice.
 
-
+# _AC_INIT_LITERAL(STRING)
+# ------------------------
+# Reject STRING if it contains newline, or if it cannot be used as-is
+# in single-quoted strings, double-quoted strings, and quoted and
+# unquoted here-docs.
+m4_define([_AC_INIT_LITERAL],
+[m4_if(m4_index(m4_translit([[$1]], [
+""], ['']), ['])AS_LITERAL_HEREDOC_IF([$1], [-]), [-1-], [],
+  [m4_warn([syntax], [AC_INIT: not a literal: $1])])])
 
 # _AC_INIT_PACKAGE(PACKAGE-NAME, VERSION, BUG-REPORT, [TARNAME], [URL])
 # ---------------------------------------------------------------------
 m4_define([_AC_INIT_PACKAGE],
-[AS_LITERAL_IF([$1], [], [m4_warn([syntax], [AC_INIT: not a literal: $1])])
-AS_LITERAL_IF([$2], [],  [m4_warn([syntax], [AC_INIT: not a literal: $2])])
+[_AC_INIT_LITERAL([$1])
+_AC_INIT_LITERAL([$2])
 AS_LITERAL_IF([$3], [],  [m4_warn([syntax], [AC_INIT: not a literal: $3])])
 m4_ifndef([AC_PACKAGE_NAME],
 	  [m4_define([AC_PACKAGE_NAME],     [$1])])
@@ -606,8 +614,9 @@ do
   fi
 
   case $ac_option in
-  *=*)	ac_optarg=`expr "X$ac_option" : '[[^=]]*=\(.*\)'` ;;
-  *)	ac_optarg=yes ;;
+  *=?*) ac_optarg=`expr "X$ac_option" : '[[^=]]*=\(.*\)'` ;;
+  *=)   ac_optarg= ;;
+  *)    ac_optarg=yes ;;
   esac
 
   # Accept the important Cygnus configure options, so we can diagnose typos.
@@ -2461,7 +2470,7 @@ AC_DEFUN([AC_RUN_LOG],
 # Shell function body for _AC_PREPROC_IFELSE.
 m4_define([_AC_PREPROC_IFELSE_BODY],
 [  AS_LINENO_PUSH([$[]1])
-  AS_IF([_AC_DO_STDERR([$ac_cpp conftest.$ac_ext]) >/dev/null && {
+  AS_IF([_AC_DO_STDERR([$ac_cpp conftest.$ac_ext]) > conftest.i && {
 	 test -z "$ac_[]_AC_LANG_ABBREV[]_preproc_warn_flag$ac_[]_AC_LANG_ABBREV[]_werror_flag" ||
 	 test ! -s conftest.err
        }],
@@ -2486,7 +2495,7 @@ AC_DEFUN([_AC_PREPROC_IFELSE],
   [$0_BODY])]dnl
 [m4_ifvaln([$1], [AC_LANG_CONFTEST([$1])])]dnl
 [AS_IF([ac_fn_[]_AC_LANG_ABBREV[]_try_cpp "$LINENO"], [$2], [$3])
-rm -f conftest.err[]m4_ifval([$1], [ conftest.$ac_ext])[]dnl
+rm -f conftest.err conftest.i[]m4_ifval([$1], [ conftest.$ac_ext])[]dnl
 ])# _AC_PREPROC_IFELSE
 
 # AC_PREPROC_IFELSE(PROGRAM, [ACTION-IF-TRUE], [ACTION-IF-FALSE])

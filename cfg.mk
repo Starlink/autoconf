@@ -108,3 +108,6 @@ local-checks-to-skip ?= \
 update-copyright-env = \
   UPDATE_COPYRIGHT_USE_INTERVALS=0 \
   UPDATE_COPYRIGHT_MAX_LINE_LENGTH=72
+
+# Prevent incorrect NEWS edits.
+old_NEWS_hash = 8cc9e3fa54a0b12094a7ecfdbd539f82

@@ -1,4 +1,215 @@
+2010-07-21  Eric Blake  <eblake@redhat.com>
+
+	Release Version 2.67.
+	* NEWS: Mention the release.
+
+	Prepare for release.
+	* maint.mk (PREV_VERSION_REGEXP): New macro, missed when
+	backporting update-NEWS_hash from gnulib.
+	* cfg.mk (old_NEWS_hash): Correctly generate.
+	* build-aux/gendocs.sh: Temporarily break sync from upstream, to
+	avoid including spurious directories in info source tarball.
+
+	Avoid spurious testsuite failures.
+	* doc/autoconf.texi (Generating Sources): Don't mix gcc '-E' and
+	'-o -', since the former already implies stdout, while the latter
+	creates -.exe on cygwin.
+	* tests/compile.at (AC_LANG_SOURCE example)
+	(AC_LANG_PROGRAM example): Likewise.  Also prevent any config.site
+	interference.
+
+	Partially revert previous patch.
+	* lib/autotest/general.m4 (AT_INIT) <serial testing>: Changing
+	at_jobs here breaks output if -j2 was requested but shell is
+	insufficient to support parallel testing.
+	Reported by Ralf Wildenhues.
+
+	Minor testsuite size reduction.
+	* lib/autotest/general.m4 (AT_INIT) <serial testing>: Ensure
+	at_jobs is 1.
+	(AT_SETUP, AT_CLEANUP): Factor initialization code...
+	(AT_INIT) <at_fn_group_banner>: ...into new function.
+	Based in part on suggestion by Ralf Wildenhues.
+
+2010-07-20  Eric Blake  <eblake@redhat.com>
+
+	Close job control fd before running tests.
+	* doc/autoconf.texi (File Descriptors): Clarify limitations.
+	* lib/autotest/general.m4 (AT_CLEANUP): Avoid leaking job control
+	fifo fd to user tests.
+	(AT_INIT): Delete comment, now that close is done elsewhere.
+	Suggested by Ralf Wildenhues.
+
+2010-07-20 Paul Eggert  <eggert@cs.ucla.edu>
+	and Eric Blake  <eblake@redhat.com>
+
+	Plug race in parallel autotest.
+	* lib/autotest/general.m4 (AT_INIT) <Fifo job dispatcher>: Track
+	two fds to fifo in parent, to avoid race where parent can see EOF
+	before child opens fifo.  Avoid any atomicity problems with tokens
+	larger than one byte.
+	* NEWS: Document the bug fix.
+
+2010-07-20  Eric Blake  <eblake@redhat.com>
+
+	Another empty argument through expr workaround.
+	* lib/autoconf/status.m4 (_AC_OUTPUT_CONFIG_STATUS): Detect empty
+	arguments.  Reject empty file argument.
+	* tests/torture.at (AC_CONFIG_FILES, HEADERS, LINKS and COMMANDS):
+	Check for missing argument.
+
+	Also reject ' and newline from AC_INIT strings.
+	* lib/autoconf/general.m4 (_AC_INIT_LITERAL): Reject a couple more
+	problematic characters.
+	* tests/base.at (AC_INIT with unusual version strings): Enhance
+	test.
+	* doc/autoconf.texi (Initializing configure) <AC_INIT>: Further
+	clarifications, and clean up wording about use of m4_esyscmd.
+	* NEWS: Update previous news entry.
+	Suggested by Paolo Bonzini.
+
+2010-07-20  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Let autoreconf pass warning flags to new-enough aclocal.
+	* bin/autoreconf.in ($aclocal_supports_warnings)
+	($automake_supports_warnings): New globals.
+	(parse_args): Set and use them.  Be sure to invoke `aclocal
+	--help' and `automake --help' just once each.
+	* NEWS: Update.
+	Prompted by report from Bruno Haible.
+
+	Fix parsing of empty variable settings on the command line.
+	* lib/autoconf/general.m4 (_AC_INIT_PARSE_ARGS): Work around
+	expr bug returning 0 instead of the empty string.
+	* lib/autotest/general.m4 (AT_INIT): Likewise.
+
+	Fix typo in the manual.
+	* doc/autoconf.texi (AC_ACT_IFELSE vs AC_TRY_ACT): Fix typo.
+
+2010-07-19  Eric Blake  <eblake@redhat.com>
+
+	Fix up AC_INIT vs. " issues, and document it.
+	* doc/autoconf.texi (Initializing configure): Improve
+	documentation on argument restrictions.
+	* NEWS: Tweak information.
+	* lib/autoconf/general.m4 (_AC_INIT_GENERAL): New macro, that also
+	rejects literal ".
+	(_AC_INIT_PACKAGE): Use it to plug hole in last patch.
+	* tests/base.at (AC_INIT with unusual version strings): Enhance
+	test.
+
+2010-07-19  Eric Blake  <eblake@redhat.com>
+	and Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Relax AC_INIT requirements for PACKAGE and VERSION strings again.
+	* lib/m4sugar/m4sh.m4 (AS_LITERAL_HEREDOC_IF): New macro.
+	(_AS_LITERAL_HEREDOC_IF, _AS_LITERAL_HEREDOC_IF_YES)
+	(_AS_LITERAL_HEREDOC_IF_NO): New helper macros.
+	* lib/autoconf/general.m4 (_AC_INIT_PACKAGE): Use
+	AS_LITERAL_HEREDOC_IF for PACKAGE and VERSION strings.
+	* tests/base.at (AC_INIT with unusual version strings): New test.
+	* tests/m4sh.at (AS@&t@_LITERAL_IF): Extend test.
+	* NEWS: Update.
+
+2010-07-19  Eric Blake  <eblake@redhat.com>
+
+	Fix testsuite failures from previous patch.
+	* lib/autoconf/c.m4 (_AC_PROG_PREPROC_WORKS_IFELSE): Also remove
+	conftest.i when preprocessor tests break out of a loop.
+
+2010-07-19  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Allow inspecting AC_PREPROC_IFELSE output in true branch.
+	* lib/autoconf/general.m4 (_AC_PREPROC_IFELSE_BODY): Redirect
+	preprocessor output to conftest.i rather than /dev/null.
+	(_AC_PREPROC_IFELSE): Remove conftest.i in the postprocessing.
+	* tests/compile.at (Order of user actions and cleanup): Extend
+	test in the ACTION-IF-TRUE branch.
+	* doc/autoconf.texi (Running the Preprocessor): Document new
+	feature.
+	* NEWS: Update.
+
+	Fix AC_FC_LIBRARY_LDFLAGS detection for BlueGene xlf -qipa.
+	* lib/autoconf/fortran.m4 (_AC_FC_LIBRARY_LDFLAGS): Ignore
+	'-link', added spuriously when -qipa is used with the XL
+	Fortran compilers on BlueGene.
+
+	manual: compiler flags -D and -L should not be followed by space
+	* doc/autoconf.texi (Preset Output Variables): Remove space
+	between -D and -L flags and their arguments, traditional cpp
+	implementations like Solaris 10, IRIX 6.5, OSF Tru64 5.1D,
+	AIX 5.3 do not accept it.
+
+2010-07-10  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Fix comment typo in the manual.
+	* doc/autoconf.texi (Generic Compiler Characteristics): Refer
+	to the right test in the example marker comment.
+	Spotted by Eric Blake.
+
+2010-07-10  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	New Fortran macro AC_FC_LINE_LENGTH.
+	* lib/autoconf/fortran.m4 (AC_FC_LINE_LENGTH): New macro.
+	* doc/autoconf.texi (Fortran Compiler): Document it.
+	* tests/fortran.at (AC_FC_LINE_LENGTH): New test.
+	* NEWS: Update.
+
+	Fix wording about AC_CONFIG_SUBDIRS warning.
+	* doc/autoconf.texi (Subdirectories): We warn, not error, about
+	nonexistent config subdirs, but only at configure run time.
+
+2010-07-10  Eric Blake  <eblake@redhat.com>
+	and Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Fix regression of AC_CHECK_SIZEOF on pointer types.
+	* lib/autoconf/types.m4 (AC_CHECK_SIZEOF): Translate `*' to `p'
+	when checking literal-ness of the type, for pointer types.
+	* lib/m4sugar/m4sh.m4 (_AS_TR_SH): Also consider `*' as literal.
+	(_AS_TR_CPP): Likewise.
+	* tests/semantics.at (AC_CHECK_ALIGNOF struct): When checking
+	for numeric answer, be sure to not allow variable references.
+	(AC_CHECK_SIZEOF struct): Likewise.  Also, test the
+	`AC_CHECK_SIZEOF([int *])' example from the manual.
+	* doc/autoconf.texi (Generic Compiler Characteristics): Add
+	example marker.
+	* NEWS: Update.
+	Reports by Nishio Futoshi and Roberto Bagnara.
+
+2010-07-08  Eric Blake  <eblake@redhat.com>
+	and Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Fix regression of AC_CONFIG_SUBDIRS with multiple arguments.
+	* lib/autoconf/status.m4 (AC_CONFIG_SUBDIRS): Do not assume the
+	argument is a single word.
+	* tests/torture.at (Deep Package): Extend test to cover this.
+	(Non-literal AC_CONFIG_SUBDIRS): New test.
+	* doc/autoconf.texi (Subdirectories): Add example marker.
+	* NEWS: Update.
+	Report by Bruno Haible.
+
+2010-07-04  Stefano Lattarini  <stefano.lattarini@gmail.com>
+
+	Fix minor copy&paste leftover in m4sh tests.
+	* tests/m4sh.at (AS@&t@_TR_SH and AS@&t@_TR_CPP): Remove
+	useless variables assignements ($var, $vAr, $VAR).
+
+2010-07-04  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Fix testsuite to not trigger Solaris sh for bug.
+	* tests/torture.at (Torturing config.status)
+	(Substitute a 2000-byte string)
+	(Substitute and define special characters)
+	(Substitute a newline): Quote first argument in for list so
+	that it does not look like an assignment.
+
 2010-07-02  Eric Blake  <eblake@redhat.com>
+
+	Post-release administrivia.
+	* maint.mk (NEWS_hash): Define.
+	* NEWS: Add header line for next release.
+	* .prev-version: Record previous version.
+	* cfg.mk (old_NEWS_hash): Auto-update.
 
 	Release Version 2.66.
 	* NEWS: Mention the release.

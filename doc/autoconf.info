@@ -1,9 +1,9 @@
 This is autoconf.info, produced by makeinfo version 4.13 from
 autoconf.texi.
 
-This manual (2 July 2010) is for GNU Autoconf (version 2.66), a package
-for creating scripts to configure source code packages using templates
-and an M4 macro package.
+This manual (21 July 2010) is for GNU Autoconf (version 2.67), a
+package for creating scripts to configure source code packages using
+templates and an M4 macro package.
 
    Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software
@@ -52,9 +52,9 @@ File: autoconf.info,  Node: Top,  Next: Introduction,  Up: (dir)
 Autoconf
 ********
 
-This manual (2 July 2010) is for GNU Autoconf (version 2.66), a package
-for creating scripts to configure source code packages using templates
-and an M4 macro package.
+This manual (21 July 2010) is for GNU Autoconf (version 2.67), a
+package for creating scripts to configure source code packages using
+templates and an M4 macro package.
 
    Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software
@@ -1535,9 +1535,17 @@ Output::).
      and underscores are changed to `-'.  If provided, URL should be
      the home page for the package.
 
-     It is preferable that the arguments of `AC_INIT' be static, i.e.,
-     there should not be any shell computation, but they can be
-     computed by M4.
+     The arguments of `AC_INIT' must be static, i.e., there should not
+     be any shell computation, quotes, or newlines, but they can be
+     computed by M4.  This is because the package information strings
+     are expanded at M4 time into several contexts, and must give the
+     same text at shell time whether used in single-quoted strings,
+     double-quoted strings, quoted here-documents, or unquoted
+     here-documents.  It is permissible to use `m4_esyscmd' or
+     `m4_esyscmd_s' for computing a version string that changes with
+     every commit to a version control system (in fact, Autoconf does
+     just that, for all builds of the development tree made between
+     releases).
 
      The following M4 macros (e.g., `AC_PACKAGE_NAME'), output variables
      (e.g., `PACKAGE_NAME'), and preprocessor symbols (e.g.,
@@ -1588,7 +1596,7 @@ version of Autoconf that can successfully compile a given
      earlier than VERSION, print an error message to the standard error
      output and exit with failure (exit status is 63).  For example:
 
-          AC_PREREQ([2.66])
+          AC_PREREQ([2.67])
 
      This macro may be used before `AC_INIT'.
 
@@ -1597,7 +1605,7 @@ version of Autoconf that can successfully compile a given
      version of Autoconf that is currently parsing the input file, in a
      format suitable for `m4_version_compare' (*note
      m4_version_compare::); in other words, for this release of
-     Autoconf, its value is `2.66'.  One potential use of this macro is
+     Autoconf, its value is `2.67'.  One potential use of this macro is
      for writing conditional fallbacks based on when a feature was
      added to Autoconf, rather than using `AC_PREREQ' to require the
      newer version of Autoconf.  However, remember that the Autoconf
@@ -1991,10 +1999,10 @@ sufficient to use just `$srcdir' instead of `$top_srcdir'.
      to test for C features.
 
      If a compiler option affects only the behavior of the preprocessor
-     (e.g., `-D NAME'), it should be put into `CPPFLAGS' instead.  If
-     it affects only the linker (e.g., `-L DIRECTORY'), it should be
-     put into `LDFLAGS' instead.  If it affects only the compiler
-     proper, `CFLAGS' is the natural home for it.  If an option affects
+     (e.g., `-DNAME'), it should be put into `CPPFLAGS' instead.  If it
+     affects only the linker (e.g., `-LDIRECTORY'), it should be put
+     into `LDFLAGS' instead.  If it affects only the compiler proper,
+     `CFLAGS' is the natural home for it.  If an option affects
      multiple phases of the compiler, though, matters get tricky.  One
      approach to put such options directly into `CC', e.g., `CC='gcc
      -m64''.  Another is to put them into both `CPPFLAGS' and
@@ -2949,8 +2957,8 @@ more than one independent package can use `AC_CONFIG_SUBDIRS' to run
             AC_CONFIG_SUBDIRS([foo])
           fi
 
-     If a given DIR is not found, an error is reported: if the
-     subdirectory is optional, write:
+     If a given DIR is not found at `configure' run time, a warning is
+     reported; if the subdirectory is optional, write:
 
           if test -d "$srcdir/foo"; then
             AC_CONFIG_SUBDIRS([foo])
@@ -6076,9 +6084,10 @@ variables like `F77', `FFLAGS', and `FLIBS'.  The latter are for newer
 programs that can (or must) compile under the newer Fortran standards,
 and have output variables like `FC', `FCFLAGS', and `FCLIBS'.
 
-   Except for the macros `AC_FC_SRCEXT', `AC_FC_FREEFORM', and
-`AC_FC_FIXEDFORM' (see below), the `FC' and `F77' macros behave almost
-identically, and so they are documented together in this section.
+   Except for the macros `AC_FC_SRCEXT', `AC_FC_FREEFORM',
+`AC_FC_FIXEDFORM', and `AC_FC_LINE_LENGTH' (see below), the `FC' and
+`F77' macros behave almost identically, and so they are documented
+together in this section.
 
  -- Macro: AC_PROG_F77 ([COMPILER-SEARCH-LIST])
      Determine a Fortran 77 compiler to use.  If `F77' is not already
@@ -6381,6 +6390,21 @@ Choice::).
      `AC_FC_FIXEDFORM' ordinarily succeeds without modifying `FCFLAGS'.
 
      If `AC_FC_FIXEDFORM' succeeds in compiling fixed-form source, it
+     calls ACTION-IF-SUCCESS (defaults to nothing).  If it fails, it
+     calls ACTION-IF-FAILURE (defaults to exiting with an error
+     message).
+
+ -- Macro: AC_FC_LINE_LENGTH ([LENGTH], [ACTION-IF-SUCCESS],
+          [ACTION-IF-FAILURE])
+     The `AC_FC_LINE_LENGTH' macro tries to ensure that the Fortran
+     compiler (`$FC') accepts long source code lines.  The LENGTH
+     argument may be given as 80, 132, or unlimited, and defaults to
+     132.  Note that line lengths above 254 columns are not portable,
+     and some compilers do not accept more than 132 columns at least
+     for fixed format source.  If necessary, it may add some additional
+     flags to `FCFLAGS'.
+
+     If `AC_FC_LINE_LENGTH' succeeds in compiling fixed-form source, it
      calls ACTION-IF-SUCCESS (defaults to nothing).  If it fails, it
      calls ACTION-IF-FAILURE (defaults to exiting with an error
      message).
@@ -6887,7 +6911,7 @@ actually depend on the current language (*note Language Choice::) to
      AC_LANG([C])
      AC_LANG_CONFTEST(
         [AC_LANG_SOURCE([[const char hw[] = "Hello, World\n";]])])
-     gcc -E -dD -o - conftest.c
+     gcc -E -dD conftest.c
 
 on a system with `gcc' installed, results in:
 
@@ -6922,7 +6946,7 @@ source code by this macro.
      AC_LANG_CONFTEST(
      [AC_LANG_PROGRAM([[const char hw[] = "Hello, World\n";]],
                       [[fputs (hw, stdout);]])])
-     gcc -E -dD -o - conftest.c
+     gcc -E -dD conftest.c
 
 on a system with `gcc' installed, results in:
 
@@ -7025,7 +7049,8 @@ Erlang or Fortran, since those languages require no preprocessor.
      etc. are not valid options to many C preprocessors.
 
      It is customary to report unexpected failures with
-     `AC_MSG_FAILURE'.
+     `AC_MSG_FAILURE'.  If needed, ACTION-IF-TRUE can further access
+     the preprocessed output in the file `conftest.i'.
 
    For instance:
 
@@ -12200,7 +12225,7 @@ But using ksh:
 Within the process which runs the `descrips' script, file descriptor 5
 is closed.
 
-   Don't rely on redirection to a closed file descriptor to cause an
+   Don't rely on duplicating a closed file descriptor to cause an
 error.  With Solaris `/bin/sh', when the redirection fails, the output
 goes to the original file descriptor.
 
@@ -12210,6 +12235,11 @@ goes to the original file descriptor.
      $ /bin/sh -c 'echo hi >&3' 3>&-; echo $?
      hi
      0
+
+   Fortunately, an attempt to close an already closed file descriptor
+will portably succeed.  Likewise, it is safe to use either style of
+`N<&-' or `N>&-' for closing a file descriptor, even if it doesn't
+match the read/write mode that the file descriptor was opened with.
 
    DOS variants cannot rename or remove open files, such as in `mv foo
 bar >foo' or `rm foo >foo', even though this is perfectly portable
@@ -19441,7 +19471,7 @@ File: autoconf.info,  Node: AC_ACT_IFELSE vs AC_TRY_ACT,  Prev: AC_LIBOBJ vs LIB
 
 Since Autoconf 2.50, internal codes uses `AC_PREPROC_IFELSE',
 `AC_COMPILE_IFELSE', `AC_LINK_IFELSE', and `AC_RUN_IFELSE' on one hand
-and `AC_LANG_SOURCES', and `AC_LANG_PROGRAM' on the other hand instead
+and `AC_LANG_SOURCE', and `AC_LANG_PROGRAM' on the other hand instead
 of the deprecated `AC_TRY_CPP', `AC_TRY_COMPILE', `AC_TRY_LINK', and
 `AC_TRY_RUN'.  The motivations where:
    - a more consistent interface: `AC_TRY_COMPILE' etc. were double
@@ -21664,12 +21694,12 @@ influence Autoconf checks.
                                                               (line  10)
 * ERLCFLAGS:                             Preset Output Variables.
                                                               (line 120)
-* F77:                                   Fortran Compiler.    (line  18)
-* FC:                                    Fortran Compiler.    (line  39)
-* FCFLAGS <1>:                           Fortran Compiler.    (line  39)
+* F77:                                   Fortran Compiler.    (line  19)
+* FC:                                    Fortran Compiler.    (line  40)
+* FCFLAGS <1>:                           Fortran Compiler.    (line  40)
 * FCFLAGS:                               Preset Output Variables.
                                                               (line 126)
-* FFLAGS <1>:                            Fortran Compiler.    (line  18)
+* FFLAGS <1>:                            Fortran Compiler.    (line  19)
 * FFLAGS:                                Preset Output Variables.
                                                               (line 133)
 * FPATH:                                 Special Shell Variables.
@@ -21865,17 +21895,17 @@ done.
 * EXEEXT <1>:                            Obsolete Macros.     (line 178)
 * EXEEXT:                                Compilers and Preprocessors.
                                                               (line   6)
-* F77:                                   Fortran Compiler.    (line  18)
-* FC:                                    Fortran Compiler.    (line  39)
-* FCFLAGS <1>:                           Fortran Compiler.    (line  39)
+* F77:                                   Fortran Compiler.    (line  19)
+* FC:                                    Fortran Compiler.    (line  40)
+* FCFLAGS <1>:                           Fortran Compiler.    (line  40)
 * FCFLAGS:                               Preset Output Variables.
                                                               (line 126)
-* FCLIBS:                                Fortran Compiler.    (line  79)
-* FFLAGS <1>:                            Fortran Compiler.    (line  18)
+* FCLIBS:                                Fortran Compiler.    (line  80)
+* FFLAGS <1>:                            Fortran Compiler.    (line  19)
 * FFLAGS:                                Preset Output Variables.
                                                               (line 133)
 * FGREP:                                 Particular Programs. (line  33)
-* FLIBS:                                 Fortran Compiler.    (line  79)
+* FLIBS:                                 Fortran Compiler.    (line  80)
 * GETGROUPS_LIBS:                        Particular Functions.
                                                               (line 138)
 * GETLOADAVG_LIBS:                       Particular Functions.
@@ -21957,17 +21987,17 @@ done.
 * OPENMP_FFLAGS:                         Generic Compiler Characteristics.
                                                               (line  64)
 * PACKAGE_BUGREPORT:                     Initializing configure.
-                                                              (line  49)
+                                                              (line  57)
 * PACKAGE_NAME:                          Initializing configure.
-                                                              (line  37)
+                                                              (line  45)
 * PACKAGE_STRING:                        Initializing configure.
-                                                              (line  46)
+                                                              (line  54)
 * PACKAGE_TARNAME:                       Initializing configure.
-                                                              (line  40)
+                                                              (line  48)
 * PACKAGE_URL:                           Initializing configure.
-                                                              (line  52)
+                                                              (line  60)
 * PACKAGE_VERSION:                       Initializing configure.
-                                                              (line  43)
+                                                              (line  51)
 * pdfdir:                                Installation Directory Variables.
                                                               (line  69)
 * POW_LIB:                               Particular Functions.
@@ -22054,15 +22084,15 @@ use these names in `#if' or `#ifdef' directives.
 * DGUX:                                  Particular Functions.
                                                               (line 144)
 * DIRENT:                                Obsolete Macros.     (line 158)
-* F77_DUMMY_MAIN:                        Fortran Compiler.    (line 110)
-* F77_FUNC:                              Fortran Compiler.    (line 176)
-* F77_FUNC_:                             Fortran Compiler.    (line 176)
-* F77_MAIN:                              Fortran Compiler.    (line 153)
-* F77_NO_MINUS_C_MINUS_O:                Fortran Compiler.    (line  66)
-* FC_FUNC:                               Fortran Compiler.    (line 176)
-* FC_FUNC_:                              Fortran Compiler.    (line 176)
-* FC_MAIN:                               Fortran Compiler.    (line 153)
-* FC_NO_MINUS_C_MINUS_O:                 Fortran Compiler.    (line  66)
+* F77_DUMMY_MAIN:                        Fortran Compiler.    (line 111)
+* F77_FUNC:                              Fortran Compiler.    (line 177)
+* F77_FUNC_:                             Fortran Compiler.    (line 177)
+* F77_MAIN:                              Fortran Compiler.    (line 154)
+* F77_NO_MINUS_C_MINUS_O:                Fortran Compiler.    (line  67)
+* FC_FUNC:                               Fortran Compiler.    (line 177)
+* FC_FUNC_:                              Fortran Compiler.    (line 177)
+* FC_MAIN:                               Fortran Compiler.    (line 154)
+* FC_NO_MINUS_C_MINUS_O:                 Fortran Compiler.    (line  67)
 * FLEXIBLE_ARRAY_MEMBER:                 C Compiler.          (line 315)
 * GETGROUPS_T:                           Particular Types.    (line  14)
 * GETLOADAVG_PRIVILEGED:                 Particular Functions.
@@ -22208,17 +22238,17 @@ use these names in `#if' or `#ifdef' directives.
 * NO_MINUS_C_MINUS_O:                    C Compiler.          (line 102)
 * off_t:                                 Particular Types.    (line 102)
 * PACKAGE_BUGREPORT:                     Initializing configure.
-                                                              (line  49)
+                                                              (line  57)
 * PACKAGE_NAME:                          Initializing configure.
-                                                              (line  37)
+                                                              (line  45)
 * PACKAGE_STRING:                        Initializing configure.
-                                                              (line  46)
+                                                              (line  54)
 * PACKAGE_TARNAME:                       Initializing configure.
-                                                              (line  40)
+                                                              (line  48)
 * PACKAGE_URL:                           Initializing configure.
-                                                              (line  52)
+                                                              (line  60)
 * PACKAGE_VERSION:                       Initializing configure.
-                                                              (line  43)
+                                                              (line  51)
 * PARAMS:                                C Compiler.          (line 351)
 * pid_t:                                 Particular Types.    (line 108)
 * PROTOTYPES:                            C Compiler.          (line 351)
@@ -22513,9 +22543,9 @@ This is an alphabetical list of the Autoconf macros.
 * AC_DISABLE_OPTION_CHECKING:            Option Checking.     (line  28)
 * AC_DYNIX_SEQ:                          Obsolete Macros.     (line 170)
 * AC_EGREP_CPP:                          Running the Preprocessor.
-                                                              (line  73)
+                                                              (line  74)
 * AC_EGREP_HEADER:                       Running the Preprocessor.
-                                                              (line  66)
+                                                              (line  67)
 * AC_EMXOS2:                             Obsolete Macros.     (line 183)
 * AC_ENABLE:                             Obsolete Macros.     (line 189)
 * AC_ERLANG_CHECK_LIB:                   Erlang Libraries.    (line  36)
@@ -22538,19 +22568,20 @@ This is an alphabetical list of the Autoconf macros.
 * AC_ERLANG_SUBST_ROOT_DIR:              Erlang Libraries.    (line  22)
 * AC_ERROR:                              Obsolete Macros.     (line 193)
 * AC_EXEEXT:                             Obsolete Macros.     (line 178)
-* AC_F77_DUMMY_MAIN:                     Fortran Compiler.    (line 110)
-* AC_F77_FUNC:                           Fortran Compiler.    (line 236)
-* AC_F77_LIBRARY_LDFLAGS:                Fortran Compiler.    (line  79)
-* AC_F77_MAIN:                           Fortran Compiler.    (line 153)
-* AC_F77_WRAPPERS:                       Fortran Compiler.    (line 176)
+* AC_F77_DUMMY_MAIN:                     Fortran Compiler.    (line 111)
+* AC_F77_FUNC:                           Fortran Compiler.    (line 237)
+* AC_F77_LIBRARY_LDFLAGS:                Fortran Compiler.    (line  80)
+* AC_F77_MAIN:                           Fortran Compiler.    (line 154)
+* AC_F77_WRAPPERS:                       Fortran Compiler.    (line 177)
 * AC_FATAL:                              Reporting Messages.  (line  34)
-* AC_FC_FIXEDFORM:                       Fortran Compiler.    (line 305)
-* AC_FC_FREEFORM:                        Fortran Compiler.    (line 285)
-* AC_FC_FUNC:                            Fortran Compiler.    (line 236)
-* AC_FC_LIBRARY_LDFLAGS:                 Fortran Compiler.    (line  79)
-* AC_FC_MAIN:                            Fortran Compiler.    (line 153)
-* AC_FC_SRCEXT:                          Fortran Compiler.    (line 246)
-* AC_FC_WRAPPERS:                        Fortran Compiler.    (line 176)
+* AC_FC_FIXEDFORM:                       Fortran Compiler.    (line 306)
+* AC_FC_FREEFORM:                        Fortran Compiler.    (line 286)
+* AC_FC_FUNC:                            Fortran Compiler.    (line 237)
+* AC_FC_LIBRARY_LDFLAGS:                 Fortran Compiler.    (line  80)
+* AC_FC_LINE_LENGTH:                     Fortran Compiler.    (line 325)
+* AC_FC_MAIN:                            Fortran Compiler.    (line 154)
+* AC_FC_SRCEXT:                          Fortran Compiler.    (line 247)
+* AC_FC_WRAPPERS:                        Fortran Compiler.    (line 177)
 * AC_FIND_X:                             Obsolete Macros.     (line 196)
 * AC_FIND_XTRA:                          Obsolete Macros.     (line 199)
 * AC_FOREACH:                            Obsolete Macros.     (line 202)
@@ -22696,17 +22727,17 @@ This is an alphabetical list of the Autoconf macros.
 * AC_OUTPUT:                             Output.              (line  13)
 * AC_OUTPUT_COMMANDS:                    Obsolete Macros.     (line 420)
 * AC_PACKAGE_BUGREPORT:                  Initializing configure.
-                                                              (line  49)
+                                                              (line  57)
 * AC_PACKAGE_NAME:                       Initializing configure.
-                                                              (line  37)
+                                                              (line  45)
 * AC_PACKAGE_STRING:                     Initializing configure.
-                                                              (line  46)
+                                                              (line  54)
 * AC_PACKAGE_TARNAME:                    Initializing configure.
-                                                              (line  40)
+                                                              (line  48)
 * AC_PACKAGE_URL:                        Initializing configure.
-                                                              (line  52)
+                                                              (line  60)
 * AC_PACKAGE_VERSION:                    Initializing configure.
-                                                              (line  43)
+                                                              (line  51)
 * AC_PATH_PROG:                          Generic Programs.    (line 108)
 * AC_PATH_PROGS:                         Generic Programs.    (line 115)
 * AC_PATH_PROGS_FEATURE_CHECK:           Generic Programs.    (line 123)
@@ -22734,10 +22765,10 @@ This is an alphabetical list of the Autoconf macros.
 * AC_PROG_CXX_C_O:                       C++ Compiler.        (line  48)
 * AC_PROG_CXXCPP:                        C++ Compiler.        (line  35)
 * AC_PROG_EGREP:                         Particular Programs. (line  26)
-* AC_PROG_F77:                           Fortran Compiler.    (line  18)
-* AC_PROG_F77_C_O:                       Fortran Compiler.    (line  66)
-* AC_PROG_FC:                            Fortran Compiler.    (line  39)
-* AC_PROG_FC_C_O:                        Fortran Compiler.    (line  66)
+* AC_PROG_F77:                           Fortran Compiler.    (line  19)
+* AC_PROG_F77_C_O:                       Fortran Compiler.    (line  67)
+* AC_PROG_FC:                            Fortran Compiler.    (line  40)
+* AC_PROG_FC_C_O:                        Fortran Compiler.    (line  67)
 * AC_PROG_FGREP:                         Particular Programs. (line  33)
 * AC_PROG_GCC_TRADITIONAL:               C Compiler.          (line 361)
 * AC_PROG_GREP:                          Particular Programs. (line  17)
@@ -23955,372 +23986,372 @@ introduced in this document.
 
 
 Tag Table:
-Node: Top2291
-Node: Introduction21291
-Node: The GNU Build System27806
-Node: Automake28785
-Node: Gnulib30734
-Node: Libtool32043
-Node: Pointers33465
-Ref: Pointers-Footnote-134766
-Node: Making configure Scripts34926
-Node: Writing Autoconf Input38275
-Node: Shell Script Compiler39738
-Node: Autoconf Language42099
-Node: Autoconf Input Layout48973
-Node: autoscan Invocation50381
-Node: ifnames Invocation52937
-Node: autoconf Invocation54137
-Node: autoreconf Invocation59422
-Node: Setup64171
-Node: Initializing configure65493
-Ref: AC_INIT65998
-Node: Versioning68276
-Node: Notices70137
-Node: Input71312
-Ref: AC_CONFIG_SRCDIR71453
-Node: Output74400
-Ref: AC_OUTPUT74835
-Ref: AC_PROG_MAKE_SET76453
-Node: Configuration Actions76878
-Node: Configuration Files82166
-Ref: AC_CONFIG_FILES82427
-Node: Makefile Substitutions83646
-Node: Preset Output Variables85388
-Node: Installation Directory Variables94758
-Node: Changed Directory Variables102606
-Node: Build Directories105200
-Node: Automatic Remaking107055
-Node: Configuration Headers109223
-Node: Header Templates112525
-Node: autoheader Invocation115260
-Node: Autoheader Macros118902
-Node: Configuration Commands121167
-Ref: AC_CONFIG_COMMANDS121679
-Node: Configuration Links122964
-Ref: AC_CONFIG_LINKS123415
-Node: Subdirectories124388
-Node: Default Prefix126843
-Ref: AC_PREFIX_PROGRAM127734
-Node: Existing Tests128265
-Node: Common Behavior130067
-Node: Standard Symbols130706
-Node: Default Includes131287
-Node: Alternative Programs133541
-Node: Particular Programs134227
-Ref: AC_PROG_LEX139848
-Ref: AC_PROG_LN_S142459
-Node: Generic Programs144076
-Ref: AC_CHECK_PROG145047
-Ref: AC_CHECK_PROGS145773
-Ref: AC_PATH_PROG149773
-Ref: AC_PATH_PROGS150147
-Node: Files153225
-Node: Libraries154425
-Ref: AC_CHECK_LIB154662
-Ref: AC_SEARCH_LIBS156921
-Node: Library Functions158105
-Node: Function Portability158728
-Node: Particular Functions167955
-Ref: AC_FUNC_ALLOCA168286
-Ref: AC_FUNC_CLOSEDIR_VOID170425
-Ref: AC_FUNC_FORK172287
-Ref: AC_FUNC_GETLOADAVG174091
-Ref: AC_FUNC_GETMNTENT175656
-Ref: AC_FUNC_MMAP179633
-Ref: AC_FUNC_STRCOLL182488
-Ref: AC_FUNC_STRFTIME183463
-Ref: AC_FUNC_UTIME_NULL184623
-Ref: AC_FUNC_VPRINTF184971
-Node: Generic Functions186187
-Ref: AC_CHECK_FUNC186713
-Ref: AC_CHECK_FUNCS187342
-Node: Header Files191968
-Node: Header Portability192601
-Node: Particular Headers195470
-Ref: AC_HEADER_DIRENT196018
-Ref: AC_HEADER_MAJOR197548
-Ref: AC_HEADER_STAT198332
-Ref: AC_HEADER_STDC199588
-Ref: AC_HEADER_TIME204327
-Node: Generic Headers205714
-Ref: AC_CHECK_HEADER206114
-Ref: AC_CHECK_HEADERS207987
-Node: Declarations210552
-Node: Particular Declarations211148
-Node: Generic Declarations211372
-Ref: AC_CHECK_DECLS212757
-Node: Structures215283
-Node: Particular Structures215898
-Ref: AC_STRUCT_ST_BLOCKS216967
-Ref: AC_STRUCT_TIMEZONE217663
-Node: Generic Structures217992
-Ref: AC_CHECK_MEMBERS218983
-Node: Types219816
-Node: Particular Types220336
-Ref: AC_TYPE_GETGROUPS220779
-Ref: AC_TYPE_MODE_T223815
-Ref: AC_TYPE_OFF_T223998
-Ref: AC_TYPE_PID_T224178
-Ref: AC_TYPE_SIZE_T224358
-Ref: AC_TYPE_UID_T224727
-Node: Generic Types226372
-Node: Compilers and Preprocessors228527
-Node: Specific Compiler Characteristics229760
-Node: Generic Compiler Characteristics230865
-Ref: AC_CHECK_SIZEOF231105
-Node: C Compiler235701
-Ref: AC_PROG_CC_C_O240152
-Ref: AC_C_BIGENDIAN243960
-Ref: AC_C_CONST245801
-Ref: AC_C_INLINE249119
-Ref: AC_C_CHAR_UNSIGNED249342
-Ref: AC_PROG_GCC_TRADITIONAL251964
-Node: C++ Compiler252376
-Node: Objective C Compiler254773
-Node: Objective C++ Compiler256147
-Node: Erlang Compiler and Interpreter257597
-Node: Fortran Compiler259642
-Node: System Services275459
-Ref: AC_PATH_X275704
-Ref: AC_PATH_XTRA276697
-Ref: AC_SYS_INTERPRETER277274
-Ref: AC_SYS_LONG_FILE_NAMES278686
-Node: Posix Variants279063
-Ref: AC_USE_SYSTEM_EXTENSIONS279363
-Node: Erlang Libraries280439
-Node: Writing Tests285377
-Node: Language Choice287401
-Ref: AC_LANG287898
-Ref: AC_LANG_PUSH289557
-Ref: Language Choice-Footnote-1291430
-Node: Writing Test Programs291586
-Node: Guidelines292164
-Node: Test Functions294424
-Node: Generating Sources295822
-Node: Running the Preprocessor300875
-Ref: AC_PREPROC_IFELSE301602
-Ref: AC_EGREP_HEADER303431
-Ref: AC_EGREP_CPP303760
-Node: Running the Compiler304185
-Node: Running the Linker305940
-Ref: AC_LINK_IFELSE307080
-Node: Runtime307956
-Ref: AC_RUN_IFELSE308731
-Node: Systemology312736
-Node: Multiple Cases315085
-Node: Results316786
-Node: Defining Symbols317605
-Node: Setting Output Variables322496
-Node: Special Chars in Variables328387
-Node: Caching Results329647
-Node: Cache Variable Names333365
-Node: Cache Files335016
-Node: Cache Checkpointing337066
-Node: Printing Messages338440
-Ref: AC_MSG_RESULT339954
-Ref: AC_MSG_NOTICE340461
-Ref: AC_MSG_ERROR340825
-Ref: AC_MSG_WARN341658
-Node: Programming in M4342081
-Node: M4 Quotation342886
-Node: Active Characters343855
-Ref: Active Characters-Footnote-1345245
-Ref: Active Characters-Footnote-2345359
-Node: One Macro Call345381
-Node: Quoting and Parameters346937
-Node: Quotation and Nested Macros349273
-Node: Changequote is Evil352283
-Node: Quadrigraphs354813
-Node: Balancing Parentheses357495
-Node: Quotation Rule Of Thumb361589
-Node: Using autom4te364487
-Ref: Using autom4te-Footnote-1365138
-Node: autom4te Invocation365187
-Node: Customizing autom4te373689
-Node: Programming in M4sugar374970
-Node: Redefined M4 Macros376151
-Node: Diagnostic Macros384481
-Ref: m4_fatal385234
-Ref: m4_warn385473
-Node: Diversion support386241
-Node: Conditional constructs394027
-Node: Looping constructs400728
-Ref: m4_foreach_w404340
-Node: Evaluation Macros411692
-Node: Text processing Macros420381
-Node: Number processing Macros430091
-Ref: m4_version_compare432043
-Node: Set manipulation Macros434350
-Node: Forbidden Patterns443466
-Node: Debugging via autom4te444957
-Node: Programming in M4sh446776
-Node: Common Shell Constructs448149
-Node: Polymorphic Variables455902
-Node: Initialization Macros465429
-Node: File Descriptor Macros469662
-Ref: AS_MESSAGE_LOG_FD470814
-Node: Writing Autoconf Macros472316
-Node: Macro Definitions473121
-Node: Macro Names476800
-Node: Reporting Messages480561
-Node: Dependencies Between Macros482405
-Node: Prerequisite Macros483100
-Node: Suggested Ordering489175
-Node: One-Shot Macros490718
-Node: Obsoleting Macros492071
-Ref: AU_DEFUN492825
-Node: Coding Style493854
-Node: Portable Shell501661
-Node: Shellology505842
-Node: Here-Documents510009
-Node: File Descriptors513130
-Node: File System Conventions518206
-Node: Shell Pattern Matching524019
-Node: Shell Substitutions524583
-Node: Assignments535728
-Node: Parentheses537617
-Node: Slashes538447
-Node: Special Shell Variables539299
-Node: Shell Functions551867
-Node: Limitations of Builtins554844
-Ref: case558866
-Ref: echo563423
-Ref: export570397
-Ref: if573341
-Ref: set577008
-Ref: trap586776
-Ref: unset590333
-Node: Limitations of Usual Tools591284
-Ref: grep609175
-Ref: mkdir614613
-Ref: sed620277
-Ref: touch630257
-Node: Portable Make633353
-Node: $< in Ordinary Make Rules634803
-Node: Failure in Make Rules635269
-Node: Special Chars in Names636297
-Node: Backslash-Newline-Newline637271
-Node: Backslash-Newline Comments637898
-Node: Long Lines in Makefiles638789
-Node: Macros and Submakes639165
-Node: The Make Macro MAKEFLAGS641852
-Node: The Make Macro SHELL642737
-Node: Parallel Make645236
-Ref: Parallel Make-Footnote-1646873
-Node: Comments in Make Rules647003
-Node: Newlines in Make Rules647620
-Node: obj/ and Make648655
-Node: make -k Status649294
-Node: VPATH and Make649916
-Node: Variables listed in VPATH651240
-Node: VPATH and Double-colon651779
-Node: $< in Explicit Rules652185
-Node: Automatic Rule Rewriting652652
-Node: Tru64 Directory Magic658581
-Node: Make Target Lookup659407
-Node: Single Suffix Rules663849
-Node: Timestamps and Make665195
-Node: Portable C and C++666415
-Node: Varieties of Unportability668056
-Node: Integer Overflow670153
-Node: Integer Overflow Basics671170
-Node: Signed Overflow Examples672918
-Node: Optimization and Wraparound676420
-Node: Signed Overflow Advice679382
-Node: Signed Integer Division682056
-Node: Preprocessor Arithmetic682667
-Node: Null Pointers683416
-Node: Buffer Overruns684050
-Node: Volatile Objects686839
-Node: Floating Point Portability692517
-Node: Exiting Portably693024
-Node: Manual Configuration694500
-Node: Specifying Target Triplets695333
-Ref: Specifying Names695506
-Node: Canonicalizing698200
-Node: Using System Type700467
-Node: Site Configuration703271
-Node: Help Formatting704243
-Node: External Software705187
-Ref: AC_ARG_WITH706733
-Node: Package Options711058
-Ref: AC_ARG_ENABLE712513
-Node: Pretty Help Strings713674
-Ref: AS_HELP_STRING714260
-Node: Option Checking716601
-Node: Site Details718329
-Node: Transforming Names719558
-Node: Transformation Options720640
-Node: Transformation Examples721117
-Node: Transformation Rules722838
-Node: Site Defaults724384
-Node: Running configure Scripts729725
-Node: Basic Installation730790
-Node: Compilers and Options734887
-Node: Multiple Architectures735541
-Node: Installation Names737121
-Node: Optional Features740016
-Node: Particular Systems741370
-Node: System Type742583
-Node: Sharing Defaults743911
-Node: Defining Variables744549
-Node: configure Invocation745441
-Node: config.status Invocation747147
-Ref: CONFIG_SHELL750894
-Node: Obsolete Constructs752287
-Node: Obsolete config.status Use753250
-Node: acconfig Header755028
-Node: autoupdate Invocation757050
-Node: Obsolete Macros758916
-Ref: AC_FUNC_SETVBUF_REVERSED766558
-Ref: AC_TYPE_SIGNAL783085
-Node: Autoconf 1786064
-Node: Changed File Names787130
-Node: Changed Makefiles787880
-Node: Changed Macros788968
-Node: Changed Results790222
-Node: Changed Macro Writing792346
-Node: Autoconf 2.13793626
-Node: Changed Quotation794834
-Node: New Macros796752
-Node: Hosts and Cross-Compilation798547
-Node: AC_LIBOBJ vs LIBOBJS802846
-Node: AC_ACT_IFELSE vs AC_TRY_ACT804461
-Ref: AC_FOO_IFELSE vs AC_TRY_FOO804650
-Node: Using Autotest806464
-Node: Using an Autotest Test Suite808868
-Node: testsuite Scripts809159
-Node: Autotest Logs813641
-Node: Writing Testsuites815982
-Node: testsuite Invocation832820
-Node: Making testsuite Scripts838167
-Node: FAQ843326
-Node: Distributing844186
-Node: Why GNU M4845235
-Node: Bootstrapping846104
-Node: Why Not Imake846714
-Node: Defining Directories851459
-Node: Autom4te Cache853458
-Node: Present But Cannot Be Compiled855296
-Node: Expanded Before Required859013
-Node: Debugging863912
-Node: History868813
-Node: Genesis869610
-Node: Exodus870788
-Node: Leviticus873833
-Node: Numbers875361
-Node: Deuteronomy877276
-Node: GNU Free Documentation License879947
-Node: Indices905112
-Node: Environment Variable Index905831
-Node: Output Variable Index916617
-Node: Preprocessor Symbol Index932929
-Node: Cache Variable Index951125
-Node: Autoconf Macro Index959177
-Node: M4 Macro Index992557
-Node: Autotest Macro Index1012893
-Node: Program & Function Index1015296
-Node: Concept Index1036083
+Node: Top2292
+Node: Introduction21293
+Node: The GNU Build System27808
+Node: Automake28787
+Node: Gnulib30736
+Node: Libtool32045
+Node: Pointers33467
+Ref: Pointers-Footnote-134768
+Node: Making configure Scripts34928
+Node: Writing Autoconf Input38277
+Node: Shell Script Compiler39740
+Node: Autoconf Language42101
+Node: Autoconf Input Layout48975
+Node: autoscan Invocation50383
+Node: ifnames Invocation52939
+Node: autoconf Invocation54139
+Node: autoreconf Invocation59424
+Node: Setup64173
+Node: Initializing configure65495
+Ref: AC_INIT66000
+Node: Versioning68818
+Node: Notices70679
+Node: Input71854
+Ref: AC_CONFIG_SRCDIR71995
+Node: Output74942
+Ref: AC_OUTPUT75377
+Ref: AC_PROG_MAKE_SET76995
+Node: Configuration Actions77420
+Node: Configuration Files82708
+Ref: AC_CONFIG_FILES82969
+Node: Makefile Substitutions84188
+Node: Preset Output Variables85930
+Node: Installation Directory Variables95298
+Node: Changed Directory Variables103146
+Node: Build Directories105740
+Node: Automatic Remaking107595
+Node: Configuration Headers109763
+Node: Header Templates113065
+Node: autoheader Invocation115800
+Node: Autoheader Macros119442
+Node: Configuration Commands121707
+Ref: AC_CONFIG_COMMANDS122219
+Node: Configuration Links123504
+Ref: AC_CONFIG_LINKS123955
+Node: Subdirectories124928
+Node: Default Prefix127408
+Ref: AC_PREFIX_PROGRAM128299
+Node: Existing Tests128830
+Node: Common Behavior130632
+Node: Standard Symbols131271
+Node: Default Includes131852
+Node: Alternative Programs134106
+Node: Particular Programs134792
+Ref: AC_PROG_LEX140413
+Ref: AC_PROG_LN_S143024
+Node: Generic Programs144641
+Ref: AC_CHECK_PROG145612
+Ref: AC_CHECK_PROGS146338
+Ref: AC_PATH_PROG150338
+Ref: AC_PATH_PROGS150712
+Node: Files153790
+Node: Libraries154990
+Ref: AC_CHECK_LIB155227
+Ref: AC_SEARCH_LIBS157486
+Node: Library Functions158670
+Node: Function Portability159293
+Node: Particular Functions168520
+Ref: AC_FUNC_ALLOCA168851
+Ref: AC_FUNC_CLOSEDIR_VOID170990
+Ref: AC_FUNC_FORK172852
+Ref: AC_FUNC_GETLOADAVG174656
+Ref: AC_FUNC_GETMNTENT176221
+Ref: AC_FUNC_MMAP180198
+Ref: AC_FUNC_STRCOLL183053
+Ref: AC_FUNC_STRFTIME184028
+Ref: AC_FUNC_UTIME_NULL185188
+Ref: AC_FUNC_VPRINTF185536
+Node: Generic Functions186752
+Ref: AC_CHECK_FUNC187278
+Ref: AC_CHECK_FUNCS187907
+Node: Header Files192533
+Node: Header Portability193166
+Node: Particular Headers196035
+Ref: AC_HEADER_DIRENT196583
+Ref: AC_HEADER_MAJOR198113
+Ref: AC_HEADER_STAT198897
+Ref: AC_HEADER_STDC200153
+Ref: AC_HEADER_TIME204892
+Node: Generic Headers206279
+Ref: AC_CHECK_HEADER206679
+Ref: AC_CHECK_HEADERS208552
+Node: Declarations211117
+Node: Particular Declarations211713
+Node: Generic Declarations211937
+Ref: AC_CHECK_DECLS213322
+Node: Structures215848
+Node: Particular Structures216463
+Ref: AC_STRUCT_ST_BLOCKS217532
+Ref: AC_STRUCT_TIMEZONE218228
+Node: Generic Structures218557
+Ref: AC_CHECK_MEMBERS219548
+Node: Types220381
+Node: Particular Types220901
+Ref: AC_TYPE_GETGROUPS221344
+Ref: AC_TYPE_MODE_T224380
+Ref: AC_TYPE_OFF_T224563
+Ref: AC_TYPE_PID_T224743
+Ref: AC_TYPE_SIZE_T224923
+Ref: AC_TYPE_UID_T225292
+Node: Generic Types226937
+Node: Compilers and Preprocessors229092
+Node: Specific Compiler Characteristics230325
+Node: Generic Compiler Characteristics231430
+Ref: AC_CHECK_SIZEOF231670
+Node: C Compiler236266
+Ref: AC_PROG_CC_C_O240717
+Ref: AC_C_BIGENDIAN244525
+Ref: AC_C_CONST246366
+Ref: AC_C_INLINE249684
+Ref: AC_C_CHAR_UNSIGNED249907
+Ref: AC_PROG_GCC_TRADITIONAL252529
+Node: C++ Compiler252941
+Node: Objective C Compiler255338
+Node: Objective C++ Compiler256712
+Node: Erlang Compiler and Interpreter258162
+Node: Fortran Compiler260207
+Node: System Services276798
+Ref: AC_PATH_X277043
+Ref: AC_PATH_XTRA278036
+Ref: AC_SYS_INTERPRETER278613
+Ref: AC_SYS_LONG_FILE_NAMES280025
+Node: Posix Variants280402
+Ref: AC_USE_SYSTEM_EXTENSIONS280702
+Node: Erlang Libraries281778
+Node: Writing Tests286716
+Node: Language Choice288740
+Ref: AC_LANG289237
+Ref: AC_LANG_PUSH290896
+Ref: Language Choice-Footnote-1292769
+Node: Writing Test Programs292925
+Node: Guidelines293503
+Node: Test Functions295763
+Node: Generating Sources297161
+Node: Running the Preprocessor302204
+Ref: AC_PREPROC_IFELSE302931
+Ref: AC_EGREP_HEADER304861
+Ref: AC_EGREP_CPP305190
+Node: Running the Compiler305615
+Node: Running the Linker307370
+Ref: AC_LINK_IFELSE308510
+Node: Runtime309386
+Ref: AC_RUN_IFELSE310161
+Node: Systemology314166
+Node: Multiple Cases316515
+Node: Results318216
+Node: Defining Symbols319035
+Node: Setting Output Variables323926
+Node: Special Chars in Variables329817
+Node: Caching Results331077
+Node: Cache Variable Names334795
+Node: Cache Files336446
+Node: Cache Checkpointing338496
+Node: Printing Messages339870
+Ref: AC_MSG_RESULT341384
+Ref: AC_MSG_NOTICE341891
+Ref: AC_MSG_ERROR342255
+Ref: AC_MSG_WARN343088
+Node: Programming in M4343511
+Node: M4 Quotation344316
+Node: Active Characters345285
+Ref: Active Characters-Footnote-1346675
+Ref: Active Characters-Footnote-2346789
+Node: One Macro Call346811
+Node: Quoting and Parameters348367
+Node: Quotation and Nested Macros350703
+Node: Changequote is Evil353713
+Node: Quadrigraphs356243
+Node: Balancing Parentheses358925
+Node: Quotation Rule Of Thumb363019
+Node: Using autom4te365917
+Ref: Using autom4te-Footnote-1366568
+Node: autom4te Invocation366617
+Node: Customizing autom4te375119
+Node: Programming in M4sugar376400
+Node: Redefined M4 Macros377581
+Node: Diagnostic Macros385911
+Ref: m4_fatal386664
+Ref: m4_warn386903
+Node: Diversion support387671
+Node: Conditional constructs395457
+Node: Looping constructs402158
+Ref: m4_foreach_w405770
+Node: Evaluation Macros413122
+Node: Text processing Macros421811
+Node: Number processing Macros431521
+Ref: m4_version_compare433473
+Node: Set manipulation Macros435780
+Node: Forbidden Patterns444896
+Node: Debugging via autom4te446387
+Node: Programming in M4sh448206
+Node: Common Shell Constructs449579
+Node: Polymorphic Variables457332
+Node: Initialization Macros466859
+Node: File Descriptor Macros471092
+Ref: AS_MESSAGE_LOG_FD472244
+Node: Writing Autoconf Macros473746
+Node: Macro Definitions474551
+Node: Macro Names478230
+Node: Reporting Messages481991
+Node: Dependencies Between Macros483835
+Node: Prerequisite Macros484530
+Node: Suggested Ordering490605
+Node: One-Shot Macros492148
+Node: Obsoleting Macros493501
+Ref: AU_DEFUN494255
+Node: Coding Style495284
+Node: Portable Shell503091
+Node: Shellology507272
+Node: Here-Documents511439
+Node: File Descriptors514560
+Node: File System Conventions519907
+Node: Shell Pattern Matching525720
+Node: Shell Substitutions526284
+Node: Assignments537429
+Node: Parentheses539318
+Node: Slashes540148
+Node: Special Shell Variables541000
+Node: Shell Functions553568
+Node: Limitations of Builtins556545
+Ref: case560567
+Ref: echo565124
+Ref: export572098
+Ref: if575042
+Ref: set578709
+Ref: trap588477
+Ref: unset592034
+Node: Limitations of Usual Tools592985
+Ref: grep610876
+Ref: mkdir616314
+Ref: sed621978
+Ref: touch631958
+Node: Portable Make635054
+Node: $< in Ordinary Make Rules636504
+Node: Failure in Make Rules636970
+Node: Special Chars in Names637998
+Node: Backslash-Newline-Newline638972
+Node: Backslash-Newline Comments639599
+Node: Long Lines in Makefiles640490
+Node: Macros and Submakes640866
+Node: The Make Macro MAKEFLAGS643553
+Node: The Make Macro SHELL644438
+Node: Parallel Make646937
+Ref: Parallel Make-Footnote-1648574
+Node: Comments in Make Rules648704
+Node: Newlines in Make Rules649321
+Node: obj/ and Make650356
+Node: make -k Status650995
+Node: VPATH and Make651617
+Node: Variables listed in VPATH652941
+Node: VPATH and Double-colon653480
+Node: $< in Explicit Rules653886
+Node: Automatic Rule Rewriting654353
+Node: Tru64 Directory Magic660282
+Node: Make Target Lookup661108
+Node: Single Suffix Rules665550
+Node: Timestamps and Make666896
+Node: Portable C and C++668116
+Node: Varieties of Unportability669757
+Node: Integer Overflow671854
+Node: Integer Overflow Basics672871
+Node: Signed Overflow Examples674619
+Node: Optimization and Wraparound678121
+Node: Signed Overflow Advice681083
+Node: Signed Integer Division683757
+Node: Preprocessor Arithmetic684368
+Node: Null Pointers685117
+Node: Buffer Overruns685751
+Node: Volatile Objects688540
+Node: Floating Point Portability694218
+Node: Exiting Portably694725
+Node: Manual Configuration696201
+Node: Specifying Target Triplets697034
+Ref: Specifying Names697207
+Node: Canonicalizing699901
+Node: Using System Type702168
+Node: Site Configuration704972
+Node: Help Formatting705944
+Node: External Software706888
+Ref: AC_ARG_WITH708434
+Node: Package Options712759
+Ref: AC_ARG_ENABLE714214
+Node: Pretty Help Strings715375
+Ref: AS_HELP_STRING715961
+Node: Option Checking718302
+Node: Site Details720030
+Node: Transforming Names721259
+Node: Transformation Options722341
+Node: Transformation Examples722818
+Node: Transformation Rules724539
+Node: Site Defaults726085
+Node: Running configure Scripts731426
+Node: Basic Installation732491
+Node: Compilers and Options736588
+Node: Multiple Architectures737242
+Node: Installation Names738822
+Node: Optional Features741717
+Node: Particular Systems743071
+Node: System Type744284
+Node: Sharing Defaults745612
+Node: Defining Variables746250
+Node: configure Invocation747142
+Node: config.status Invocation748848
+Ref: CONFIG_SHELL752595
+Node: Obsolete Constructs753988
+Node: Obsolete config.status Use754951
+Node: acconfig Header756729
+Node: autoupdate Invocation758751
+Node: Obsolete Macros760617
+Ref: AC_FUNC_SETVBUF_REVERSED768259
+Ref: AC_TYPE_SIGNAL784786
+Node: Autoconf 1787765
+Node: Changed File Names788831
+Node: Changed Makefiles789581
+Node: Changed Macros790669
+Node: Changed Results791923
+Node: Changed Macro Writing794047
+Node: Autoconf 2.13795327
+Node: Changed Quotation796535
+Node: New Macros798453
+Node: Hosts and Cross-Compilation800248
+Node: AC_LIBOBJ vs LIBOBJS804547
+Node: AC_ACT_IFELSE vs AC_TRY_ACT806162
+Ref: AC_FOO_IFELSE vs AC_TRY_FOO806351
+Node: Using Autotest808164
+Node: Using an Autotest Test Suite810568
+Node: testsuite Scripts810859
+Node: Autotest Logs815341
+Node: Writing Testsuites817682
+Node: testsuite Invocation834520
+Node: Making testsuite Scripts839867
+Node: FAQ845026
+Node: Distributing845886
+Node: Why GNU M4846935
+Node: Bootstrapping847804
+Node: Why Not Imake848414
+Node: Defining Directories853159
+Node: Autom4te Cache855158
+Node: Present But Cannot Be Compiled856996
+Node: Expanded Before Required860713
+Node: Debugging865612
+Node: History870513
+Node: Genesis871310
+Node: Exodus872488
+Node: Leviticus875533
+Node: Numbers877061
+Node: Deuteronomy878976
+Node: GNU Free Documentation License881647
+Node: Indices906812
+Node: Environment Variable Index907531
+Node: Output Variable Index918317
+Node: Preprocessor Symbol Index934629
+Node: Cache Variable Index952825
+Node: Autoconf Macro Index960877
+Node: M4 Macro Index994330
+Node: Autotest Macro Index1014666
+Node: Program & Function Index1017069
+Node: Concept Index1037856
 
 End Tag Table
