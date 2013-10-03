@@ -3,10 +3,10 @@
 # @configure_input@
 
 # autoscan - Create configure.scan (a preliminary configure.ac) for a package.
-# Copyright (C) 1994, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
-#  Free Software Foundation, Inc.
+# Copyright (C) 1994, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+#  2007, 2008 Free Software Foundation, Inc.
 
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
@@ -123,9 +123,10 @@ Report bugs to <bug-autoconf\@gnu.org>.\n";
 # $version
 # --------
 $version = "autoscan (@PACKAGE_NAME@) @VERSION@
-Copyright (C) 2006 Free Software Foundation, Inc.
-This is free software.  You may redistribute copies of it under the terms of
-the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.
+Copyright (C) @RELEASE_YEAR@ Free Software Foundation, Inc.
+License GPLv2+: GNU GPL version 2 or later
+<http://gnu.org/licenses/old-licenses/gpl-2.0.html>
+This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
 Written by David J. MacKenzie and Akim Demaille.
@@ -168,7 +169,7 @@ sub init_tables ()
   # instead of duplicating the code in lots of configure.ac files.
   my $file = find_file ("autoscan/autoscan.list",
 			reverse (@prepend_include), @include);
-  my $table = new Autom4te::XFile $file;
+  my $table = new Autom4te::XFile "< " . open_quote ($file);
   my $tables_are_consistent = 1;
 
   while ($_ = $table->getline)
@@ -243,7 +244,7 @@ sub scan_c_file ($)
   # Nonzero if in a multiline comment.
   my $in_comment = 0;
 
-  my $file = new Autom4te::XFile "<$file_name";
+  my $file = new Autom4te::XFile "< " . open_quote ($file_name);
 
   while ($_ = $file->getline)
     {
@@ -309,7 +310,7 @@ sub scan_makefile ($)
   my ($file_name) = @_;
   push @makefiles, $File::Find::name;
 
-  my $file = new Autom4te::XFile "<$file_name";
+  my $file = new Autom4te::XFile "< " . open_quote ($file_name);
 
   while ($_ = $file->getline)
     {
@@ -351,7 +352,7 @@ sub scan_sh_file ($)
   my ($file_name) = @_;
   push @shfiles, $File::Find::name;
 
-  my $file = new Autom4te::XFile "<$file_name";
+  my $file = new Autom4te::XFile "< " . open_quote ($file_name);
 
   while ($_ = $file->getline)
     {
@@ -520,7 +521,7 @@ sub output ($)
   my $configure_scan = shift;
   my %unique_makefiles;
 
-  my $file = new Autom4te::XFile ">$configure_scan";
+  my $file = new Autom4te::XFile "> " . open_quote ($configure_scan);
 
   print $file
     ("#                                               -*- Autoconf -*-\n" .
@@ -531,7 +532,7 @@ sub output ($)
   if (defined $cfiles[0])
     {
       print $file "AC_CONFIG_SRCDIR([$cfiles[0]])\n";
-      print $file "AC_CONFIG_HEADER([config.h])\n";
+      print $file "AC_CONFIG_HEADERS([config.h])\n";
     }
 
   output_kind ($file, 'program');
@@ -589,7 +590,7 @@ sub check_configure_ac ($)
 
   verb "running: $autoconf $trace_option $configure_ac";
   my $traces =
-    new Autom4te::XFile "$autoconf $trace_option $configure_ac|";
+    new Autom4te::XFile "$autoconf $trace_option $configure_ac |";
 
   while ($_ = $traces->getline)
     {
@@ -638,12 +639,12 @@ sub check_configure_ac ($)
 ## -------------- ##
 
 parse_args;
-$log = new Autom4te::XFile ">$me.log";
+$log = new Autom4te::XFile "> " . open_quote ("$me.log");
 
 $autoconf .= " --debug" if $debug;
 $autoconf .= " --verbose" if $verbose;
-$autoconf .= join (' --include=', '', @include);
-$autoconf .= join (' --prepend-include=', '', @prepend_include);
+$autoconf .= join (' --include=', '', map { shell_quote ($_) } @include);
+$autoconf .= join (' --prepend-include=', '', map { shell_quote ($_) } @prepend_include);
 
 my $configure_ac = find_configure_ac;
 init_tables;

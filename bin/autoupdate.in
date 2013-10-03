@@ -3,10 +3,10 @@
 # @configure_input@
 
 # autoupdate - modernize an Autoconf file.
-# Copyright (C) 1994, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
-# Free Software Foundation, Inc.
+# Copyright (C) 1994, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+# 2007, 2008 Free Software Foundation, Inc.
 
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
@@ -84,9 +84,10 @@ Report bugs to <bug-autoconf\@gnu.org>.
 # $VERSION
 # --------
 $version = "autoupdate (@PACKAGE_NAME@) @VERSION@
-Copyright (C) 2006 Free Software Foundation, Inc.
-This is free software.  You may redistribute copies of it under the terms of
-the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.
+Copyright (C) @RELEASE_YEAR@ Free Software Foundation, Inc.
+License GPLv2+: GNU GPL version 2 or later
+<http://gnu.org/licenses/old-licenses/gpl-2.0.html>
+This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
 Written by David J. MacKenzie and Akim Demaille.
@@ -129,8 +130,8 @@ my (%ac_macros, %au_macros, %m4_builtins);
 sub handle_autoconf_macros ()
 {
   # Get the builtins.
-  xsystem ("echo dumpdef | $m4 2>$tmp/m4.defs >/dev/null");
-  my $m4_defs = new Autom4te::XFile "$tmp/m4.defs";
+  xsystem ("echo dumpdef | $m4 2>" . shell_quote ("$tmp/m4.defs") . " >/dev/null");
+  my $m4_defs = new Autom4te::XFile "< " . open_quote ("$tmp/m4.defs");
   while ($_ = $m4_defs->getline)
     {
       $m4_builtins{$1} = 1
@@ -186,9 +187,9 @@ sub handle_autoconf_macros ()
 
   # ac.m4 -- autoquoting definitions of the AC macros (M4sugar excluded).
   # unac.m4 -- undefine the AC macros.
-  my $ac_m4 = new Autom4te::XFile ">$tmp/ac.m4";
+  my $ac_m4 = new Autom4te::XFile "> " . open_quote ("$tmp/ac.m4");
   print $ac_m4 "# ac.m4 -- autoquoting definitions of the AC macros.\n";
-  my $unac_m4 = new Autom4te::XFile ">$tmp/unac.m4";
+  my $unac_m4 = new Autom4te::XFile "> " . open_quote ("$tmp/unac.m4");
   print $unac_m4 "# unac.m4 -- undefine the AC macros.\n";
   foreach (sort keys %ac_macros)
     {
@@ -199,11 +200,11 @@ sub handle_autoconf_macros ()
   # m4save.m4 -- save the m4 builtins.
   # unm4.m4 -- disable the m4 builtins.
   # m4.m4 -- enable the m4 builtins.
-  my $m4save_m4 = new Autom4te::XFile ">$tmp/m4save.m4";
+  my $m4save_m4 = new Autom4te::XFile "> " . open_quote ("$tmp/m4save.m4");
   print $m4save_m4 "# m4save.m4 -- save the m4 builtins.\n";
-  my $unm4_m4 = new Autom4te::XFile ">$tmp/unm4.m4";
+  my $unm4_m4 = new Autom4te::XFile "> " . open_quote ("$tmp/unm4.m4");
   print $unm4_m4 "# unm4.m4 -- disable the m4 builtins.\n";
-  my $m4_m4 = new Autom4te::XFile ">$tmp/m4.m4";
+  my $m4_m4 = new Autom4te::XFile "> " . open_quote ("$tmp/m4.m4");
   print $m4_m4 "# m4.m4 -- enable the m4 builtins.\n";
   foreach (sort keys %m4_builtins)
     {
@@ -222,8 +223,8 @@ parse_args;
 $autoconf .= " --debug" if $debug;
 $autoconf .= " --force" if $force;
 $autoconf .= " --verbose" if $verbose;
-$autoconf .= join (' --include=', '', @include);
-$autoconf .= join (' --prepend-include=', '', @prepend_include);
+$autoconf .= join (' --include=', '', map { shell_quote ($_) } @include);
+$autoconf .= join (' --prepend-include=', '', map { shell_quote ($_) } @prepend_include);
 
 mktmpdir ('au');
 handle_autoconf_macros;
@@ -235,7 +236,7 @@ my $au_changequote =
 # au.m4 -- definitions the AU macros.
 xsystem ("$autoconf --trace AU_DEFINE:'_au_defun(\@<:\@\$1\@:>\@,
 \@<:\@\$2\@:>\@)' --melt /dev/null "
-	. ">$tmp/au.m4");
+	. ">" . shell_quote ("$tmp/au.m4"));
 
 
 
@@ -249,7 +250,7 @@ foreach my $file (@ARGV)
     if ($file eq '-')
       {
 	$file = "$tmp/stdin";
-	system "cat >$file";
+	system "cat >" . shell_quote ($file);
       }
     elsif (! -r "$file")
       {
@@ -378,9 +379,9 @@ EOF
     $input_m4 =~ s/\$file/$file/g;
 
     # prepared input -- input, but reenables the quote before each AU macro.
-    open INPUT_M4, ">$tmp/input.m4"
+    open INPUT_M4, "> " . open_quote ("$tmp/input.m4")
        or error "cannot open: $!";
-    open FILE, "<$file"
+    open FILE, "< " . open_quote ($file)
        or error "cannot open: $!";
     print INPUT_M4 "$input_m4";
     while (<FILE>)
@@ -394,10 +395,10 @@ EOF
        or error "cannot close $tmp/input.m4: $!";
 
     # Now ask m4 to perform the update.
-    xsystem ("$m4 --include=$tmp"
-	     . join (' --include=', '', reverse (@prepend_include))
-	     . join (' --include=', '', @include)
-	     . " $tmp/input.m4 >$tmp/updated");
+    xsystem ("$m4 --include=" . shell_quote ($tmp)
+	     . join (' --include=', '', map { shell_quote ($_) } reverse (@prepend_include))
+	     . join (' --include=', '', map { shell_quote ($_) } @include)
+	     . " " . shell_quote ("$tmp/input.m4") . " > " . shell_quote ("$tmp/updated"));
     update_file ("$tmp/updated",
 		 "$file" eq "$tmp/stdin" ? '-' : "$file");
   }

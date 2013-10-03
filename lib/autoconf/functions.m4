@@ -1,9 +1,9 @@
 # This file is part of Autoconf.			-*- Autoconf -*-
 # Checking for functions.
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software
+# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software
 # Foundation, Inc.
 #
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
@@ -90,7 +90,7 @@ AC_DEFUN([AC_CHECK_FUNCS],
 for ac_func in $1
 do
 AC_CHECK_FUNC($ac_func,
-	      [AC_DEFINE_UNQUOTED([AS_TR_CPP([HAVE_$ac_func])]) $2],
+	      [AC_DEFINE_UNQUOTED(AS_TR_CPP([HAVE_$ac_func])) $2],
 	      [$3])dnl
 done
 ])
@@ -442,7 +442,6 @@ fi
 # ---------------------
 # Check whether closedir returns void, and #define CLOSEDIR_VOID in
 # that case.
-AN_FUNCTION([closedir], [AC_FUNC_CLOSEDIR_VOID])
 AC_DEFUN([AC_FUNC_CLOSEDIR_VOID],
 [AC_REQUIRE([AC_HEADER_DIRENT])dnl
 AC_CACHE_CHECK([whether closedir returns void],
@@ -556,7 +555,6 @@ AC_DEFINE(fnmatch, rpl_fnmatch,
 
 # AC_REPLACE_FNMATCH
 # ------------------
-AN_FUNCTION([fnmatch], [AC_REPLACE_FNMATCH])
 AC_DEFUN([AC_REPLACE_FNMATCH],
 [_AC_FUNC_FNMATCH_IF([POSIX], [ac_cv_func_fnmatch_works],
 		     [rm -f "$ac_config_libobj_dir/fnmatch.h"],
@@ -589,8 +587,10 @@ AC_DEFUN([AC_FUNC_FSEEKO],
 [_AC_SYS_LARGEFILE_MACRO_VALUE(_LARGEFILE_SOURCE, 1,
    [ac_cv_sys_largefile_source],
    [Define to 1 to make fseeko visible on some hosts (e.g. glibc 2.2).],
-   [@%:@include <stdio.h>],
-   [[return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);]])
+   [[#include <sys/types.h> /* for off_t */
+     #include <stdio.h>]],
+   [[int (*fp) (FILE *, off_t, int) = fseeko;
+     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);]])
 
 # We used to try defining _XOPEN_SOURCE=500 too, to work around a bug
 # in glibc 2.1.3, but that breaks too many other things.
@@ -694,7 +694,6 @@ AC_CHECK_HEADERS(nlist.h,
 
 # AC_FUNC_GETLOADAVG
 # ------------------
-AN_FUNCTION([getloadavg], [AC_FUNC_GETLOADAVG])
 AC_DEFUN([AC_FUNC_GETLOADAVG],
 [ac_have_func=no # yes means we've found a way to get the load average.
 
@@ -768,7 +767,7 @@ if test $ac_cv_func_getloadavg_setgid = yes; then
   ac_ls_output=`ls -lgL /dev/kmem 2>/dev/null`
   # If we got an error (system does not support symlinks), try without -L.
   test -z "$ac_ls_output" && ac_ls_output=`ls -lg /dev/kmem`
-  ac_cv_group_kmem=`echo $ac_ls_output \
+  ac_cv_group_kmem=`AS_ECHO(["$ac_ls_output"]) \
     | sed -ne ['s/[	 ][	 ]*/ /g;
 	       s/^.[sSrwx-]* *[0-9]* *\([^0-9]*\)  *.*/\1/;
 	       / /s/.* //;p;']`
@@ -778,7 +777,7 @@ fi
 if test "x$ac_save_LIBS" = x; then
   GETLOADAVG_LIBS=$LIBS
 else
-  GETLOADAVG_LIBS=`echo "$LIBS" | sed "s!$ac_save_LIBS!!"`
+  GETLOADAVG_LIBS=`AS_ECHO(["$LIBS"]) | sed "s|$ac_save_LIBS||"`
 fi
 LIBS=$ac_save_LIBS
 
@@ -799,7 +798,7 @@ AC_DEFUN([AC_FUNC_GETMNTENT],
 # -lseq on Dynix/PTX, -lgen on Unixware.
 AC_SEARCH_LIBS(getmntent, [sun seq gen],
 	       [ac_cv_func_getmntent=yes
-		AC_DEFINE([HAVE_GETMNTENT], [],
+		AC_DEFINE([HAVE_GETMNTENT], 1,
 			  [Define to 1 if you have the `getmntent' function.])],
 	       [ac_cv_func_getmntent=no])
 ])
@@ -808,7 +807,6 @@ AC_SEARCH_LIBS(getmntent, [sun seq gen],
 # AC_FUNC_GETPGRP
 # ---------------
 # Figure out whether getpgrp requires zero arguments.
-AN_FUNCTION([getpgrp], [AC_FUNC_GETPGRP])
 AC_DEFUN([AC_FUNC_GETPGRP],
 [AC_CACHE_CHECK(whether getpgrp requires zero arguments,
  ac_cv_func_getpgrp_void,
@@ -885,7 +883,7 @@ char *malloc ();
 	       [ac_cv_func_malloc_0_nonnull=no],
 	       [ac_cv_func_malloc_0_nonnull=no])])
 AS_IF([test $ac_cv_func_malloc_0_nonnull = yes], [$1], [$2])
-])# AC_FUNC_MALLOC
+])# _AC_FUNC_MALLOC_IF
 
 
 # AC_FUNC_MALLOC
@@ -931,7 +929,6 @@ AC_DEFUN([AC_FUNC_MBRTOWC],
 
 # AC_FUNC_MEMCMP
 # --------------
-AN_FUNCTION([memcmp], [AC_FUNC_MEMCMP])
 AC_DEFUN([AC_FUNC_MEMCMP],
 [AC_CACHE_CHECK([for working memcmp], ac_cv_func_memcmp_working,
 [AC_RUN_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT], [[
@@ -987,6 +984,7 @@ AC_CACHE_CHECK([for working mktime], ac_cv_func_working_mktime,
 # endif
 #endif
 
+#include <limits.h>
 #include <stdlib.h>
 
 #ifdef HAVE_UNISTD_H
@@ -1135,12 +1133,15 @@ main ()
      isn't worth using anyway.  */
   alarm (60);
 
-  for (time_t_max = 1; 0 < time_t_max; time_t_max *= 2)
-    continue;
-  time_t_max--;
-  if ((time_t) -1 < 0)
-    for (time_t_min = -1; (time_t) (time_t_min * 2) < 0; time_t_min *= 2)
-      continue;
+  for (;;)
+    {
+      t = (time_t_max << 1) + 1;
+      if (t <= time_t_max)
+	break;
+      time_t_max = t;
+    }
+  time_t_min = - ((time_t) ~ (time_t) 0 == (time_t) -1) - time_t_max;
+
   delta = time_t_max / 997; /* a suitable prime number */
   for (i = 0; i < N_STRINGS; i++)
     {
@@ -1155,10 +1156,12 @@ main ()
 	     && mktime_test ((time_t) (60 * 60 * 24))))
 	return 1;
 
-      for (j = 1; 0 < j; j *= 2)
+      for (j = 1; ; j <<= 1)
 	if (! bigtime_test (j))
 	  return 1;
-      if (! bigtime_test (j - 1))
+	else if (INT_MAX / 2 < j)
+	  break;
+      if (! bigtime_test (INT_MAX))
 	return 1;
     }
   return ! (irix_6_4_bug () && spring_forward_gap () && year_2050_test ());
@@ -1403,7 +1406,6 @@ AC_DEFUN([AC_FUNC_REALLOC],
 # Determine the correct type to be passed to each of the `select'
 # function's arguments, and define those types in `SELECT_TYPE_ARG1',
 # `SELECT_TYPE_ARG234', and `SELECT_TYPE_ARG5'.
-AN_FUNCTION([select], [AC_FUNC_SELECT_ARGTYPES])
 AC_DEFUN([AC_FUNC_SELECT_ARGTYPES],
 [AC_CHECK_HEADERS(sys/select.h sys/socket.h)
 AC_CACHE_CHECK([types of arguments for select],
@@ -1447,7 +1449,6 @@ rm -f conftest*
 
 # AC_FUNC_SETPGRP
 # ---------------
-AN_FUNCTION([setpgrp], [AC_FUNC_SETPGRP])
 AC_DEFUN([AC_FUNC_SETPGRP],
 [AC_CACHE_CHECK(whether setpgrp takes no argument, ac_cv_func_setpgrp_void,
 [AC_RUN_IFELSE(
@@ -1496,9 +1497,7 @@ fi
 
 # AC_FUNC_STAT & AC_FUNC_LSTAT
 # ----------------------------
-AN_FUNCTION([stat], [AC_FUNC_STAT])
 AC_DEFUN([AC_FUNC_STAT],  [_AC_FUNC_STAT(stat)])
-AN_FUNCTION([lstat], [AC_FUNC_LSTAT])
 AC_DEFUN([AC_FUNC_LSTAT], [_AC_FUNC_STAT(lstat)])
 
 
@@ -1638,7 +1637,6 @@ fi
 
 # AC_FUNC_STRFTIME
 # ----------------
-AN_FUNCTION([strftime], [AC_FUNC_STRFTIME])
 AC_DEFUN([AC_FUNC_STRFTIME],
 [AC_CHECK_FUNCS(strftime, [],
 [# strftime is in -lintl on SCO UNIX.
@@ -1679,50 +1677,10 @@ test $ac_cv_func_strnlen_working = no && AC_LIBOBJ([strnlen])
 
 # AC_FUNC_SETVBUF_REVERSED
 # ------------------------
-AN_FUNCTION([setvbuf], [AC_FUNC_SETVBUF_REVERSED])
 AC_DEFUN([AC_FUNC_SETVBUF_REVERSED],
-[AC_REQUIRE([AC_C_PROTOTYPES])dnl
-AC_CACHE_CHECK(whether setvbuf arguments are reversed,
-  ac_cv_func_setvbuf_reversed,
-  [ac_cv_func_setvbuf_reversed=no
-   AC_LINK_IFELSE(
-     [AC_LANG_PROGRAM(
-	[[#include <stdio.h>
-#	  ifdef PROTOTYPES
-	   int (setvbuf) (FILE *, int, char *, size_t);
-#	  endif]],
-	[[char buf; return setvbuf (stdout, _IOLBF, &buf, 1);]])],
-     [AC_LINK_IFELSE(
-	[AC_LANG_PROGRAM(
-	   [[#include <stdio.h>
-#	     ifdef PROTOTYPES
-	      int (setvbuf) (FILE *, int, char *, size_t);
-#	     endif]],
-	   [[char buf; return setvbuf (stdout, &buf, _IOLBF, 1);]])],
-	[# It compiles and links either way, so it must not be declared
-	 # with a prototype and most likely this is a K&R C compiler.
-	 # Try running it.
-	 AC_RUN_IFELSE(
-	   [AC_LANG_PROGRAM(
-	      [AC_INCLUDES_DEFAULT],
-	      [[/* This call has the arguments reversed.
-		   A reversed system may check and see that the address of buf
-		   is not _IOLBF, _IONBF, or _IOFBF, and return nonzero.  */
-		char buf;
-		if (setvbuf (stdout, _IOLBF, &buf, 1) != 0)
-		  return 1;
-		putchar ('\r');
-		return 0; /* Non-reversed systems SEGV here.  */]])],
-	   [ac_cv_func_setvbuf_reversed=yes],
-	   [],
-	   [[: # Assume setvbuf is not reversed when cross-compiling.]])]
-	ac_cv_func_setvbuf_reversed=yes)])])
-if test $ac_cv_func_setvbuf_reversed = yes; then
-  AC_DEFINE(SETVBUF_REVERSED, 1,
-	    [Define to 1 if the `setvbuf' function takes the buffering type as
-	     its second argument and the buffer pointer as the third, as on
-	     System V before release 3.])
-fi
+[AC_DIAGNOSE([obsolete],
+[The macro `$0' is obsolete.  Remove it and all references to SETVBUF_REVERSED.])dnl
+AC_CACHE_VAL([ac_cv_func_setvbuf_reversed], [ac_cv_func_setvbuf_reversed=no])
 ])# AC_FUNC_SETVBUF_REVERSED
 
 
@@ -1758,7 +1716,6 @@ AU_ALIAS([AC_STRCOLL], [AC_FUNC_STRCOLL])
 
 # AC_FUNC_UTIME_NULL
 # ------------------
-AN_FUNCTION([utime], [AC_FUNC_UTIME_NULL])
 AC_DEFUN([AC_FUNC_UTIME_NULL],
 [AC_CHECK_HEADERS_ONCE(utime.h)
 AC_CACHE_CHECK(whether utime accepts a null argument, ac_cv_func_utime_null,
@@ -1964,10 +1921,6 @@ AU_ALIAS([AC_VFORK], [AC_FUNC_FORK])
 # ---------------
 # Why the heck is that _doprnt does not define HAVE__DOPRNT???
 # That the logical name!
-AN_FUNCTION([vfprintf], [AC_FUNC_VPRINTF])
-AN_FUNCTION([vprintf],  [AC_FUNC_VPRINTF])
-AN_FUNCTION([vsprintf], [AC_FUNC_VPRINTF])
-AN_FUNCTION([_doprnt],  [AC_FUNC_VPRINTF])
 AC_DEFUN([AC_FUNC_VPRINTF],
 [AC_CHECK_FUNCS(vprintf, []
 [AC_CHECK_FUNC(_doprnt,

@@ -2,10 +2,10 @@
 
 # Build some of the Autoconf test files.
 
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software
+# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software
 # Foundation, Inc.
 
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
@@ -23,7 +23,7 @@
 # If we fail, clean up, but touch the output files.  We probably failed
 # because we used some non-portable tool.
 
-as_me=`echo "$0" | sed 's,.*[\\/],,'`
+as_me=`echo "$0" | sed 's|.*[\\/]||'`
 
 trap 'echo "'"$as_me"': failed." >&2
       rm -f acdefuns audefuns requires *.tat
@@ -87,9 +87,11 @@ ac_exclude_list='
 	/^AC_(CANONICALIZE|PREFIX_PROGRAM|PREREQ)$/ {next}
 	/^AC_(SEARCH_LIBS|REPLACE_FUNCS)$/ {next}
 	/^AC_(CACHE_CHECK|COMPUTE)_INT$/ {next}
+	/^AC_ARG_VAR$/ {next}
 
 	# Performed in the semantics tests.
 	/^AC_CHECK_(ALIGNOF|DECL|FILE|FUNC|HEADER|LIB|MEMBER|PROG|SIZEOF|(TARGET_)?TOOL|TYPE)S?$/ {next}
+	/^AC_PATH_PROGS_FEATURE_CHECK$/ {next}
 
 	# Fail when the source does not exist.
 	/^AC_CONFIG/ {next}
@@ -118,6 +120,7 @@ ac_exclude_list='
 
 	# Obsolete, checked in semantics.
 	/^AC_FUNC_WAIT3$/ {next}
+	/^AC_FUNC_SETVBUF_REVERSED$/ {next}
 	/^AC_SYS_RESTARTABLE_SYSCALLS$/ {next}
 
 	# Not intended to be invoked at the top level.
@@ -178,7 +181,7 @@ au_exclude_script="$exclude_list $au_exclude_list {print}"
 
 for file in $src
 do
-  base=`echo "$file" | sed 's,.*[\\/],,;s/\..*//'`
+  base=`echo "$file" | sed 's|.*[\\/]||;s|\..*||'`
   # Get the list of macros which are defined in Autoconf level.
   # Get rid of the macros we are not interested in.
   sed -n -e 's/^AC_DEFUN(\[*\([a-zA-Z0-9_]*\).*$/\1/p' \
@@ -200,7 +203,8 @@ do
     ## Do not edit by hand.  ##
     ## --------------------- ##
 
-    # Copyright (C) 2000, 2001, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+    # Copyright (C) 2000, 2001, 2003, 2004, 2005, 2006, 2007 Free Software
+    # Foundation, Inc.
 
     AT_BANNER([Testing autoconf/$base macros.])
 

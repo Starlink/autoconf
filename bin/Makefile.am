@@ -1,24 +1,20 @@
-## Process this file with automake to create Makefile.in. -*-Makefile-*-
+# Make Autoconf commands.
 
-## Makefile for Autoconf.
+# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free
+# Software Foundation, Inc.
 
-## Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software
-## Foundation, Inc.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-## This program is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation; either version 2, or (at your option)
-## any later version.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
-
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-## 02110-1301, USA.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 include ../lib/freeze.mk
 
@@ -31,6 +27,9 @@ EXTRA_DIST = autoconf.as autoheader.in autoreconf.in autoupdate.in ifnames.in \
 # Files that should be removed, but which Automake does not know.
 MOSTLYCLEANFILES = $(bin_SCRIPTS) autoconf.in *.tmp
 
+# Get the release year from ../ChangeLog.
+RELEASE_YEAR = \
+  `sed 's/^\([0-9][0-9][0-9][0-9]\).*/\1/;q' $(top_srcdir)/ChangeLog`
 
 ## ------------- ##
 ## The scripts.  ##
@@ -48,9 +47,12 @@ edit = sed \
 	-e 's|@M4[@]|$(M4)|g' \
 	-e 's|@M4_DEBUGFILE[@]|$(M4_DEBUGFILE)|g' \
 	-e 's|@AWK[@]|$(AWK)|g' \
+	-e 's|@RELEASE_YEAR[@]|'$(RELEASE_YEAR)'|g' \
 	-e 's|@VERSION[@]|$(VERSION)|g' \
 	-e 's|@PACKAGE_NAME[@]|$(PACKAGE_NAME)|g' \
 	-e 's|@configure_input[@]|Generated from $@.in; do not edit by hand.|g'
+
+$(top_builddir)/bin/autom4te: autom4te
 
 # autoconf is written in M4sh.
 # FIXME: this target should depend on the frozen files below lib/m4sugar,
@@ -65,7 +67,9 @@ autoconf.in: $(srcdir)/autoconf.as $(m4sh_m4f_dependencies)
 ## Use chmod -w to prevent people from editing the wrong file by accident.
 $(bin_SCRIPTS): Makefile
 	rm -f $@ $@.tmp
-	$(edit) `test -f ./$@.in || echo $(srcdir)/`$@.in >$@.tmp
+	srcdir=''; \
+	  test -f ./$@.in || srcdir=$(srcdir)/; \
+	  $(edit) $${srcdir}$@.in >$@.tmp
 	chmod +x $@.tmp
 	chmod a-w $@.tmp
 	mv $@.tmp $@

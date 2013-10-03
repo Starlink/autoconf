@@ -1,30 +1,30 @@
 ## Make Autoconf tests.
 
-## Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006
-## Free Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+# Free Software Foundation, Inc.
 
-## This program is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation; either version 2, or (at your option)
-## any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-## 02110-1301, USA.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# We don't actually distribute the testsuite, since one only
-# needs m4 to build it, m4 being required anyway to install Autoconf.
+# We don't actually distribute the built testsuite or package.m4, since one
+# only needs m4 to build them, and m4 is required to install Autoconf.
+# But if you are borrowing from this file for setting up autotest in your
+# project, remember to distribute both testsuite and package.m4.
 EXTRA_DIST = $(TESTSUITE_AT) local.at mktests.sh \
-	     atlocal.in package.m4 wrapper.as
+	     atlocal.in wrapper.as
 
-# Running the uninstalled scripts.
-check_SCRIPTS = $(wrappers)
+# Running the uninstalled scripts.  Build them upon `all', for the manpages.
+noinst_SCRIPTS = $(wrappers)
 DISTCLEANFILES = atconfig atlocal $(TESTSUITE)
 MAINTAINERCLEANFILES = Makefile.in
 
@@ -36,15 +36,17 @@ include ../lib/freeze.mk
 ## package.m4.  ##
 ## ------------ ##
 
-$(srcdir)/package.m4: $(top_srcdir)/configure.ac
-	{					\
-	  echo '# Signature of the current package.'; \
-	  echo 'm4_define([AT_PACKAGE_NAME],      [$(PACKAGE_NAME)])'; \
-	  echo 'm4_define([AT_PACKAGE_TARNAME],   [$(PACKAGE_TARNAME)])'; \
-	  echo 'm4_define([AT_PACKAGE_VERSION],   [$(PACKAGE_VERSION)])'; \
-	  echo 'm4_define([AT_PACKAGE_STRING],    [$(PACKAGE_STRING)])'; \
+# The `:;' works around a redirected compound command bash exit status bug.
+package.m4: Makefile
+	:;{ \
+	  echo '# Signature of the current package.' && \
+	  echo 'm4_define([AT_PACKAGE_NAME],      [$(PACKAGE_NAME)])' && \
+	  echo 'm4_define([AT_PACKAGE_TARNAME],   [$(PACKAGE_TARNAME)])' && \
+	  echo 'm4_define([AT_PACKAGE_VERSION],   [$(PACKAGE_VERSION)])' && \
+	  echo 'm4_define([AT_PACKAGE_STRING],    [$(PACKAGE_STRING)])' && \
 	  echo 'm4_define([AT_PACKAGE_BUGREPORT], [$(PACKAGE_BUGREPORT)])'; \
-	} >$(srcdir)/package.m4
+	} > $@-t
+	mv $@-t $@
 
 
 
@@ -53,7 +55,7 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac
 ## ---------- ##
 
 wrappers = autoconf autoheader autom4te autoreconf autoscan autoupdate ifnames
-CLEANFILES = wrapper.in $(wrappers)
+CLEANFILES = wrapper.in $(wrappers) package.m4
 
 wrapper.in: $(srcdir)/wrapper.as $(m4sh_m4f_dependencies)
 	$(MY_AUTOM4TE) --language=M4sh $(srcdir)/wrapper.as -o $@
@@ -109,16 +111,28 @@ TESTSUITE = ./testsuite
 # Don't use AUTOM4TE since `make alpha' makes it unavailable although
 # we are allowed to use it (since we ship it).
 AUTOTEST = $(MY_AUTOM4TE) --language=autotest
-$(TESTSUITE): $(srcdir)/package.m4 \
+$(TESTSUITE): package.m4 \
 	      local.at \
 	      $(TESTSUITE_AT) \
 	      $(autotest_m4f_dependencies)
 	cd $(top_builddir)/lib/autotest && $(MAKE) $(AM_MAKEFLAGS) autotest.m4f
-	$(AUTOTEST) -I $(srcdir) suite.at -o $@.tmp
+	$(AUTOTEST) -I . -I $(srcdir) suite.at -o $@.tmp
 	mv $@.tmp $@
 
 atconfig: $(top_builddir)/config.status
 	cd $(top_builddir) && ./config.status tests/$@
+
+# Avoid a race condition that would make parallel "distclean" fail.
+# The rule in clean-local tests for existence of $(TESTSUITE), and
+# if found, attempts to run it.  But the distclean-generic rule may
+# be running in parallel, and it removes $(DISTCLEANFILES) which
+# includes $(TESTSUITE).  This is the Automake rule, plus our
+# dependency, and we silence the warning from 'automake -Wall'.
+# TODO - fix this if newer automake accomodates the dependency.
+AUTOMAKE_OPTIONS = -Wno-override
+distclean-generic: clean-local
+	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
+	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
 
 clean-local:
 	test ! -f $(TESTSUITE) || $(SHELL) $(TESTSUITE) --clean
@@ -160,32 +174,52 @@ AUTOCONF_FILES = $(autoconfdir)/general.m4 \
 		 $(autoconfdir)/types.m4 \
 		 $(autoconfdir)/programs.m4
 
-$(TESTSUITE_GENERATED_AT): mktests.sh $(AUTOCONF_FILES)
+$(TESTSUITE_GENERATED_AT): mktests.stamp
+## Recover from the removal of $@
+	@if test -f $@; then :; else \
+	  rm -f mktests.stamp; \
+	  $(MAKE) $(AM_MAKEFLAGS) mktests.stamp; \
+	fi
+
+mktests.stamp : mktests.sh $(AUTOCONF_FILES)
+	@rm -f mktests.tmp
+	@touch mktests.tmp
 	cd $(srcdir) && ./mktests.sh \
 	  `echo " "$(AUTOCONF_FILES) | sed 's, [^ ]*/, ../lib/autoconf/,g'`
+	@mv -f mktests.tmp $@
 
+## Distribute the stamp file, since we distribute the generated files.
+EXTRA_DIST += mktests.stamp
+CLEANFILES += mktests.tmp
+MAINTAINERCLEANFILES += mktests.stamp
 
 ## maintainer-check ##
 
-maintainer-check: maintainer-check-posix maintainer-check-c++
+# These cannot be run in parallel.
+maintainer-check:
+	$(MAKE) $(AM_MAKEFLAGS) maintainer-check-posix
+	$(MAKE) $(AM_MAKEFLAGS) maintainer-check-c++
 
 # The hairy heredoc is more robust than using echo.
 CLEANFILES += expr
 expr:
-	echo '#! $(SHELL)'            >expr
-	echo 'result=`$(EXPR) "$$@"`'>>expr
-	echo 'estatus=$$?'           >>expr
-	echo 'cat <<EOF'             >>expr
-	echo '$${result:-0}'         >>expr
-	echo 'EOF'                   >>expr
-	echo 'exit $$estatus'        >>expr
-	chmod +x expr
+	:;{					\
+	  echo '#! $(SHELL)';			\
+	  echo 'result=`$(EXPR) "$$@"`';	\
+	  echo 'estatus=$$?';			\
+	  echo 'cat <<EOF';			\
+	  echo '$${result:-0}';			\
+	  echo 'EOF';				\
+	  echo 'exit $$estatus';		\
+	} > $@-t
+	chmod +x $@-t
+	mv $@-t $@
 
 # Try the test suite with more severe environments.
 maintainer-check-posix: expr
-	POSIXLY_CORRECT=yes make check
+	POSIXLY_CORRECT=yes $(MAKE) $(AM_MAKEFLAGS) check
 	rm expr
 
 # Try using G++ as a C compiler.
 maintainer-check-c++:
-	CC=g++ make check
+	CC=g++ $(MAKE) $(AM_MAKEFLAGS) check

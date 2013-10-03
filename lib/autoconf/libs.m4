@@ -1,9 +1,9 @@
 # This file is part of Autoconf.                       -*- Autoconf -*-
 # Checking for libraries.
 # Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
-# 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+# 2002, 2003, 2004, 2005, 2006, 2008 Free Software Foundation, Inc.
 
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
@@ -295,11 +295,11 @@ if test "$ac_x_libraries" = no; then
 # We can link X programs with no special library path.
 ac_x_libraries=],
 		 [LIBS=$ac_save_LIBS
-for ac_dir in `echo "$ac_x_includes $ac_x_header_dirs" | sed s/include/lib/g`
+for ac_dir in `AS_ECHO(["$ac_x_includes $ac_x_header_dirs"]) | sed s/include/lib/g`
 do
   # Don't even attempt the hair of trying to link an X program!
   for ac_extension in a so sl dylib la dll; do
-    if test -r "$ac_dir/libXt.$ac_extension"; then
+    if test -r "$ac_dir/libX11.$ac_extension"; then
       ac_x_libraries=$ac_dir
       break 2
     fi

@@ -1,9 +1,9 @@
 # This file is part of Autoconf.                       -*- Autoconf -*-
 # Parameterizing and creating config.status.
 # Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
-# 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+# 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
@@ -107,9 +107,9 @@ m4_define([_AC_SRCDIRS],
 case $1 in
 .) ac_dir_suffix= ac_top_builddir_sub=. ac_top_build_prefix= ;;
 *)
-  ac_dir_suffix=/`echo $1 | sed 's,^\.[[\\/]],,'`
+  ac_dir_suffix=/`AS_ECHO([$1]) | sed 's|^\.[[\\/]]||'`
   # A ".." for each directory in $ac_dir_suffix.
-  ac_top_builddir_sub=`echo "$ac_dir_suffix" | sed 's,/[[^\\/]]*,/..,g;s,/,,'`
+  ac_top_builddir_sub=`AS_ECHO(["$ac_dir_suffix"]) | sed 's|/[[^\\/]]*|/..|g;s|/||'`
   case $ac_top_builddir_sub in
   "") ac_top_builddir_sub=. ac_top_build_prefix= ;;
   *)  ac_top_build_prefix=$ac_top_builddir_sub/ ;;
@@ -137,6 +137,11 @@ esac
 ac_abs_srcdir=$ac_abs_top_srcdir$ac_dir_suffix
 ])# _AC_SRCDIRS
 
+
+# _AC_HAVE_TOP_BUILD_PREFIX
+# -------------------------
+# Announce to the world (to Libtool) that we substitute @top_build_prefix@.
+AC_DEFUN([_AC_HAVE_TOP_BUILD_PREFIX])
 
 
 ## ---------------------- ##
@@ -191,10 +196,10 @@ m4_define([_AC_CONFIG_DEPENDENCY],
 # ------------------------------------------------------
 # Expand to `:DEST.in' if appropriate, or to empty string otherwise.
 #
-# More detailed edscription:
+# More detailed description:
 # If the tag contains `:', expand to nothing.
 # Otherwise, for a config file or header, add `:DEST.in'.
-# For config link, DEST.in is not appropriate:
+# For a config link, DEST.in is not appropriate:
 #  - if the tag is literal, complain.
 #  - otherwise, just expand to nothing and proceed with fingers crossed.
 #    (We get to this case from the obsolete AC_LINK_FILES, for example.)
@@ -311,98 +316,110 @@ dnl One cannot portably go further than 99 commands because of HP-UX.
 [99])
 
 
+# _AC_AWK_LITERAL_LIMIT
+# ---------------------
+# Evaluate to the maximum number of characters to put in an awk
+# string literal, not counting escape characters.
+#
+# Some awk's have small limits, such as Solaris and AIX awk.
+m4_define([_AC_AWK_LITERAL_LIMIT],
+[148])
+
+
 # _AC_OUTPUT_FILES_PREPARE
 # ------------------------
-# Create the sed scripts needed for CONFIG_FILES.
+# Create the awk scripts needed for CONFIG_FILES.
 # Support multiline substitutions and make sure that the substitutions are
 # not evaluated recursively.
 # The intention is to have readable config.status and configure, even
-# though this m4 code might be scaring.
+# though this m4 code might be scary.
 #
-# This code was written by Dan Manthey.
+# This code was written by Dan Manthey and rewritten by Ralf Wildenhues.
 #
 # This macro is expanded inside a here document.  If the here document is
-# closed, it has to be reopened with "cat >>$CONFIG_STATUS <<\_ACEOF".
+# closed, it has to be reopened with
+# "cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1".
 #
 m4_define([_AC_OUTPUT_FILES_PREPARE],
-[#
-# Set up the sed scripts for CONFIG_FILES section.
-#
-dnl ... and define _AC_SED_CMDS, the pipeline which executes them.
-m4_define([_AC_SED_CMDS], [])dnl
-
-# No need to generate the scripts if there are no CONFIG_FILES.
-# This happens for instance when ./config.status config.h
+[# Set up the scripts for CONFIG_FILES section.
+# No need to generate them if there are no CONFIG_FILES.
+# This happens for instance with `./config.status config.h'.
 if test -n "$CONFIG_FILES"; then
 
-_ACEOF
-
-m4_pushdef([_AC_SED_FRAG_NUM], 0)dnl Fragment number.
-m4_pushdef([_AC_SED_CMD_NUM], 2)dnl Num of commands in current frag so far.
-m4_pushdef([_AC_SED_DELIM_NUM], 0)dnl Expected number of delimiters in file.
-m4_pushdef([_AC_SED_FRAG], [])dnl The constant part of the current fragment.
-dnl
+dnl For AC_SUBST_FILE, check for usable getline support in awk,
+dnl at config.status execution time.
+dnl Otherwise, do the interpolation in sh, which is slower.
+dnl Without any AC_SUBST_FILE, omit all related code.
+dnl Note the expansion is double-quoted for readability.
 m4_ifdef([_AC_SUBST_FILES],
-[# Create sed commands to just substitute file output variables.
-
-m4_foreach_w([_AC_Var], m4_defn([_AC_SUBST_FILES]),
-[dnl End fragments at beginning of loop so that last fragment is not ended.
-m4_if(m4_eval(_AC_SED_CMD_NUM + 3 > _AC_SED_CMD_LIMIT), 1,
-[dnl Fragment is full and not the last one, so no need for the final un-escape.
-dnl Increment fragment number.
-m4_define([_AC_SED_FRAG_NUM], m4_incr(_AC_SED_FRAG_NUM))dnl
-dnl Record that this fragment will need to be used.
-m4_define([_AC_SED_CMDS],
-  m4_defn([_AC_SED_CMDS])[| sed -f "$tmp/subs-]_AC_SED_FRAG_NUM[.sed" ])dnl
-[cat >>$CONFIG_STATUS <<_ACEOF
-cat >"\$tmp/subs-]_AC_SED_FRAG_NUM[.sed" <<\CEOF
-/@[a-zA-Z_][a-zA-Z_0-9]*@/!b
-]m4_defn([_AC_SED_FRAG])dnl
-[CEOF
-
-_ACEOF
-]m4_define([_AC_SED_CMD_NUM], 2)m4_define([_AC_SED_FRAG])dnl
-])dnl Last fragment ended.
-m4_define([_AC_SED_CMD_NUM], m4_eval(_AC_SED_CMD_NUM + 3))dnl
-m4_define([_AC_SED_FRAG],
-m4_defn([_AC_SED_FRAG])dnl
-[/^[	 ]*@]_AC_Var[@[	 ]*$/{
-r $]_AC_Var[
-d
-}
-])dnl
-])dnl
-# Remaining file output variables are in a fragment that also has non-file
-# output varibles.
-
-])
+[[if $AWK 'BEGIN { getline <"/dev/null" }' </dev/null 2>/dev/null; then
+  ac_cs_awk_getline=:
+  ac_cs_awk_pipe_init=
+  ac_cs_awk_read_file='
+      while ((getline aline < (F[key])) > 0)
+	print(aline)
+      close(F[key])'
+  ac_cs_awk_pipe_fini=
+else
+  ac_cs_awk_getline=false
+  ac_cs_awk_pipe_init="print \"cat <<'|#_!!_#|' &&\""
+  ac_cs_awk_read_file='
+      print "|#_!!_#|"
+      print "cat " F[key] " &&"
+      '$ac_cs_awk_pipe_init
+  # The final `:' finishes the AND list.
+  ac_cs_awk_pipe_fini='END { print "|#_!!_#|"; print ":" }'
+fi]])
+ac_cr=''
+ac_cs_awk_cr=`$AWK 'BEGIN { print "a\rb" }' </dev/null 2>/dev/null`
+if test "$ac_cs_awk_cr" = "a${ac_cr}b"; then
+  ac_cs_awk_cr='\\r'
+else
+  ac_cs_awk_cr=$ac_cr
+fi
 dnl
-m4_define([_AC_SED_FRAG], [
-]m4_defn([_AC_SED_FRAG]))dnl
-m4_foreach_w([_AC_Var],
-m4_ifdef([_AC_SUBST_VARS], [m4_defn([_AC_SUBST_VARS]) ])[@END@],
-[m4_if(_AC_SED_DELIM_NUM, 0,
-[m4_if(_AC_Var, [@END@],
-[dnl The whole of the last fragment would be the final deletion of `|#_!!_#|'.
-m4_define([_AC_SED_CMDS], m4_defn([_AC_SED_CMDS])[| sed 's/|#_!!_#|//g' ])],
-[
+dnl Define the pipe that does the substitution.
+m4_ifdef([_AC_SUBST_FILES],
+[m4_define([_AC_SUBST_CMDS], [|
+if $ac_cs_awk_getline; then
+  $AWK -f "$tmp/subs.awk"
+else
+  $AWK -f "$tmp/subs.awk" | $SHELL
+fi])],
+[m4_define([_AC_SUBST_CMDS],
+[| $AWK -f "$tmp/subs.awk"])])dnl
+
+echo 'BEGIN {' >"$tmp/subs1.awk" &&
+_ACEOF
+
+m4_ifdef([_AC_SUBST_FILES],
+[# Create commands to substitute file output variables.
+{
+  echo "cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1" &&
+  echo 'cat >>"\$tmp/subs1.awk" <<\\_ACAWK &&' &&
+  echo "$ac_subst_files" | sed 's/.*/F@<:@"&"@:>@="$&"/' &&
+  echo "_ACAWK" &&
+  echo "_ACEOF"
+} >conf$$files.sh &&
+. ./conf$$files.sh ||
+  AC_MSG_ERROR([could not make $CONFIG_STATUS])
+rm -f conf$$files.sh
+])dnl
+
+{
+  echo "cat >conf$$subs.awk <<_ACEOF" &&
+  echo "$ac_subst_vars" | sed 's/.*/&!$&$ac_delim/' &&
+  echo "_ACEOF"
+} >conf$$subs.sh ||
+  AC_MSG_ERROR([could not make $CONFIG_STATUS])
+ac_delim_num=`echo "$ac_subst_vars" | grep -c '$'`
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
-  cat >conf$$subs.sed <<_ACEOF
-])])dnl
-m4_if(_AC_Var, [@END@],
-      [m4_if(m4_eval(_AC_SED_CMD_NUM + 2 <= _AC_SED_CMD_LIMIT), 1,
-             [m4_define([_AC_SED_FRAG], [ end]m4_defn([_AC_SED_FRAG]))])],
-[m4_define([_AC_SED_CMD_NUM], m4_incr(_AC_SED_CMD_NUM))dnl
-m4_define([_AC_SED_DELIM_NUM], m4_incr(_AC_SED_DELIM_NUM))dnl
-_AC_Var!$_AC_Var$ac_delim
-])dnl
-m4_if(_AC_SED_CMD_LIMIT,
-      m4_if(_AC_Var, [@END@], m4_if(_AC_SED_CMD_NUM, 2, 2, _AC_SED_CMD_LIMIT), _AC_SED_CMD_NUM),
-[_ACEOF
+  . ./conf$$subs.sh ||
+    AC_MSG_ERROR([could not make $CONFIG_STATUS])
 
-dnl Do not use grep on conf$$subs.sed, since AIX grep has a line length limit.
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = _AC_SED_DELIM_NUM; then
+dnl Do not use grep on conf$$subs.awk, since AIX grep has a line length limit.
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.awk | grep -c X` = $ac_delim_num; then
     break
   elif $ac_last_try; then
     AC_MSG_ERROR([could not make $CONFIG_STATUS])
@@ -410,51 +427,138 @@ dnl Do not use grep on conf$$subs.sed, since AIX grep has a line length limit.
     ac_delim="$ac_delim!$ac_delim _$ac_delim!! "
   fi
 done
+rm -f conf$$subs.sh
 
-dnl Similarly, avoid grep here too.
-ac_eof=`sed -n '/^CEOF[[0-9]]*$/s/CEOF/0/p' conf$$subs.sed`
-if test -n "$ac_eof"; then
-  ac_eof=`echo "$ac_eof" | sort -nru | sed 1q`
-  ac_eof=`expr $ac_eof + 1`
-fi
-
-dnl Increment fragment number.
-m4_define([_AC_SED_FRAG_NUM], m4_incr(_AC_SED_FRAG_NUM))dnl
-dnl Record that this fragment will need to be used.
-m4_define([_AC_SED_CMDS],
-m4_defn([_AC_SED_CMDS])[| sed -f "$tmp/subs-]_AC_SED_FRAG_NUM[.sed" ])dnl
-[cat >>$CONFIG_STATUS <<_ACEOF
-cat >"\$tmp/subs-]_AC_SED_FRAG_NUM[.sed" <<\CEOF$ac_eof
-/@[a-zA-Z_][a-zA-Z_0-9]*@/!b]m4_defn([_AC_SED_FRAG])dnl
-[_ACEOF
-sed '
-s/[,\\&]/\\&/g; s/@/@|#_!!_#|/g
-s/^/s,@/; s/!/@,|#_!!_#|/
-:n
-t n
-s/'"$ac_delim"'$/,g/; t
-s/$/\\/; p
-N; s/^.*\n//; s/[,\\&]/\\&/g; s/@/@|#_!!_#|/g; b n
-' >>$CONFIG_STATUS <conf$$subs.sed
-rm -f conf$$subs.sed
-cat >>$CONFIG_STATUS <<_ACEOF
-]m4_if(_AC_Var, [@END@],
-[m4_if(m4_eval(_AC_SED_CMD_NUM + 2 > _AC_SED_CMD_LIMIT), 1,
-[m4_define([_AC_SED_CMDS], m4_defn([_AC_SED_CMDS])[| sed 's/|#_!!_#|//g' ])],
-[[:end
-s/|#_!!_#|//g
-]])])dnl
-CEOF$ac_eof
-_ACEOF
-m4_define([_AC_SED_FRAG], [
-])m4_define([_AC_SED_DELIM_NUM], 0)m4_define([_AC_SED_CMD_NUM], 2)dnl
-
-])])dnl
+dnl Initialize an awk array of substitutions, keyed by variable name.
 dnl
-m4_popdef([_AC_SED_FRAG_NUM])dnl
-m4_popdef([_AC_SED_CMD_NUM])dnl
-m4_popdef([_AC_SED_DELIM_NUM])dnl
-m4_popdef([_AC_SED_FRAG])dnl
+dnl The initial line contains the variable name VAR, then a `!'.
+dnl Construct `S["VAR"]=' from it.
+dnl The rest of the line, and potentially further lines, contain the
+dnl substituted value; the last of those ends with $ac_delim.  We split
+dnl the output both along those substituted newlines and at intervals of
+dnl length _AC_AWK_LITERAL_LIMIT.  The latter is done to comply with awk
+dnl string literal limitations, the former for simplicity in doing so.
+dnl
+dnl We deal with one input line at a time to avoid sed pattern space
+dnl limitations.  We kill the delimiter $ac_delim before splitting the
+dnl string (otherwise we risk splitting the delimiter).  And we do the
+dnl splitting before the quoting of awk special characters (otherwise we
+dnl risk splitting an escape sequence).
+dnl
+dnl Output as separate string literals, joined with backslash-newline.
+dnl Eliminate the newline after `=' in a second script, for readability.
+dnl
+dnl Notes to the main part of the awk script:
+dnl - the unusual FS value helps prevent running into the limit of 99 fields,
+dnl - we avoid sub/gsub because of the \& quoting issues, see
+dnl   http://www.gnu.org/software/gawk/manual/html_node/Gory-Details.html
+dnl - Writing `$ 0' prevents expansion by both the shell and m4 here.
+dnl
+dnl m4-double-quote most of the scripting for readability.
+[cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
+cat >>"\$tmp/subs1.awk" <<\\_ACAWK &&
+_ACEOF
+sed -n '
+h
+s/^/S["/; s/!.*/"]=/
+p
+g
+s/^[^!]*!//
+:repl
+t repl
+s/'"$ac_delim"'$//
+t delim
+:nl
+h
+s/\(.\{]_AC_AWK_LITERAL_LIMIT[\}\).*/\1/
+t more1
+s/["\\]/\\&/g; s/^/"/; s/$/\\n"\\/
+p
+n
+b repl
+:more1
+s/["\\]/\\&/g; s/^/"/; s/$/"\\/
+p
+g
+s/.\{]_AC_AWK_LITERAL_LIMIT[\}//
+t nl
+:delim
+h
+s/\(.\{]_AC_AWK_LITERAL_LIMIT[\}\).*/\1/
+t more2
+s/["\\]/\\&/g; s/^/"/; s/$/"/
+p
+b
+:more2
+s/["\\]/\\&/g; s/^/"/; s/$/"\\/
+p
+g
+s/.\{]_AC_AWK_LITERAL_LIMIT[\}//
+t delim
+' <conf$$subs.awk | sed '
+/^[^""]/{
+  N
+  s/\n//
+}
+' >>$CONFIG_STATUS || ac_write_fail=1
+rm -f conf$$subs.awk
+cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
+_ACAWK
+cat >>"\$tmp/subs1.awk" <<_ACAWK &&
+  for (key in S) S_is_set[key] = 1
+  FS = ""
+]m4_ifdef([_AC_SUBST_FILES],
+[  \$ac_cs_awk_pipe_init])[
+}
+{
+  line = $ 0
+  nfields = split(line, field, "@")
+  substed = 0
+  len = length(field[1])
+  for (i = 2; i < nfields; i++) {
+    key = field[i]
+    keylen = length(key)
+    if (S_is_set[key]) {
+      value = S[key]
+      line = substr(line, 1, len) "" value "" substr(line, len + keylen + 3)
+      len += length(value) + length(field[++i])
+      substed = 1
+    } else
+      len += 1 + keylen
+  }
+]m4_ifdef([_AC_SUBST_FILES],
+[[  if (nfields == 3 && !substed) {
+    key = field[2]
+    if (F[key] != "" && line ~ /^[	 ]*@.*@[	 ]*$/) {
+      \$ac_cs_awk_read_file
+      next
+    }
+  }]])[
+  print line
+}
+]dnl end of double-quoted part
+m4_ifdef([_AC_SUBST_FILES],
+[\$ac_cs_awk_pipe_fini])
+_ACAWK
+_ACEOF
+dnl See if CR is the EOL marker.  If not, remove any EOL-related
+dnl ^M bytes and escape any remaining ones.  If so, just use mv.
+dnl In case you're wondering how ^M bytes can make it into subs1.awk,
+dnl [from Ralf Wildenhues] one way is if you have e.g.,
+dnl AC_SUBST([variable_that_contains_cr], ["
+dnl "])
+dnl The original aim was that users should be able to substitute any
+dnl characters they like (except for \0).  And the above is not so
+dnl unlikely if the configure script itself happens to be converted
+dnl to w32 text mode.
+cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
+if sed "s/$ac_cr//" < /dev/null > /dev/null 2>&1; then
+  sed "s/$ac_cr\$//; s/$ac_cr/$ac_cs_awk_cr/g"
+else
+  cat
+fi < "$tmp/subs1.awk" > "$tmp/subs.awk" \
+  || AC_MSG_ERROR([could not setup config files machinery])
+_ACEOF
 
 # VPATH may cause trouble with some makes, so we remove $(srcdir),
 # ${srcdir} and @srcdir@ from VPATH if srcdir is ".", strip leading and
@@ -471,7 +575,7 @@ s/^[^=]*=[	 ]*$//
 }']
 fi
 
-cat >>$CONFIG_STATUS <<\_ACEOF
+cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
 fi # test -n "$CONFIG_FILES"
 
 ])# _AC_OUTPUT_FILES_PREPARE
@@ -482,7 +586,8 @@ fi # test -n "$CONFIG_FILES"
 # Do the variable substitutions to create the Makefiles or whatever.
 #
 # This macro is expanded inside a here document.  If the here document is
-# closed, it has to be reopened with "cat >>$CONFIG_STATUS <<\_ACEOF".
+# closed, it has to be reopened with
+# "cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1".
 #
 m4_define([_AC_OUTPUT_FILE],
 [
@@ -506,27 +611,29 @@ AC_PROVIDE_IFELSE([AC_PROG_MKDIR_P],
 _ACEOF
 
 m4_ifndef([AC_DATAROOTDIR_CHECKED],
-[cat >>$CONFIG_STATUS <<\_ACEOF
+[cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
 # If the template does not know about datarootdir, expand it.
 # FIXME: This hack should be removed a few years after 2.60.
 ac_datarootdir_hack=; ac_datarootdir_seen=
 m4_define([_AC_datarootdir_vars],
-          [datadir, docdir, infodir, localedir, mandir])
-case `sed -n '/datarootdir/ {
+	  [datadir, docdir, infodir, localedir, mandir])
+ac_sed_dataroot='
+/datarootdir/ {
   p
   q
 }
 m4_foreach([_AC_Var], m4_defn([_AC_datarootdir_vars]),
-           [/@_AC_Var@/p
-])' $ac_file_inputs` in
+	   [/@_AC_Var@/p
+])'
+case `eval "sed -n \"\$ac_sed_dataroot\" $ac_file_inputs"` in
 *datarootdir*) ac_datarootdir_seen=yes;;
 *@[]m4_join([@*|*@], _AC_datarootdir_vars)@*)
   AC_MSG_WARN([$ac_file_inputs seems to ignore the --datarootdir setting])
 _ACEOF
-cat >>$CONFIG_STATUS <<_ACEOF
+cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
   ac_datarootdir_hack='
   m4_foreach([_AC_Var], m4_defn([_AC_datarootdir_vars]),
-               [s&@_AC_Var@&$_AC_Var&g
+	       [s&@_AC_Var@&$_AC_Var&g
   ])dnl
   s&\\\${datarootdir}&$datarootdir&g' ;;
 esac
@@ -536,17 +643,22 @@ _ACEOF
 # Neutralize VPATH when `$srcdir' = `.'.
 # Shell code in configure.ac might set extrasub.
 # FIXME: do we really want to maintain this feature?
-cat >>$CONFIG_STATUS <<_ACEOF
-  sed "$ac_vpsub
+cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
+ac_sed_extra="$ac_vpsub
 $extrasub
 _ACEOF
-cat >>$CONFIG_STATUS <<\_ACEOF
+cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
 :t
 [/@[a-zA-Z_][a-zA-Z_0-9]*@/!b]
 dnl configure_input is a somewhat special, so we don't call AC_SUBST_TRACE.
-s&@configure_input@&$configure_input&;t t
+dnl Note if you change the s||| delimiter here, don't forget to adjust
+dnl ac_sed_conf_input accordingly.  Using & is a bad idea if & appears in
+dnl the replacement string.
+s|@configure_input@|$ac_sed_conf_input|;t t
 dnl During the transition period, this is a special case:
 s&@top_builddir@&$ac_top_builddir_sub&;t t[]AC_SUBST_TRACE([top_builddir])
+dnl For this substitution see the witness macro _AC_HAVE_TOP_BUILD_PREFIX above.
+s&@top_build_prefix@&$ac_top_build_prefix&;t t[]AC_SUBST_TRACE([top_build_prefix])
 m4_foreach([_AC_Var], [srcdir, abs_srcdir, top_srcdir, abs_top_srcdir,
 			builddir, abs_builddir,
 			abs_top_builddir]AC_PROVIDE_IFELSE([AC_PROG_INSTALL], [[, INSTALL]])AC_PROVIDE_IFELSE([AC_PROG_MKDIR_P], [[, MKDIR_P]]),
@@ -554,7 +666,9 @@ m4_foreach([_AC_Var], [srcdir, abs_srcdir, top_srcdir, abs_top_srcdir,
 ])dnl
 m4_ifndef([AC_DATAROOTDIR_CHECKED], [$ac_datarootdir_hack
 ])dnl
-" $ac_file_inputs m4_defn([_AC_SED_CMDS])>$tmp/out
+"
+eval sed \"\$ac_sed_extra\" "$ac_file_inputs" m4_defn([_AC_SUBST_CMDS]) >$tmp/out \
+  || AC_MSG_ERROR([could not create $ac_file])
 
 m4_ifndef([AC_DATAROOTDIR_CHECKED],
 [test -z "$ac_datarootdir_hack$ac_datarootdir_seen" &&
@@ -566,14 +680,15 @@ which seems to be undefined.  Please make sure it is defined.])
 
   rm -f "$tmp/stdin"
   case $ac_file in
-  -) cat "$tmp/out"; rm -f "$tmp/out";;
-  *) rm -f "$ac_file"; mv "$tmp/out" $ac_file;;
-  esac
+  -) cat "$tmp/out" && rm -f "$tmp/out";;
+  *) rm -f "$ac_file" && mv "$tmp/out" "$ac_file";;
+  esac \
+  || AC_MSG_ERROR([could not create $ac_file])
 dnl This would break Makefile dependencies:
-dnl  if diff $ac_file "$tmp/out" >/dev/null 2>&1; then
+dnl  if diff "$ac_file" "$tmp/out" >/dev/null 2>&1; then
 dnl    echo "$ac_file is unchanged"
 dnl  else
-dnl     rm -f $ac_file; mv "$tmp/out" $ac_file
+dnl     rm -f "$ac_file"; mv "$tmp/out" "$ac_file"
 dnl  fi
 ])# _AC_OUTPUT_FILE
 
@@ -600,6 +715,150 @@ AC_DEFUN([AC_CONFIG_HEADER],
 [AC_CONFIG_HEADERS([$1])])
 
 
+# _AC_OUTPUT_HEADERS_PREPARE
+# --------------------------
+# Create the awk scripts needed for CONFIG_HEADERS.
+# Support multiline #defines.
+#
+# This macro is expanded inside a here document.  If the here document is
+# closed, it has to be reopened with
+# "cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1".
+#
+m4_define([_AC_OUTPUT_HEADERS_PREPARE],
+[# Set up the scripts for CONFIG_HEADERS section.
+# No need to generate them if there are no CONFIG_HEADERS.
+# This happens for instance with `./config.status Makefile'.
+if test -n "$CONFIG_HEADERS"; then
+dnl This `||' list is finished at the end of _AC_OUTPUT_HEADERS_PREPARE.
+cat >"$tmp/defines.awk" <<\_ACAWK ||
+BEGIN {
+_ACEOF
+
+# Transform confdefs.h into an awk script `defines.awk', embedded as
+# here-document in config.status, that substitutes the proper values into
+# config.h.in to produce config.h.
+
+# Create a delimiter string that does not exist in confdefs.h, to ease
+# handling of long lines.
+ac_delim='%!_!# '
+for ac_last_try in false false :; do
+  ac_t=`sed -n "/$ac_delim/p" confdefs.h`
+  if test -z "$ac_t"; then
+    break
+  elif $ac_last_try; then
+    AC_MSG_ERROR([could not make $CONFIG_HEADERS])
+  else
+    ac_delim="$ac_delim!$ac_delim _$ac_delim!! "
+  fi
+done
+
+# For the awk script, D is an array of macro values keyed by name,
+# likewise P contains macro parameters if any.  Preserve backslash
+# newline sequences.
+dnl
+dnl Structure of the sed script that reads confdefs.h:
+dnl rset:  main loop, searches for `#define' lines
+dnl def:   deal with a `#define' line
+dnl bsnl:  deal with a `#define' line that ends with backslash-newline
+dnl cont:  handle a continuation line
+dnl bsnlc: handle a continuation line that ends with backslash-newline
+dnl
+dnl Each sub part escapes the awk special characters and outputs a statement
+dnl inserting the macro value into the array D, keyed by name.  If the macro
+dnl uses parameters, they are added in the array P, keyed by name.
+dnl
+dnl Long values are split into several string literals with help of ac_delim.
+dnl Assume nobody uses macro names of nearly 150 bytes length.
+dnl
+dnl The initial replace for `#define' lines inserts a leading space
+dnl in order to ease later matching; otherwise, output lines may be
+dnl repeatedly matched.
+dnl
+dnl m4-double-quote most of this for [, ], define, and substr:
+[
+ac_word_re=[_$as_cr_Letters][_$as_cr_alnum]*
+sed -n '
+s/.\{]_AC_AWK_LITERAL_LIMIT[\}/&'"$ac_delim"'/g
+t rset
+:rset
+s/^[	 ]*#[	 ]*define[	 ][	 ]*/ /
+t def
+d
+:def
+s/\\$//
+t bsnl
+s/["\\]/\\&/g
+s/^ \('"$ac_word_re"'\)\(([^()]*)\)[	 ]*\(.*\)/P["\1"]="\2"\
+D["\1"]=" \3"/p
+s/^ \('"$ac_word_re"'\)[	 ]*\(.*\)/D["\1"]=" \2"/p
+d
+:bsnl
+s/["\\]/\\&/g
+s/^ \('"$ac_word_re"'\)\(([^()]*)\)[	 ]*\(.*\)/P["\1"]="\2"\
+D["\1"]=" \3\\\\\\n"\\/p
+t cont
+s/^ \('"$ac_word_re"'\)[	 ]*\(.*\)/D["\1"]=" \2\\\\\\n"\\/p
+t cont
+d
+:cont
+n
+s/.\{]_AC_AWK_LITERAL_LIMIT[\}/&'"$ac_delim"'/g
+t clear
+:clear
+s/\\$//
+t bsnlc
+s/["\\]/\\&/g; s/^/"/; s/$/"/p
+d
+:bsnlc
+s/["\\]/\\&/g; s/^/"/; s/$/\\\\\\n"\\/p
+b cont
+' <confdefs.h | sed '
+s/'"$ac_delim"'/"\\\
+"/g' >>$CONFIG_STATUS || ac_write_fail=1
+
+cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
+  for (key in D) D_is_set[key] = 1
+  FS = ""
+}
+/^[\t ]*#[\t ]*(define|undef)[\t ]+$ac_word_re([\t (]|\$)/ {
+  line = \$ 0
+  split(line, arg, " ")
+  if (arg[1] == "#") {
+    defundef = arg[2]
+    mac1 = arg[3]
+  } else {
+    defundef = substr(arg[1], 2)
+    mac1 = arg[2]
+  }
+  split(mac1, mac2, "(") #)
+  macro = mac2[1]
+  if (D_is_set[macro]) {
+    # Preserve the white space surrounding the "#".
+    prefix = substr(line, 1, index(line, defundef) - 1)
+    print prefix "define", macro P[macro] D[macro]
+    next
+  } else {
+    # Replace #undef with comments.  This is necessary, for example,
+    # in the case of _POSIX_SOURCE, which is predefined and required
+    # on some systems where configure will not decide to define it.
+    if (defundef == "undef") {
+      print "/*", line, "*/"
+      next
+    }
+  }
+}
+{ print }
+]dnl End of double-quoted section
+_ACAWK
+_ACEOF
+cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
+dnl finish `||' list indicating write error:
+  AC_MSG_ERROR([could not setup config headers machinery])
+fi # test -n "$CONFIG_HEADERS"
+
+])# _AC_OUTPUT_HEADERS_PREPARE
+
+
 # _AC_OUTPUT_HEADER
 # -----------------
 #
@@ -607,132 +866,36 @@ AC_DEFUN([AC_CONFIG_HEADER],
 # `config.h.in'.
 #
 # This macro is expanded inside a here document.  If the here document is
-# closed, it has to be reopened with "cat >>$CONFIG_STATUS <<\_ACEOF".
+# closed, it has to be reopened with
+# "cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1".
 #
 m4_define([_AC_OUTPUT_HEADER],
 [
   #
   # CONFIG_HEADER
   #
-_ACEOF
-
-# Transform confdefs.h into a sed script `conftest.defines', that
-# substitutes the proper values into config.h.in to produce config.h.
-rm -f conftest.defines conftest.tail
-# First, append a space to every undef/define line, to ease matching.
-echo 's/$/ /' >conftest.defines
-# Then, protect against being on the right side of a sed subst, or in
-# an unquoted here document, in config.status.  If some macros were
-# called several times there might be several #defines for the same
-# symbol, which is useless.  But do not sort them, since the last
-# AC_DEFINE must be honored.
-dnl
-dnl Quote, for `[ ]' and `define'.
-[ac_word_re=[_$as_cr_Letters][_$as_cr_alnum]*
-# These sed commands are passed to sed as "A NAME B PARAMS C VALUE D", where
-# NAME is the cpp macro being defined, VALUE is the value it is being given.
-# PARAMS is the parameter list in the macro definition--in most cases, it's
-# just an empty string.
-ac_dA='s,^\\([	 #]*\\)[^	 ]*\\([	 ]*'
-ac_dB='\\)[	 (].*,\\1define\\2'
-ac_dC=' '
-ac_dD=' ,']
-dnl ac_dD used to contain `;t' at the end, but that was both slow and incorrect.
-dnl 1) Since the script must be broken into chunks containing 100 commands,
-dnl the extra command meant extra calls to sed.
-dnl 2) The code was incorrect: in the unusual case where a symbol has multiple
-dnl different AC_DEFINEs, the last one should be honored.
-dnl
-dnl ac_dB works because every line has a space appended.  ac_dD reinserts
-dnl the space, because some symbol may have been AC_DEFINEd several times.
-dnl
-dnl The first use of ac_dA has a space prepended, so that the second
-dnl use does not match the initial 's' of $ac_dA.
-[
-uniq confdefs.h |
-  sed -n '
-	t rset
-	:rset
-	s/^[	 ]*#[	 ]*define[	 ][	 ]*//
-	t ok
-	d
-	:ok
-	s/[\\&,]/\\&/g
-	s/^\('"$ac_word_re"'\)\(([^()]*)\)[	 ]*\(.*\)/ '"$ac_dA"'\1'"$ac_dB"'\2'"${ac_dC}"'\3'"$ac_dD"'/p
-	s/^\('"$ac_word_re"'\)[	 ]*\(.*\)/'"$ac_dA"'\1'"$ac_dB$ac_dC"'\2'"$ac_dD"'/p
-  ' >>conftest.defines
-]
-# Remove the space that was appended to ease matching.
-# Then replace #undef with comments.  This is necessary, for
-# example, in the case of _POSIX_SOURCE, which is predefined and required
-# on some systems where configure will not decide to define it.
-# (The regexp can be short, since the line contains either #define or #undef.)
-echo 's/ $//
-[s,^[	 #]*u.*,/* & */,]' >>conftest.defines
-
-# Break up conftest.defines:
-dnl If we cared only about not exceeding line count limits, we would use this:
-dnl ac_max_sed_lines=m4_eval(_AC_SED_CMD_LIMIT - 3)
-dnl But in practice this can generate scripts that contain too many bytes;
-dnl and this can cause obscure 'sed' failures, e.g.,
-dnl http://lists.gnu.org/archive/html/bug-coreutils/2006-05/msg00127.html
-dnl So instead, we use the following, which is about half the size we'd like:
-ac_max_sed_lines=50
-dnl In the future, let's use awk or sh instead of sed to do substitutions,
-dnl since we have so many problems with sed.
-
-# First sed command is:	 sed -f defines.sed $ac_file_inputs >"$tmp/out1"
-# Second one is:	 sed -f defines.sed "$tmp/out1" >"$tmp/out2"
-# Third one will be:	 sed -f defines.sed "$tmp/out2" >"$tmp/out1"
-# et cetera.
-ac_in='$ac_file_inputs'
-ac_out='"$tmp/out1"'
-ac_nxt='"$tmp/out2"'
-
-while :
-do
-  # Write a here document:
-  dnl Quote, for the `[ ]' and `define'.
-[  cat >>$CONFIG_STATUS <<_ACEOF
-    # First, check the format of the line:
-    cat >"\$tmp/defines.sed" <<\\CEOF
-/^[	 ]*#[	 ]*undef[	 ][	 ]*$ac_word_re[	 ]*\$/b def
-/^[	 ]*#[	 ]*define[	 ][	 ]*$ac_word_re[(	 ]/b def
-b
-:def
-_ACEOF]
-  sed ${ac_max_sed_lines}q conftest.defines >>$CONFIG_STATUS
-  echo 'CEOF
-    sed -f "$tmp/defines.sed"' "$ac_in >$ac_out" >>$CONFIG_STATUS
-  ac_in=$ac_out; ac_out=$ac_nxt; ac_nxt=$ac_in
-  sed 1,${ac_max_sed_lines}d conftest.defines >conftest.tail
-  grep . conftest.tail >/dev/null || break
-  rm -f conftest.defines
-  mv conftest.tail conftest.defines
-done
-rm -f conftest.defines conftest.tail
-
-dnl Now back to your regularly scheduled config.status.
-echo "ac_result=$ac_in" >>$CONFIG_STATUS
-cat >>$CONFIG_STATUS <<\_ACEOF
   if test x"$ac_file" != x-; then
-    echo "/* $configure_input  */" >"$tmp/config.h"
-    cat "$ac_result" >>"$tmp/config.h"
-    if diff $ac_file "$tmp/config.h" >/dev/null 2>&1; then
+    {
+      AS_ECHO(["/* $configure_input  */"]) \
+      && eval '$AWK -f "$tmp/defines.awk"' "$ac_file_inputs"
+    } >"$tmp/config.h" \
+      || AC_MSG_ERROR([could not create $ac_file])
+    if diff "$ac_file" "$tmp/config.h" >/dev/null 2>&1; then
       AC_MSG_NOTICE([$ac_file is unchanged])
     else
-      rm -f $ac_file
-      mv "$tmp/config.h" $ac_file
+      rm -f "$ac_file"
+      mv "$tmp/config.h" "$ac_file" \
+	|| AC_MSG_ERROR([could not create $ac_file])
     fi
   else
-    echo "/* $configure_input  */"
-    cat "$ac_result"
+    AS_ECHO(["/* $configure_input  */"]) \
+      && eval '$AWK -f "$tmp/defines.awk"' "$ac_file_inputs" \
+      || AC_MSG_ERROR([could not create -])
   fi
-  rm -f "$tmp/out[12]"
 dnl If running for Automake, be ready to perform additional
 dnl commands to set up the timestamp files.
 m4_ifdef([_AC_AM_CONFIG_HEADER_HOOK],
-	 [_AC_AM_CONFIG_HEADER_HOOK([$ac_file])
+	 [_AC_AM_CONFIG_HEADER_HOOK(["$ac_file"])
 ])dnl
 ])# _AC_OUTPUT_HEADER
 
@@ -789,29 +952,39 @@ update, you should probably tune the result yourself.])# AC_LINK_FILES
 # _AC_OUTPUT_LINK
 # ---------------
 # This macro is expanded inside a here document.  If the here document is
-# closed, it has to be reopened with "cat >>$CONFIG_STATUS <<\_ACEOF".
+# closed, it has to be reopened with
+# "cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1".
 m4_define([_AC_OUTPUT_LINK],
 [
   #
   # CONFIG_LINK
   #
 
-  AC_MSG_NOTICE([linking $srcdir/$ac_source to $ac_file])
+  if test "$ac_source" = "$ac_file" && test "$srcdir" = '.'; then
+    AC_MSG_WARN([not linking $ac_source to itself])
+  else
+    # Prefer the file from the source tree if names are identical.
+    if test "$ac_source" = "$ac_file" || test ! -r "$ac_source"; then
+      ac_source=$srcdir/$ac_source
+    fi
 
-  if test ! -r "$srcdir/$ac_source"; then
-    AC_MSG_ERROR([$srcdir/$ac_source: file not found])
+    AC_MSG_NOTICE([linking $ac_source to $ac_file])
+
+    if test ! -r "$ac_source"; then
+      AC_MSG_ERROR([$ac_source: file not found])
+    fi
+    rm -f "$ac_file"
+
+    # Try a relative symlink, then a hard link, then a copy.
+    case $srcdir in
+    [[\\/$]]* | ?:[[\\/]]* ) ac_rel_source=$ac_source ;;
+	*) ac_rel_source=$ac_top_build_prefix$ac_source ;;
+    esac
+    ln -s "$ac_rel_source" "$ac_file" 2>/dev/null ||
+      ln "$ac_source" "$ac_file" 2>/dev/null ||
+      cp -p "$ac_source" "$ac_file" ||
+      AC_MSG_ERROR([cannot link or copy $ac_source to $ac_file])
   fi
-  rm -f "$ac_file"
-
-  # Try a relative symlink, then a hard link, then a copy.
-  case $srcdir in
-  [[\\/$]]* | ?:[[\\/]]* ) ac_rel_source=$srcdir/$ac_source ;;
-      *) ac_rel_source=$ac_top_build_prefix$srcdir/$ac_source ;;
-  esac
-  ln -s "$ac_rel_source" "$ac_file" 2>/dev/null ||
-    ln "$srcdir/$ac_source" "$ac_file" 2>/dev/null ||
-    cp -p "$srcdir/$ac_source" "$ac_file" ||
-    AC_MSG_ERROR([cannot link or copy $srcdir/$ac_source to $ac_file])
 ])# _AC_OUTPUT_LINK
 
 
@@ -856,7 +1029,8 @@ AC_CONFIG_COMMANDS([default-]_AC_OUTPUT_COMMANDS_CNT, [[$1]], [[$2]])dnl
 # _AC_OUTPUT_COMMAND
 # ------------------
 # This macro is expanded inside a here document.  If the here document is
-# closed, it has to be reopened with "cat >>$CONFIG_STATUS <<\_ACEOF".
+# closed, it has to be reopened with
+# "cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1".
 m4_define([_AC_OUTPUT_COMMAND],
 [  AC_MSG_NOTICE([executing $ac_file commands])
 ])
@@ -910,7 +1084,6 @@ m4_define([AC_OUTPUT_COMMANDS_POST])
 #   A statically built list, should contain *all* the arguments of
 #   AC_CONFIG_SUBDIRS.  The final value is assigned to ac_subdirs_all in
 #   the `default' section, and used for --help=recursive.
-#   It is also used in _AC_CONFIG_UNIQUE.
 #   It makes no sense for arguments which are sh variables.
 # - subdirs
 #   Shell variable built at runtime, so some of these dirs might not be
@@ -918,6 +1091,7 @@ m4_define([AC_OUTPUT_COMMANDS_POST])
 #   This is used in _AC_OUTPUT_SUBDIRS.
 AC_DEFUN([AC_CONFIG_SUBDIRS],
 [AC_REQUIRE([AC_CONFIG_AUX_DIR_DEFAULT])dnl
+AC_REQUIRE([AC_DISABLE_OPTION_CHECKING])dnl
 m4_foreach_w([_AC_Sub], [$1],
 	     [_AC_CONFIG_UNIQUE([SUBDIRS],
 				m4_bpatsubst(m4_defn([_AC_Sub]), [:.*]))])dnl
@@ -940,7 +1114,8 @@ m4_define([_AC_OUTPUT_SUBDIRS],
 #
 if test "$no_recursion" != yes; then
 
-  # Remove --cache-file and --srcdir arguments so they do not pile up.
+  # Remove --cache-file, --srcdir, and --disable-option-checking arguments
+  # so they do not pile up.
   ac_sub_configure_args=
   ac_prev=
   eval "set x $ac_configure_args"
@@ -969,9 +1144,11 @@ if test "$no_recursion" != yes; then
       ac_prev=prefix ;;
     -prefix=* | --prefix=* | --prefi=* | --pref=* | --pre=* | --pr=* | --p=*)
       ;;
+    --disable-option-checking)
+      ;;
     *)
       case $ac_arg in
-      *\'*) ac_arg=`echo "$ac_arg" | sed "s/'/'\\\\\\\\''/g"` ;;
+      *\'*) ac_arg=`AS_ECHO(["$ac_arg"]) | sed "s/'/'\\\\\\\\''/g"` ;;
       esac
       ac_sub_configure_args="$ac_sub_configure_args '$ac_arg'" ;;
     esac
@@ -981,7 +1158,7 @@ if test "$no_recursion" != yes; then
   # in subdir configurations.
   ac_arg="--prefix=$prefix"
   case $ac_arg in
-  *\'*) ac_arg=`echo "$ac_arg" | sed "s/'/'\\\\\\\\''/g"` ;;
+  *\'*) ac_arg=`AS_ECHO(["$ac_arg"]) | sed "s/'/'\\\\\\\\''/g"` ;;
   esac
   ac_sub_configure_args="'$ac_arg' $ac_sub_configure_args"
 
@@ -989,6 +1166,10 @@ if test "$no_recursion" != yes; then
   if test "$silent" = yes; then
     ac_sub_configure_args="--silent $ac_sub_configure_args"
   fi
+
+  # Always prepend --disable-option-checking to silence warnings, since
+  # different subdirs can have different --enable and --with options.
+  ac_sub_configure_args="--disable-option-checking $ac_sub_configure_args"
 
   ac_popdir=`pwd`
   for ac_dir in : $subdirs; do test "x$ac_dir" = x: && continue
@@ -1087,10 +1268,14 @@ dnl Commands to run before creating config.status.
 AC_OUTPUT_COMMANDS_PRE()dnl
 
 : ${CONFIG_STATUS=./config.status}
+ac_write_fail=0
 ac_clean_files_save=$ac_clean_files
 ac_clean_files="$ac_clean_files $CONFIG_STATUS"
 _AC_OUTPUT_CONFIG_STATUS()dnl
 ac_clean_files=$ac_clean_files_save
+
+test $ac_write_fail = 0 ||
+  AC_MSG_ERROR([write failure creating $CONFIG_STATUS])
 
 dnl Commands to run after config.status was created
 AC_OUTPUT_COMMANDS_POST()dnl
@@ -1117,6 +1302,9 @@ if test "$no_create" != yes; then
 fi
 dnl config.status should not do recursion.
 AC_PROVIDE_IFELSE([AC_CONFIG_SUBDIRS], [_AC_OUTPUT_SUBDIRS()])dnl
+if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
+  AC_MSG_WARN([Unrecognized options: $ac_unrecognized_opts])
+fi
 ])# AC_OUTPUT
 
 
@@ -1129,7 +1317,7 @@ m4_define([_AC_OUTPUT_CONFIG_STATUS],
 [AC_MSG_NOTICE([creating $CONFIG_STATUS])
 dnl AS_MESSAGE_LOG_FD is not available yet:
 m4_rename([AS_MESSAGE_LOG_FD], [_AC_save_AS_MESSAGE_LOG_FD])dnl
-cat >$CONFIG_STATUS <<_ACEOF
+cat >$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
 #! $SHELL
 # Generated by $as_me.
 # Run this file to recreate the current configuration.
@@ -1142,7 +1330,7 @@ ac_cs_silent=false
 SHELL=\${CONFIG_SHELL-$SHELL}
 _ACEOF
 
-cat >>$CONFIG_STATUS <<\_ACEOF
+cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
 AS_SHELL_SANITIZE
 dnl Watch out, this is directly the initializations, do not use
 dnl AS_PREPARE, otherwise you'd get it output in the initialization
@@ -1169,7 +1357,7 @@ on `(hostname || uname -n) 2>/dev/null | sed 1q`
 
 _ACEOF
 
-cat >>$CONFIG_STATUS <<_ACEOF
+cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
 # Files that config.status was made for.
 m4_ifdef([_AC_SEEN_CONFIG(FILES)],
 [config_files="$ac_config_files"
@@ -1186,7 +1374,7 @@ m4_ifdef([_AC_SEEN_CONFIG(COMMANDS)],
 
 _ACEOF
 
-cat >>$CONFIG_STATUS <<\_ACEOF
+cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
 ac_cs_usage="\
 \`$as_me' instantiates files from templates according to the
 current configuration.
@@ -1199,13 +1387,13 @@ Usage: $[0] [[OPTIONS]] [[FILE]]...
   -d, --debug      don't remove temporary files
       --recheck    update $as_me by reconfiguring in the same conditions
 m4_ifdef([_AC_SEEN_CONFIG(FILES)],
-[[  --file=FILE[:TEMPLATE]
-		   instantiate the configuration file FILE
-]])dnl
+  [AS_HELP_STRING([[--file=FILE[:TEMPLATE]]],
+    [instantiate the configuration file FILE], [                   ])
+])dnl
 m4_ifdef([_AC_SEEN_CONFIG(HEADERS)],
-[[  --header=FILE[:TEMPLATE]
-		   instantiate the configuration header FILE
-]])dnl
+  [AS_HELP_STRING([[--header=FILE[:TEMPLATE]]],
+    [instantiate the configuration header FILE], [                   ])
+])dnl
 
 m4_ifdef([_AC_SEEN_CONFIG(FILES)],
 [Configuration files:
@@ -1230,14 +1418,14 @@ $config_commands
 Report bugs to <bug-autoconf@gnu.org>."
 
 _ACEOF
-cat >>$CONFIG_STATUS <<_ACEOF
+cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
 ac_cs_version="\\
 m4_ifset([AC_PACKAGE_NAME], [AC_PACKAGE_NAME ])config.status[]dnl
 m4_ifset([AC_PACKAGE_VERSION], [ AC_PACKAGE_VERSION])
 configured by $[0], generated by m4_PACKAGE_STRING,
-  with options \\"`echo "$ac_configure_args" | sed 's/^ //; s/[[\\""\`\$]]/\\\\&/g'`\\"
+  with options \\"`AS_ECHO(["$ac_configure_args"]) | sed 's/^ //; s/[[\\""\`\$]]/\\\\&/g'`\\"
 
-Copyright (C) 2006 Free Software Foundation, Inc.
+Copyright (C) 2008 Free Software Foundation, Inc.
 This config.status script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it."
 
@@ -1249,11 +1437,14 @@ AC_PROVIDE_IFELSE([AC_PROG_INSTALL],
 AC_PROVIDE_IFELSE([AC_PROG_MKDIR_P],
 [MKDIR_P='$MKDIR_P'
 ])dnl
+AC_PROVIDE_IFELSE([AC_PROG_AWK],
+[AWK='$AWK'
+])dnl
+test -n "\$AWK" || AWK=awk
 _ACEOF
 
-cat >>$CONFIG_STATUS <<\_ACEOF
-# If no file are specified by the user, then we need to provide default
-# value.  By we need to know if files were specified by the user.
+cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
+# The default lists apply if the user does not specify any file.
 ac_need_defaults=:
 while test $[#] != 0
 do
@@ -1275,19 +1466,25 @@ do
   -recheck | --recheck | --rechec | --reche | --rech | --rec | --re | --r)
     ac_cs_recheck=: ;;
   --version | --versio | --versi | --vers | --ver | --ve | --v | -V )
-    echo "$ac_cs_version"; exit ;;
+    AS_ECHO(["$ac_cs_version"]); exit ;;
   --debug | --debu | --deb | --de | --d | -d )
     debug=: ;;
 m4_ifdef([_AC_SEEN_CONFIG(FILES)], [dnl
   --file | --fil | --fi | --f )
     $ac_shift
-    CONFIG_FILES="$CONFIG_FILES $ac_optarg"
+    case $ac_optarg in
+    *\'*) ac_optarg=`AS_ECHO(["$ac_optarg"]) | sed "s/'/'\\\\\\\\''/g"` ;;
+    esac
+    CONFIG_FILES="$CONFIG_FILES '$ac_optarg'"
     ac_need_defaults=false;;
 ])dnl
 m4_ifdef([_AC_SEEN_CONFIG(HEADERS)], [dnl
   --header | --heade | --head | --hea )
     $ac_shift
-    CONFIG_HEADERS="$CONFIG_HEADERS $ac_optarg"
+    case $ac_optarg in
+    *\'*) ac_optarg=`AS_ECHO(["$ac_optarg"]) | sed "s/'/'\\\\\\\\''/g"` ;;
+    esac
+    CONFIG_HEADERS="$CONFIG_HEADERS '$ac_optarg'"
     ac_need_defaults=false;;
   --he | --h)
     # Conflict between --help and --header
@@ -1295,7 +1492,7 @@ m4_ifdef([_AC_SEEN_CONFIG(HEADERS)], [dnl
 Try `$[0] --help' for more information.]);;
 ], [  --he | --h |])dnl
   --help | --hel | -h )
-    echo "$ac_cs_usage"; exit ;;
+    AS_ECHO(["$ac_cs_usage"]); exit ;;
   -q | -quiet | --quiet | --quie | --qui | --qu | --q \
   | -silent | --silent | --silen | --sile | --sil | --si | --s)
     ac_cs_silent=: ;;
@@ -1319,29 +1516,31 @@ if $ac_cs_silent; then
 fi
 
 _ACEOF
-cat >>$CONFIG_STATUS <<_ACEOF
+cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
 dnl Check this before opening the log, to avoid a bug on MinGW,
 dnl which prohibits the recursive instance from truncating an open log.
 if \$ac_cs_recheck; then
-  echo "running CONFIG_SHELL=$SHELL $SHELL $[0] "$ac_configure_args \$ac_configure_extra_args " --no-create --no-recursion" >&AS_MESSAGE_FD
-  CONFIG_SHELL=$SHELL
+  set X '$SHELL' '$[0]' $ac_configure_args \$ac_configure_extra_args --no-create --no-recursion
+  shift
+  \AS_ECHO(["running CONFIG_SHELL=$SHELL \$[*]"]) >&AS_MESSAGE_FD
+  CONFIG_SHELL='$SHELL'
   export CONFIG_SHELL
-  exec $SHELL "$[0]"$ac_configure_args \$ac_configure_extra_args --no-create --no-recursion
+  exec "\$[@]"
 fi
 
 _ACEOF
-cat >>$CONFIG_STATUS <<\_ACEOF
+cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
 dnl Open the log:
 m4_rename([_AC_save_AS_MESSAGE_LOG_FD], [AS_MESSAGE_LOG_FD])dnl
 exec AS_MESSAGE_LOG_FD>>config.log
 {
   echo
   AS_BOX([Running $as_me.])
-  echo "$ac_log"
+  AS_ECHO(["$ac_log"])
 } >&AS_MESSAGE_LOG_FD
 
 _ACEOF
-cat >>$CONFIG_STATUS <<_ACEOF
+cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
 m4_ifdef([_AC_OUTPUT_COMMANDS_INIT],
 [#
 # INIT-COMMANDS
@@ -1350,7 +1549,7 @@ _AC_OUTPUT_COMMANDS_INIT
 ])dnl
 _ACEOF
 
-cat >>$CONFIG_STATUS <<\_ACEOF
+cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
 
 # Handling of arguments.
 for ac_config_target in $ac_config_targets
@@ -1373,7 +1572,8 @@ chmod +x $CONFIG_STATUS
 # The main loop in $CONFIG_STATUS.
 #
 # This macro is expanded inside a here document.  If the here document is
-# closed, it has to be reopened with "cat >>$CONFIG_STATUS <<\_ACEOF".
+# closed, it has to be reopened with
+# "cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1".
 #
 AC_DEFUN([_AC_OUTPUT_MAIN_LOOP],
 [
@@ -1414,12 +1614,16 @@ dnl The comment above AS_TMPDIR says at most 4 chars are allowed.
 AS_TMPDIR([conf], [.])
 
 m4_ifdef([_AC_SEEN_CONFIG(FILES)], [_AC_OUTPUT_FILES_PREPARE])[]dnl
+m4_ifdef([_AC_SEEN_CONFIG(HEADERS)], [_AC_OUTPUT_HEADERS_PREPARE])[]dnl
 
-for ac_tag in[]dnl
+eval set X "dnl
   m4_ifdef([_AC_SEEN_CONFIG(FILES)],    [:F $CONFIG_FILES])[]dnl
   m4_ifdef([_AC_SEEN_CONFIG(HEADERS)],  [:H $CONFIG_HEADERS])[]dnl
   m4_ifdef([_AC_SEEN_CONFIG(LINKS)],    [:L $CONFIG_LINKS])[]dnl
-  m4_ifdef([_AC_SEEN_CONFIG(COMMANDS)], [:C $CONFIG_COMMANDS])
+  m4_ifdef([_AC_SEEN_CONFIG(COMMANDS)], [:C $CONFIG_COMMANDS])[]dnl
+"
+shift
+for ac_tag
 do
   case $ac_tag in
   :[[FHLC]]) ac_mode=$ac_tag; continue;;
@@ -1456,21 +1660,31 @@ do
 	   esac ||
 	   AC_MSG_ERROR([cannot find input file: $ac_f]);;
       esac
-      ac_file_inputs="$ac_file_inputs $ac_f"
+      case $ac_f in *\'*) ac_f=`AS_ECHO(["$ac_f"]) | sed "s/'/'\\\\\\\\''/g"`;; esac
+      ac_file_inputs="$ac_file_inputs '$ac_f'"
     done
 
     # Let's still pretend it is `configure' which instantiates (i.e., don't
     # use $as_me), people would be surprised to read:
     #    /* config.h.  Generated by config.status.  */
-    configure_input="Generated from "`IFS=:
-	  echo $[*] | sed ['s|^[^:]*/||;s|:[^:]*/|, |g']`" by configure."
+    configure_input='Generated from '`
+	  AS_ECHO(["$[*]"]) | sed ['s|^[^:]*/||;s|:[^:]*/|, |g']
+	`' by configure.'
     if test x"$ac_file" != x-; then
       configure_input="$ac_file.  $configure_input"
       AC_MSG_NOTICE([creating $ac_file])
     fi
+    # Neutralize special characters interpreted by sed in replacement strings.
+    case $configure_input in #(
+    *\&* | *\|* | *\\* )
+       ac_sed_conf_input=`AS_ECHO(["$configure_input"]) |
+       sed 's/[[\\\\&|]]/\\\\&/g'`;; #(
+    *) ac_sed_conf_input=$configure_input;;
+    esac
 
     case $ac_tag in
-    *:-:* | *:-) cat >"$tmp/stdin";;
+    *:-:* | *:-) cat >"$tmp/stdin" \
+      || AC_MSG_ERROR([could not create $ac_file]) ;;
     esac
     ;;
   esac
@@ -1511,6 +1725,12 @@ m4_define([AC_OUTPUT_MAKE_DEFS],
 # take arguments), then branch to the quote section.  Otherwise,
 # look for a macro that doesn't take arguments.
 ac_script='
+:mline
+/\\$/{
+ N
+ s,\\\n,,
+ b mline
+}
 t clear
 :clear
 s/^[	 ]*#[	 ]*define[	 ][	 ]*\([^	 (][^	 (]*([^)]*)\)[	 ]*\(.*\)/-D\1=\2/g

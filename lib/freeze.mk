@@ -1,21 +1,21 @@
-## Freeze M4 files.
+# Freeze M4 files.
 
-## Copyright (C) 2002, 2004, 2006 Free Software Foundation, Inc.
-##
-## This program is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation; either version 2, or (at your option)
-## any later version.
-##
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
-##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-## 02110-1301, USA.
+# Copyright (C) 2002, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
 
 
 ## ----------------- ##
@@ -28,7 +28,7 @@ AUTOM4TE_CFG = $(top_builddir)/lib/autom4te.cfg
 $(AUTOM4TE_CFG): $(top_srcdir)/lib/autom4te.in
 	cd $(top_builddir)/lib && $(MAKE) $(AM_MAKEFLAGS) autom4te.cfg
 
-# Do not use AUTOM4TE here, since Makefile.maint (my-distcheck)
+# Do not use AUTOM4TE here, since maint.mk (my-distcheck)
 # checks if we are independent of Autoconf by defining AUTOM4TE (and
 # others) to `false'.  Autoconf provides autom4te, so that doesn't
 # apply to us.
@@ -115,13 +115,6 @@ ETAGS_FOR_AUTOCONF = \
   --regex='/AN_\(FUNCTION\|HEADER\|IDENTIFIER\|LIBRARY\|MAKEVAR\|PROGRAM\)(\[\([^]]*\)\]/\2/'
 
 
-## ---------- ##
-## Run GREP.  ##
-## ---------- ##
-
-GREP = @GREP@
-
-
 ## -------------------------------- ##
 ## Looking for forbidden patterns.  ##
 ## -------------------------------- ##
@@ -131,7 +124,7 @@ check-forbidden-patterns:
 	    $(GREP) $(forbidden_patterns) $(forbidden_patterns_files)) \
 	    >forbidden.log; then \
 	  echo "ERROR: forbidden patterns were found:" >&2; \
-	  sed "s,^,$*.m4: ," <forbidden.log >&2; \
+	  sed "s|^|$*.m4: |" <forbidden.log >&2; \
 	  echo >&2; \
 	  exit 1; \
 	else \

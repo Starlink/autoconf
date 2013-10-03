@@ -1,9 +1,9 @@
 # This file is part of Autoconf.                       -*- Autoconf -*-
 # Programming languages support.
-# Copyright (C) 2000, 2001, 2002, 2004, 2005, 2006 Free Software
+# Copyright (C) 2000, 2001, 2002, 2004, 2005, 2006, 2007 Free Software
 # Foundation, Inc.
 #
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
@@ -54,29 +54,15 @@
 #
 # 1. Language selection
 #    and routines to produce programs in a given language.
-#  a. generic routines
-#  b. C
-#  c. C++
-#  d. Fortran 77
 #
 # 2. Producing programs in a given language.
-#  a. generic routines
-#  b. C
-#  c. C++
-#  d. Fortran 77
 #
 # 3. Looking for a compiler
 #    And possibly the associated preprocessor.
-#  a. Generic routines.
-#  b. C
-#  c. C++
-#  d. Fortran 77
+#
+#    3a. Computing EXEEXT and OBJEXT.
 #
 # 4. Compilers' characteristics.
-#  a. Generic routines.
-#  b. C
-#  c. C++
-#  d. Fortran 77
 
 
 
@@ -84,11 +70,6 @@
 ## 1. Language selection.  ##
 ## ----------------------- ##
 
-
-
-# -------------------------------- #
-# 1a. Generic language selection.  #
-# -------------------------------- #
 
 # AC_LANG_CASE(LANG1, IF-LANG1, LANG2, IF-LANG2, ..., DEFAULT)
 # ------------------------------------------------------------
@@ -104,7 +85,7 @@ m4_define([AC_LANG_CASE],
 # unavailable.
 m4_define([_AC_LANG_DISPATCH],
 [m4_ifdef([$1($2)],
-       [m4_indir([$1($2)], m4_shiftn(2, $@))],
+       [m4_indir([$1($2)], m4_shift2($@))],
        [AC_FATAL([$1: unknown language: $2])])])
 
 
@@ -201,14 +182,9 @@ m4_defun([AC_LANG_ASSERT],
 
 
 
-## ---------------------- ##
-## 2.Producing programs.  ##
-## ---------------------- ##
-
-
-# ---------------------- #
-# 2a. Generic routines.  #
-# ---------------------- #
+## ----------------------- ##
+## 2. Producing programs.  ##
+## ----------------------- ##
 
 
 # AC_LANG_CONFTEST(BODY)
@@ -270,13 +246,11 @@ AC_DEFUN([AC_LANG_INT_SAVE],
 [_AC_LANG_DISPATCH([$0], _AC_LANG, $@)])
 
 
+
 ## -------------------------------------------- ##
 ## 3. Looking for Compilers and Preprocessors.  ##
 ## -------------------------------------------- ##
 
-# ----------------------------------------------------- #
-# 3a. Generic routines in compilers and preprocessors.  #
-# ----------------------------------------------------- #
 
 # AC_LANG_COMPILER
 # ----------------
@@ -384,6 +358,7 @@ if _AC_DO_VAR(ac_link); then
   ac_no_link=no
   ]m4_defn([_AC_COMPILER_EXEEXT])[
 else
+  rm -f -r a.out a.exe b.out conftest.$ac_ext conftest.o conftest.obj conftest.dSYM
   ac_no_link=yes
   # Setting cross_compile will disable run tests; it will
   # also disable AC_CHECK_FILE but that's generally
@@ -405,9 +380,9 @@ m4_divert_pop()dnl
 
 
 
-# ----------------------------- #
-# Computing EXEEXT and OBJEXT.  #
-# ----------------------------- #
+# --------------------------------- #
+# 3a. Computing EXEEXT and OBJEXT.  #
+# --------------------------------- #
 
 
 # Files to ignore
@@ -429,6 +404,9 @@ m4_divert_pop()dnl
 #
 # - *.map, *.inf
 #   Created by the Green Hills compiler.
+#
+# - *.dSYM
+#   Directory created on Mac OS X Leopard.
 
 
 # _AC_COMPILER_OBJEXT_REJECT
@@ -436,7 +414,7 @@ m4_divert_pop()dnl
 # Case/esac pattern matching the files to be ignored when looking for
 # compiled object files.
 m4_define([_AC_COMPILER_OBJEXT_REJECT],
-[*.$ac_ext | *.xcoff | *.tds | *.d | *.pdb | *.xSYM | *.bb | *.bbg | *.map | *.inf])
+[*.$ac_ext | *.xcoff | *.tds | *.d | *.pdb | *.xSYM | *.bb | *.bbg | *.map | *.inf | *.dSYM])
 
 
 # _AC_COMPILER_EXEEXT_REJECT
@@ -462,28 +440,34 @@ AC_DEFUN([AC_OBJEXT],   [])
 # We do this in order to find out what is the extension we must add for
 # creating executables (see _AC_COMPILER_EXEEXT's comments).
 #
+# On OpenVMS 7.1 system, the DEC C 5.5 compiler when called through a
+# GNV (gnv.sourceforge.net) cc wrapper, produces the output file named
+# `a_out.exe'.
+# b.out is created by i960 compilers.
+#
+# Start with the most likely output file names, but:
+# 1) Beware the clever `test -f' on Cygwin, try the DOS-like .exe names
+# before the counterparts without the extension.
+# 2) The algorithm is not robust to junk in `.', hence go to wildcards
+# (conftest.*) only as a last resort.
 # Beware of `expr' that may return `0' or `'.  Since this macro is
 # the first one in touch with the compiler, it should also check that
 # it compiles properly.
 #
-# On OpenVMS 7.1 system, the DEC C 5.5 compiler when called through a
-# GNV (gnv.sourceforge.net) cc wrapper, produces the output file named
-# `a_out.exe'.
+# The IRIX 6 linker writes into existing files which may not be
+# executable, retaining their permissions.  Remove them first so a
+# subsequent execution test works.
+#
 m4_define([_AC_COMPILER_EXEEXT_DEFAULT],
 [# Try to create an executable without -o first, disregard a.out.
 # It will help us diagnose broken compilers, and finding out an intuition
 # of exeext.
 AC_MSG_CHECKING([for _AC_LANG compiler default output file name])
-ac_link_default=`echo "$ac_link" | sed ['s/ -o *conftest[^ ]*//']`
-#
-# List of possible output files, starting from the most likely.
-# The algorithm is not robust to junk in `.', hence go to wildcards (a.*)
-# only as a last resort.  b.out is created by i960 compilers.
-ac_files='a_out.exe a.exe conftest.exe a.out conftest a.* conftest.* b.out'
-#
-# The IRIX 6 linker writes into existing files which may not be
-# executable, retaining their permissions.  Remove them first so a
-# subsequent execution test works.
+ac_link_default=`AS_ECHO(["$ac_link"]) | sed ['s/ -o *conftest[^ ]*//']`
+
+# The possible output files:
+ac_files="a.out conftest.exe conftest a.exe a_out.exe b.out conftest.*"
+
 ac_rmfiles=
 for ac_file in $ac_files
 do
@@ -611,10 +595,10 @@ AC_MSG_RESULT([$ac_cv_exeext])
 m4_define([_AC_COMPILER_EXEEXT],
 [AC_LANG_CONFTEST([AC_LANG_PROGRAM()])
 ac_clean_files_save=$ac_clean_files
-ac_clean_files="$ac_clean_files a.out a.exe b.out"
+ac_clean_files="$ac_clean_files a.out a.out.dSYM a.exe b.out"
 _AC_COMPILER_EXEEXT_DEFAULT
 _AC_COMPILER_EXEEXT_WORKS
-rm -f a.out a.exe conftest$ac_cv_exeext b.out
+rm -f -r a.out a.out.dSYM a.exe conftest$ac_cv_exeext b.out
 ac_clean_files=$ac_clean_files_save
 _AC_COMPILER_EXEEXT_CROSS
 _AC_COMPILER_EXEEXT_O
@@ -653,7 +637,6 @@ rm -f conftest.$ac_cv_objext conftest.$ac_ext])
 AC_SUBST([OBJEXT], [$ac_cv_objext])dnl
 ac_objext=$OBJEXT
 ])# _AC_COMPILER_OBJEXT
-
 
 
 

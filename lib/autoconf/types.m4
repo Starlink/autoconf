@@ -1,10 +1,10 @@
 # This file is part of Autoconf.			-*- Autoconf -*-
 # Type related macros: existence, sizeof, and structure members.
 #
-# Copyright (C) 2000, 2001, 2002, 2004, 2005, 2006 Free Software
+# Copyright (C) 2000, 2001, 2002, 2004, 2005, 2006, 2007 Free Software
 # Foundation, Inc.
 #
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
@@ -130,34 +130,36 @@
 # But this succeeds if TYPE is a variable: you get the size of the
 # variable's type!!!
 #
-# This time you tell yourself the last two options *together* will make
-# it.  And indeed this is the solution invented by Alexandre Oliva.
+# So, to filter out the last possibility, you try this too:
+#
+#	  sizeof ((TYPE));
+#
+# This fails if TYPE is a type, but succeeds if TYPE is actually a variable.
 #
 # Also note that we use
 #
 #	  if (sizeof (TYPE))
 #
 # to `read' sizeof (to avoid warnings), while not depending on its type
-# (not necessarily size_t etc.).  Equally, instead of defining an unused
-# variable, we just use a cast to avoid warnings from the compiler.
-# Suggested by Paul Eggert.
+# (not necessarily size_t etc.).
 #
-# Now, the next issue is that C++ disallows defining types inside casts
-# and inside `sizeof()', but we would like to allow unnamed structs, for
-# use inside AC_CHECK_SIZEOF, for example.  So we create a typedef of the
-# new type.  Note that this does not obviate the need for the other
-# constructs in general.
+# C++ disallows defining types inside `sizeof ()', but that's OK,
+# since we don't want to consider unnamed structs to be types for C++,
+# precisely because they don't work in cases like that.
 m4_define([_AC_CHECK_TYPE_NEW],
 [AS_VAR_PUSHDEF([ac_Type], [ac_cv_type_$1])dnl
 AC_CACHE_CHECK([for $1], [ac_Type],
-[AC_COMPILE_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT([$4])
-typedef $1 ac__type_new_;],
-[if ((ac__type_new_ *) 0)
-  return 0;
-if (sizeof (ac__type_new_))
-  return 0;])],
-		   [AS_VAR_SET([ac_Type], [yes])],
-		   [AS_VAR_SET([ac_Type], [no])])])
+[AS_VAR_SET([ac_Type], [no])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT([$4])],
+     [if (sizeof ($1))
+       return 0;])],
+  [AC_COMPILE_IFELSE(
+     [AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT([$4])],
+	[if (sizeof (($1)))
+	  return 0;])],
+     [],
+     [AS_VAR_SET([ac_Type], [yes])])])])
 AS_IF([test AS_VAR_GET([ac_Type]) = yes], [$2], [$3])[]dnl
 AS_VAR_POPDEF([ac_Type])dnl
 ])# _AC_CHECK_TYPE_NEW
@@ -465,22 +467,47 @@ You should use `AC_TYPE_LONG_DOUBLE' or `AC_TYPE_LONG_DOUBLE_WIDER' instead.]
 )
 
 
+# _AC_TYPE_LONG_LONG_SNIPPET
+# --------------------------
+# Expands to a C program that can be used to test for simultaneous support
+# of 'long long' and 'unsigned long long'. We don't want to say that
+# 'long long' is available if 'unsigned long long' is not, or vice versa,
+# because too many programs rely on the symmetry between signed and unsigned
+# integer types (excluding 'bool').
+AC_DEFUN([_AC_TYPE_LONG_LONG_SNIPPET],
+[
+  AC_LANG_PROGRAM(
+    [[/* For now, do not test the preprocessor; as of 2007 there are too many
+	 implementations with broken preprocessors.  Perhaps this can
+	 be revisited in 2012.  In the meantime, code should not expect
+	 #if to work with literals wider than 32 bits.  */
+      /* Test literals.  */
+      long long int ll = 9223372036854775807ll;
+      long long int nll = -9223372036854775807LL;
+      unsigned long long int ull = 18446744073709551615ULL;
+      /* Test constant expressions.   */
+      typedef int a[((-9223372036854775807LL < 0 && 0 < 9223372036854775807ll)
+		     ? 1 : -1)];
+      typedef int b[(18446744073709551615ULL <= (unsigned long long int) -1
+		     ? 1 : -1)];
+      int i = 63;]],
+    [[/* Test availability of runtime routines for shift and division.  */
+      long long int llmax = 9223372036854775807ll;
+      unsigned long long int ullmax = 18446744073709551615ull;
+      return ((ll << 63) | (ll >> 63) | (ll < i) | (ll > i)
+	      | (llmax / ll) | (llmax % ll)
+	      | (ull << 63) | (ull >> 63) | (ull << i) | (ull >> i)
+	      | (ullmax / ull) | (ullmax % ull));]])
+])
+
+
 # AC_TYPE_LONG_LONG_INT
 # ---------------------
 AC_DEFUN([AC_TYPE_LONG_LONG_INT],
 [
   AC_CACHE_CHECK([for long long int], [ac_cv_type_long_long_int],
     [AC_LINK_IFELSE(
-       [AC_LANG_PROGRAM(
-	  [[long long int ll = 9223372036854775807ll;
-	    long long int nll = -9223372036854775807LL;
-	    typedef int a[((-9223372036854775807LL < 0
-			    && 0 < 9223372036854775807ll)
-			   ? 1 : -1)];
-	    int i = 63;]],
-	  [[long long int llmax = 9223372036854775807ll;
-	    return ((ll << 63) | (ll >> 63) | (ll < i) | (ll > i)
-		    | (llmax / ll) | (llmax % ll));]])],
+       [_AC_TYPE_LONG_LONG_SNIPPET],
        [dnl This catches a bug in Tandem NonStop Kernel (OSS) cc -O circa 2004.
 	dnl If cross compiling, assume the bug isn't important, since
 	dnl nobody cross compiles for this platform as far as we know.
@@ -521,14 +548,7 @@ AC_DEFUN([AC_TYPE_UNSIGNED_LONG_LONG_INT],
   AC_CACHE_CHECK([for unsigned long long int],
     [ac_cv_type_unsigned_long_long_int],
     [AC_LINK_IFELSE(
-       [AC_LANG_PROGRAM(
-	  [[unsigned long long int ull = 18446744073709551615ULL;
-	    typedef int a[(18446744073709551615ULL <= (unsigned long long int) -1
-			   ? 1 : -1)];
-	   int i = 63;]],
-	  [[unsigned long long int ullmax = 18446744073709551615ull;
-	    return (ull << 63 | ull >> 63 | ull << i | ull >> i
-		    | ullmax / ull | ullmax % ull);]])],
+       [_AC_TYPE_LONG_LONG_SNIPPET],
        [ac_cv_type_unsigned_long_long_int=yes],
        [ac_cv_type_unsigned_long_long_int=no])])
   if test $ac_cv_type_unsigned_long_long_int = yes; then
@@ -622,7 +642,7 @@ AC_DEFUN([_AC_TYPE_INT],
 	    [AC_LANG_BOOL_COMPILE_TRY(
 	       [AC_INCLUDES_DEFAULT],
 	       [[($ac_type) (((($ac_type) 1 << ($1 - 2)) - 1) * 2 + 1)
-	         < ($ac_type) (((($ac_type) 1 << ($1 - 2)) - 1) * 2 + 2)]])],
+		 < ($ac_type) (((($ac_type) 1 << ($1 - 2)) - 1) * 2 + 2)]])],
 	    [],
 	    [AS_CASE([$ac_type], [int$1_t],
 	       [ac_cv_c_int$1_t=yes],
@@ -662,7 +682,7 @@ AC_DEFUN([_AC_TYPE_UNSIGNED_INT],
       [AC_DEFINE([_UINT$1_T], 1,
 	 [Define for Solaris 2.5.1 so the uint$1_t typedef from
 	  <sys/synch.h>, <pthread.h>, or <semaphore.h> is not used.
-	  If the typedef was allowed, the #define below would cause a
+	  If the typedef were allowed, the #define below would cause a
 	  syntax error.])])
     AC_DEFINE_UNQUOTED([uint$1_t], [$ac_cv_c_uint$1_t],
       [Define to the type of an unsigned integer type of width exactly $1 bits
@@ -703,15 +723,13 @@ AC_DEFINE_UNQUOTED(RETSIGTYPE, $ac_cv_type_signal,
 AC_DEFUN([AC_CHECK_SIZEOF],
 [AS_LITERAL_IF([$1], [],
 	       [AC_FATAL([$0: requires literal arguments])])dnl
-AC_CHECK_TYPE([$1], [], [], [$3])
 # The cast to long int works around a bug in the HP C Compiler
 # version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
 # declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
 # This bug is HP SR number 8606223364.
 _AC_CACHE_CHECK_INT([size of $1], [AS_TR_SH([ac_cv_sizeof_$1])],
-  [(long int) (sizeof (ac__type_sizeof_))],
-  [AC_INCLUDES_DEFAULT([$3])
-   typedef $1 ac__type_sizeof_;],
+  [(long int) (sizeof ($1))],
+  [AC_INCLUDES_DEFAULT([$3])],
   [if test "$AS_TR_SH([ac_cv_type_$1])" = yes; then
      AC_MSG_FAILURE([cannot compute sizeof ($1)], 77)
    else
@@ -728,7 +746,6 @@ AC_DEFINE_UNQUOTED(AS_TR_CPP(sizeof_$1), $AS_TR_SH([ac_cv_sizeof_$1]),
 AC_DEFUN([AC_CHECK_ALIGNOF],
 [AS_LITERAL_IF([$1], [],
 	       [AC_FATAL([$0: requires literal arguments])])dnl
-AC_CHECK_TYPE([$1], [], [], [$2])
 # The cast to long int works around a bug in the HP C Compiler,
 # see AC_CHECK_SIZEOF for more information.
 _AC_CACHE_CHECK_INT([alignment of $1], [AS_TR_SH([ac_cv_alignof_$1])],
@@ -936,7 +953,6 @@ the `AC_DEFINE' when you adjust the code.])# AC_STRUCT_ST_RDEV
 # ------------
 # FIXME: This macro is badly named, it should be AC_CHECK_TYPE_STRUCT_TM.
 # Or something else, but what? AC_CHECK_TYPE_STRUCT_TM_IN_SYS_TIME?
-AN_IDENTIFIER([tm], [AC_STRUCT_TM])
 AC_DEFUN([AC_STRUCT_TM],
 [AC_CACHE_CHECK([whether struct tm is in sys/time.h or time.h],
   ac_cv_struct_tm,
@@ -945,7 +961,7 @@ AC_DEFUN([AC_STRUCT_TM],
 ],
 				    [struct tm tm;
 				     int *p = &tm.tm_sec;
- 				     return !p;])],
+				     return !p;])],
 		   [ac_cv_struct_tm=time.h],
 		   [ac_cv_struct_tm=sys/time.h])])
 if test $ac_cv_struct_tm = sys/time.h; then

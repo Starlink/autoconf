@@ -3,12 +3,12 @@
 @setfilename standards.info
 @settitle GNU Coding Standards
 @c This date is automagically updated when you save this file:
-@set lastupdate November 15, 2006
+@set lastupdate February 23, 2008
 @c %**end of header
 
 @dircategory GNU organization
 @direntry
-* Standards: (standards).        GNU coding standards.
+* Standards: (standards).       GNU coding standards.
 @end direntry
 
 @c @setchapternewpage odd
@@ -22,18 +22,13 @@
 
 @c This is used by a cross ref in make-stds.texi
 @set CODESTD  1
-@iftex
-@set CHAPTER chapter
-@end iftex
-@ifinfo
-@set CHAPTER node
-@end ifinfo
 
 @copying
 The GNU coding standards, last updated @value{lastupdate}.
 
-Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+Copyright @copyright{} 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software
+Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2
@@ -63,15 +58,15 @@ Free Documentation License''.
 @end ifnottex
 
 @menu
-* Preface::                     About the GNU Coding Standards
-* Legal Issues::                Keeping Free Software Free
-* Design Advice::               General Program Design
-* Program Behavior::            Program Behavior for All Programs
-* Writing C::                   Making The Best Use of C
-* Documentation::               Documenting Programs
-* Managing Releases::           The Release Process
-* References::                  References to Non-Free Software or Documentation
-* Copying This Manual::         How to Make Copies of This Manual
+* Preface::                     About the GNU Coding Standards.
+* Legal Issues::                Keeping free software free.
+* Design Advice::               General program design.
+* Program Behavior::            Program behavior for all programs
+* Writing C::                   Making the best use of C.
+* Documentation::               Documenting programs.
+* Managing Releases::           The release process.
+* References::                  Mentioning non-free software or documentation.
+* GNU Free Documentation License::  Copying and sharing this manual.
 * Index::
 
 @end menu
@@ -105,7 +100,7 @@ diff to the @file{standards.texi} or @file{make-stds.texi} files, but if
 you don't have those files, please mail your suggestion anyway.
 
 These standards cover the minimum of what is important when writing a
-GNU package.  Likely, the needs for additional standards will come up.
+GNU package.  Likely, the need for additional standards will come up.
 Sometimes, you might suggest that such standards be added to this
 document.  If you think your standards would be generally useful, please
 do suggest them.
@@ -128,9 +123,9 @@ This chapter discusses how you can make sure that GNU software
 avoids legal difficulties, and other related issues.
 
 @menu
-* Reading Non-Free Code::       Referring to Proprietary Programs
-* Contributions::               Accepting Contributions
-* Trademarks::                  How We Deal with Trademark Issues
+* Reading Non-Free Code::       Referring to proprietary programs.
+* Contributions::               Accepting contributions.
+* Trademarks::                  How we deal with trademark issues.
 @end menu
 
 @node Reading Non-Free Code
@@ -265,10 +260,10 @@ account when designing your program.
 
 @menu
 * Source Language::             Which languages to use.
-* Compatibility::               Compatibility with other implementations
-* Using Extensions::            Using non-standard features
-* Standard C::                  Using Standard C features
-* Conditional Compilation::     Compiling Code Only If A Conditional is True
+* Compatibility::               Compatibility with other implementations.
+* Using Extensions::            Using non-standard features.
+* Standard C::                  Using standard C features.
+* Conditional Compilation::     Compiling code only if a conditional is true.
 @end menu
 
 @node Source Language
@@ -312,7 +307,7 @@ technique.
 
 @cindex GUILE
 The standard extensibility interpreter for GNU software is GUILE
-(@uref{http://www.gnu.org/software/guile/}), which implements the
+(@uref{http://www.gnu.org/@/software/@/guile/}), which implements the
 language Scheme (an especially clean and simple dialect of Lisp).  We
 don't reject programs written in other ``scripting languages'' such as
 Perl and Python, but using GUILE is very important for the overall
@@ -520,15 +515,15 @@ command line interface, and how libraries should behave.
 @menu
 * Non-GNU Standards::           We consider standards such as POSIX;
                                   we don't "obey" them.
-* Semantics::                   Writing robust programs
-* Libraries::                   Library behavior
-* Errors::                      Formatting error messages
-* User Interfaces::             Standards about interfaces generally
-* Graphical Interfaces::        Standards for graphical interfaces
-* Command-Line Interfaces::     Standards for command line interfaces
-* Option Table::                Table of long options
-* Memory Usage::                When and how to care about memory needs
-* File Usage::                  Which files to use, and where
+* Semantics::                   Writing robust programs.
+* Libraries::                   Library behavior.
+* Errors::                      Formatting error messages.
+* User Interfaces::             Standards about interfaces generally.
+* Graphical Interfaces::        Standards for graphical interfaces.
+* Command-Line Interfaces::     Standards for command line interfaces.
+* Option Table::                Table of long options.
+* Memory Usage::                When and how to care about memory needs.
+* File Usage::                  Which files to use, and where.
 @end menu
 
 @node Non-GNU Standards
@@ -833,6 +828,7 @@ output device type.  For example, we provide a @code{dir} program much
 like @code{ls} except that its default output format is always
 multi-column format.
 
+
 @node Graphical Interfaces
 @section Standards for Graphical Interfaces
 @cindex graphical user interface
@@ -855,6 +851,7 @@ library interface (for use from C), and perhaps a keyboard-driven
 console interface (for use by users from console mode).  Once you are
 doing the work to provide the functionality and the graphical interface,
 these won't be much extra work.
+
 
 @node Command-Line Interfaces
 @section Standards for Command Line Interfaces
@@ -899,13 +896,21 @@ visiting @url{http://example.org/p.cgi/--help} in a browser should
 output the same information as invoking @samp{p.cgi --help} from the
 command line.
 
-@table @code
-@cindex @samp{--version} option
-@item --version
-This option should direct the program to print information about its name,
-version, origin and legal status, all on standard output, and then exit
-successfully.  Other options and arguments should be ignored once this
-is seen, and the program should not perform its normal function.
+@menu
+* --version::       The standard output for --version.
+* --help::          The standard output for --help.
+@end menu
+
+@node --version
+@subsection @option{--version}
+
+@cindex @samp{--version} output
+
+The standard @code{--version} option should direct the program to
+print information about its name, version, origin and legal status,
+all on standard output, and then exit successfully.  Other options and
+arguments should be ignored once this is seen, and the program should
+not perform its normal function.
 
 @cindex canonical name of a program
 @cindex program's canonical name
@@ -935,7 +940,7 @@ If the package has a version number which is different from this
 program's version number, you can mention the package version number
 just before the close-parenthesis.
 
-If you @strong{need} to mention the version numbers of libraries which
+If you @emph{need} to mention the version numbers of libraries which
 are distributed separately from the package which contains this program,
 you can do so by printing an additional line of version info for each
 library you want to mention.  Use the same format for these lines as for
@@ -950,10 +955,11 @@ The following line, after the version number line or lines, should be a
 copyright notice.  If more than one copyright notice is called for, put
 each on a separate line.
 
-Next should follow a brief statement that the program is free software,
-and that users are free to copy and change it on certain conditions.  If
-the program is covered by the GNU GPL, say so here.  Also mention that
-there is no warranty, to the extent permitted by law.
+Next should follow a line stating the license, preferably using one of
+abbrevations below, and a brief statement that the program is free
+software, and that users are free to copy and change it.  Also mention
+that there is no warranty, to the extent permitted by law.  See
+recommended wording below.
 
 It is ok to finish the output with a list of the major authors of the
 program, as a way of giving credit.
@@ -961,14 +967,11 @@ program, as a way of giving credit.
 Here's an example of output that follows these rules:
 
 @smallexample
-GNU Emacs 19.34.5
-Copyright (C) 1996 Free Software Foundation, Inc.
-GNU Emacs comes with NO WARRANTY,
-to the extent permitted by law.
-You may redistribute copies of GNU Emacs
-under the terms of the GNU General Public License.
-For more information about these matters,
-see the files named COPYING.
+GNU hello 2.3
+Copyright (C) 2007 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
 @end smallexample
 
 You should adapt this to your program, of course, filling in the proper
@@ -980,7 +983,7 @@ which changes were made---there's no need to list the years for previous
 versions' changes.  You don't have to mention the name of the program in
 these notices, if that is inconvenient, since it appeared in the first
 line.  (The rules are different for copyright notices in source files;
-see @ref{Copyright Notices,,,maintain,Information for GNU Maintainers}.)
+@pxref{Copyright Notices,,,maintain,Information for GNU Maintainers}.)
 
 Translations of the above lines must preserve the validity of the
 copyright notices (@pxref{Internationalization}).  If the translation's
@@ -999,13 +1002,82 @@ translate it into another language.  International treaties recognize
 the English word ``Copyright''; translations into other languages do not
 have legal significance.
 
+Finally, here is the table of our suggested license abbreviations.
+Any abbreviation can be followed by @samp{v@var{version}[+]}, meaning
+that particular version, or later versions with the @samp{+}, as shown
+above.
 
-@cindex @samp{--help} option
-@item --help
-This option should output brief documentation for how to invoke the
-program, on standard output, then exit successfully.  Other options and
-arguments should be ignored once this is seen, and the program should
-not perform its normal function.
+In the case of exceptions for extra permissions with the GPL, we use
+@samp{/} for a separator; the version number can follow the license
+abbreviation as usual, as in the examples below.
+
+@table @asis
+@item GPL
+GNU General Public License, @url{http://www.gnu.org/@/licenses/@/gpl.html}.
+
+@item LGPL
+GNU Lesser General Public License, @url{http://www.gnu.org/@/licenses/@/lgpl.html}.
+
+@item GPL/Guile
+GNU GPL with the exception for Guile; for example, GPLv3+/Guile means
+the GNU GPL version 3 or later, with the extra exception for Guile.
+
+GNU GPL with the exception for Ada.
+
+@item Apache
+The Apache Software Foundation license,
+@url{http://www.apache.org/@/licenses}.
+
+@item Artistic
+The Artistic license used for Perl, @url{http://www.perlfoundation.org/@/legal}.
+
+@item Expat
+The Expat license, @url{http://www.jclark.com/@/xml/@/copying.txt}.
+
+@item MPL
+The Mozilla Public License, @url{http://www.mozilla.org/@/MPL/}.
+
+@item OBSD
+The original (4-clause) BSD license, incompatible with the GNU GPL
+@url{http://www.xfree86.org/@/3.3.6/@/COPYRIGHT2.html#6}.
+
+@item PHP
+The license used for PHP, @url{http://www.php.net/@/license/}.
+
+@item public domain
+The non-license that is being in the public domain,
+@url{http://www.gnu.org/@/licenses/@/license-list.html#PublicDomain}.
+
+@item Python
+The license for Python, @url{http://www.python.org/@/2.0.1/@/license.html}.
+
+@item RBSD
+The revised (3-clause) BSD, compatible with the GNU GPL,
+@url{http://www.xfree86.org/@/3.3.6/@/COPYRIGHT2.html#5}.
+
+@item X11
+The simple non-copyleft license used for most versions of the X Window
+system, @url{http://www.xfree86.org/@/3.3.6/@/COPYRIGHT2.html#3}.
+
+@item Zlib
+The license for Zlib, @url{http://www.gzip.org/@/zlib/@/zlib_license.html}.
+
+@end table
+
+More information about these licenses and many more are on the GNU
+licensing web pages,
+@url{http://www.gnu.org/@/licenses/@/license-list.html}.
+
+
+@node --help
+@subsection @option{--help}
+
+@cindex @samp{--help} output
+
+The standard @code{--help} option should output brief documentation
+for how to invoke the program, on standard output, then exit
+successfully.  Other options and arguments should be ignored once this
+is seen, and the program should not perform its normal function.
 
 @cindex address for bug reports
 @cindex bug reports
@@ -1015,7 +1087,7 @@ that says where to mail bug reports.  It should have this format:
 @example
 Report bugs to @var{mailing-address}.
 @end example
-@end table
+
 
 @node Option Table
 @section Table of Long Options
@@ -2181,14 +2253,14 @@ This chapter provides advice on how best to use the C language
 when writing GNU software.
 
 @menu
-* Formatting::                  Formatting Your Source Code
-* Comments::                    Commenting Your Work
-* Syntactic Conventions::       Clean Use of C Constructs
-* Names::                       Naming Variables, Functions, and Files
-* System Portability::          Portability between different operating systems
-* CPU Portability::             Supporting the range of CPU types
-* System Functions::            Portability and ``standard'' library functions
-* Internationalization::        Techniques for internationalization
+* Formatting::                  Formatting your source code.
+* Comments::                    Commenting your work.
+* Syntactic Conventions::       Clean use of C constructs.
+* Names::                       Naming variables, functions, and files.
+* System Portability::          Portability among different operating systems.
+* CPU Portability::             Supporting the range of CPU types.
+* System Functions::            Portability and ``standard'' library functions.
+* Internationalization::        Techniques for internationalization.
 * Character Set::               Use ASCII by default.
 * Quote Characters::            Use `...' in the C locale.
 * Mmap::                        How you can safely use @code{mmap}.
@@ -2201,10 +2273,14 @@ when writing GNU software.
 @cindex open brace
 @cindex braces, in C source
 It is important to put the open-brace that starts the body of a C
-function in column one, and avoid putting any other open-brace or
-open-parenthesis or open-bracket in column one.  Several tools look
-for open-braces in column one to find the beginnings of C functions.
-These tools will not work on code not formatted that way.
+function in column one, so that they will start a defun.  Several
+tools look for open-braces in column one to find the beginnings of C
+functions.  These tools will not work on code not formatted that way.
+
+Avoid putting open-brace, open-parenthesis or open-bracket in column
+one when they are inside a function, so that they won't start a defun.
+The open-brace that starts a @code{struct} body can go in column one
+if you find it useful to treat that definition as a defun.
 
 It is also important for function definitions to start the name of the
 function in column one.  This helps people to search for function
@@ -2682,7 +2758,7 @@ If you do support Windows, please do not abbreviate it as ``win''.  In
 hacker terminology, calling something a ``win'' is a form of praise.
 You're free to praise Microsoft Windows on your own if you want, but
 please don't do this in GNU packages.  Instead of abbreviating
-``Windows'' to ``un'', you can write it in full or abbreviate it to
+``Windows'' to ``win'', you can write it in full or abbreviate it to
 ``woe'' or ``w''.  In GNU Emacs, for instance, we use @samp{w32} in
 file names of Windows-specific files, but the macro for Windows
 conditionals is called @code{WINDOWSNT}.
@@ -2779,7 +2855,7 @@ void error (int status, int errnum, const char *format, ...);
 A simple way to use the Gnulib error module is to obtain the two
 source files @file{error.c} and @file{error.h} from the Gnulib library
 source code repository at
-@uref{http://savannah.gnu.org/cgi-bin/viewcvs/gnulib/gnulib/lib/}.
+@uref{http://git.savannah.gnu.org/@/gitweb/@/?p=gnulib.git}.
 Here's a sample use:
 
 @example
@@ -3152,7 +3228,7 @@ extending it, as well as just using it.
 * Manual Credits::              Giving credit to documentation contributors.
 * Printed Manuals::             Mentioning the printed manual.
 * NEWS File::                   NEWS files supplement manuals.
-* Change Logs::                 Recording Changes
+* Change Logs::                 Recording changes.
 * Man Pages::                   Man pages are secondary.
 * Reading other Manuals::       How far you can go in learning
                                 from other manuals.
@@ -3681,9 +3757,9 @@ makes it easy to include your package into the larger framework of
 all GNU software.
 
 @menu
-* Configuration::               How Configuration Should Work
-* Makefile Conventions::        Makefile Conventions
-* Releases::                    Making Releases
+* Configuration::               How configuration of GNU packages should work.
+* Makefile Conventions::        Makefile conventions.
+* Releases::                    Making releases
 @end menu
 
 @node Configuration
@@ -3744,6 +3820,17 @@ refer explicitly to the specified source directory.  To make this
 possible, @code{configure} can add to the Makefile a variable named
 @code{srcdir} whose value is precisely the specified directory.
 
+In addition, the @samp{configure} script should take options
+corresponding to most of the standard directory variables
+(@pxref{Directory Variables}).  Here is the list:
+
+@example
+--prefix --exec-prefix --bindir --sbindir --libexecdir --sysconfdir
+--sharedstatedir --localstatedir --libdir --includedir --oldincludedir
+--datarootdir --datadir --infodir --localedir --mandir --docdir
+--htmldir --dvidir --pdfdir --psdir
+@end example
+
 The @code{configure} script should also take an argument which specifies the
 type of system to build the program for.  This argument should look like
 this:
@@ -3759,7 +3846,7 @@ The @code{configure} script needs to be able to decode all plausible
 alternatives for how to describe a machine.  Thus,
 @samp{athlon-pc-gnu/linux} would be a valid alias.  There is a shell
 script called
-@uref{http://savannah.gnu.org/@/cgi-bin/@/viewcvs/@/*checkout*/@/config/@/config/@/config.sub,
+@uref{http://git.savannah.gnu.org/@/gitweb/@/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD,
 @file{config.sub}} that you can use as a subroutine to validate system
 types and canonicalize aliases.
 
@@ -3770,7 +3857,7 @@ plain @var{buildtype} argument.  For example, @samp{configure
 i686-pc-linux-gnu}.  When the build type is not specified by an option
 or argument, the @code{configure} script should normally guess it using
 the shell script
-@uref{http://savannah.gnu.org/@/cgi-bin/@/viewcvs/@/*checkout*/@/config/@/config/@/config.guess,
+@uref{http://git.savannah.gnu.org/@/gitweb/@/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD,
 @file{config.guess}}.
 
 @cindex optional features, configure-time
@@ -3966,24 +4053,25 @@ other files to get.
 @chapter References to Non-Free Software and Documentation
 @cindex references to non-free material
 
-A GNU program should not recommend use of any non-free program.  We
+A GNU program should not recommend, promote, or grant legitimacy to
+the use of any non-free program.  Proprietary software is a social and
+ethical problem, and our aim is to put an end to that problem.  We
 can't stop some people from writing proprietary programs, or stop
 other people from using them, but we can and should refuse to
-advertise them to new potential customers.  Proprietary software is a
-social and ethical problem, and the point of GNU is to solve that
-problem.
+advertise them to new potential customers, or to give the public the
+idea that their existence is ethical.
 
 The GNU definition of free software is found on the GNU web site at
-@url{http://www.gnu.org/philosophy/free-sw.html}, and the definition
+@url{http://www.gnu.org/@/philosophy/@/free-sw.html}, and the definition
 of free documentation is found at
-@url{http://www.gnu.org/philosophy/free-doc.html}.  A list of
-important licenses and whether they qualify as free is in
-@url{http://www.gnu.org/@/licenses/@/license-list.html}.  The terms
-``free'' and ``non-free'', used in this document, refer to that
-definition.  If it is not clear whether a license qualifies as free
-under this definition, please ask the GNU Project by writing to
-@email{licensing@@gnu.org}.  We will answer, and if the license is an
-important one, we will add it to the list.
+@url{http://www.gnu.org/@/philosophy/@/free-doc.html}.  The terms ``free''
+and ``non-free'', used in this document, refer to those definitions.
+
+A list of important licenses and whether they qualify as free is in
+@url{http://www.gnu.org/@/licenses/@/license-list.html}.  If it is not
+clear whether a license qualifies as free, please ask the GNU Project
+by writing to @email{licensing@@gnu.org}.  We will answer, and if the
+license is an important one, we will add it to the list.
 
 When a non-free program or system is well known, you can mention it in
 passing---that is harmless, since users who might want to use it
@@ -4000,62 +4088,80 @@ enhances your program, or that its existence is in any way a good
 thing.  The goal should be that people already using the proprietary
 program will get the advice they need about how to use your free
 program with it, while people who don't already use the proprietary
-program will not see anything to lead them to take an interest in it.
+program will not see anything likely to lead them to take an interest
+in it.
 
 If a non-free program or system is obscure in your program's domain,
 your program should not mention or support it at all, since doing so
 would tend to popularize the non-free program more than it popularizes
-your program.  (You cannot hope to find many additional users among
-the users of Foobar if the users of Foobar are few.)
+your program.  (You cannot hope to find many additional users for your
+program among the users of Foobar, if the existence of Foobar is not
+generally known among people who might want to use your program.)
 
 Sometimes a program is free software in itself but depends on a
 non-free platform in order to run.  For instance, many Java programs
-depend on Sun's Java implementation, and won't run on the GNU Java
-Compiler (which does not yet have all the features) or won't run with
-the GNU Java libraries.  To recommend that program is inherently to
-recommend the non-free platform as well; if you should not do the
-latter, then don't do the former.
+depend on some non-free Java libraries.  To recommend or promote such
+a program is to promote the other programs it needs.  This is why we
+are careful about listing Java programs in the Free Software
+Directory: we don't want to promote the non-free Java libraries.
+
+We hope this particular problem with Java will be gone by and by, as
+we replace the remaining non-free standard Java libraries with free
+software, but the general principle will remain the same: don't
+recommend, promote or legitimize programs that depend on non-free
+software to run.
+
+Some free programs strongly encourage the use of non-free software.  A
+typical example is @command{mplayer}.  It is free software in itself,
+and the free code can handle some kinds of files.  However,
+@command{mplayer} recommends use of non-free codecs for other kinds of
+files, and users that install @command{mplayer} are very likely to
+install those codecs along with it.  To recommend @command{mplayer}
+is, in effect, to promote use of the non-free codecs.
+
+Thus, you should not recommend programs that strongly encourage the
+use of non-free software.  This is why we do not list
+@command{mplayer} in the Free Software Directory.
 
 A GNU package should not refer the user to any non-free documentation
 for free software.  Free documentation that can be included in free
 operating systems is essential for completing the GNU system, or any
-free operating system, so it is a major focus of the GNU Project; to
-recommend use of documentation that we are not allowed to use in GNU
-would weaken the impetus for the community to produce documentation
-that we can include.  So GNU packages should never recommend non-free
+free operating system, so encouraging it is a priority; to recommend
+use of documentation that we are not allowed to include undermines the
+impetus for the community to produce documentation that we can
+include.  So GNU packages should never recommend non-free
 documentation.
 
 By contrast, it is ok to refer to journal articles and textbooks in
 the comments of a program for explanation of how it functions, even
-though they be non-free.  This is because we don't include such things
-in the GNU system even if we are allowed to--they are outside the
-scope of an operating system project.
+though they are non-free.  This is because we don't include such
+things in the GNU system even they are free---they are outside the
+scope of what a software distribution needs to include.
 
 Referring to a web site that describes or recommends a non-free
-program is in effect promoting that software, so please do not make
-links (or mention by name) web sites that contain such material.  This
-policy is relevant particularly for the web pages for a GNU package.
+program is promoting that program, so please do not make links (or
+mention by name) web sites that contain such material.  This policy is
+relevant particularly for the web pages for a GNU package.
 
-Following links from nearly any web site can lead to non-free
-software; this is an inescapable aspect of the nature of the web, and
-in itself is no objection to linking to a site.  As long as the site
-does not itself recommend a non-free program, there is no need be
-concerned about the sites it links to for other reasons.
+Following links from nearly any web site can lead eventually to
+non-free software; this is inherent in the nature of the web.  So it
+makes no sense to criticize a site for having such links.  As long as
+the site does not itself recommend a non-free program, there is no
+need to consider the question of the sites that it links to for other
+reasons.
 
-Thus, for example, you should not make a link to AT&T's web site,
-because that recommends AT&T's non-free software packages; you should
-not make a link to a site that links to AT&T's site saying it is a
-place to get a non-free program; but if a site you want to link to
-refers to AT&T's web site in some other context (such as long-distance
-telephone service), that is not a problem.
+Thus, for example, you should not refer to AT&T's web site if that
+recommends AT&T's non-free software packages; you should not refer to
+a site that links to AT&T's site presenting it as a place to get some
+non-free program, because that link recommends and legitimizes the
+non-free program.  However, that a site contains a link to AT&T's web
+site for some other purpose (such as long-distance telephone service)
+is not an objection against it.
 
-@node Copying This Manual
-@appendix Copying This Manual
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
 
-@menu
-* GNU Free Documentation License::  License for copying this manual
-@end menu
-
+@cindex FDL, GNU Free Documentation License
 @include fdl.texi
 
 @node Index

@@ -2,10 +2,10 @@
 
 AT_BANNER([Semantics.])
 
-# Copyright (C) 2000, 2001, 2002, 2004, 2005, 2006 Free Software
+# Copyright (C) 2000, 2001, 2002, 2004, 2005, 2006, 2007 Free Software
 # Foundation, Inc.
 #
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
@@ -50,7 +50,7 @@ AC_CHECK_LIB($ac_m, acos,,
 
 ac_asin=asin
 AC_CHECK_LIB($ac_m, $ac_asin,,
-      [AC_MSG_ERROR([cannot find `\$ac_asin' (= `$ac_asin') in `\$ac_m' (= `$at_m')])])
+      [AC_MSG_ERROR([cannot find `\$ac_asin' (= `$ac_asin') in `\$ac_m' (= `$ac_m')])])
 
 # But if the bug is in the caching mechanism, then be sure we
 # correctly detect failures.
@@ -69,7 +69,7 @@ AC_CHECK_LIB($ac_m, acossack,
 
 ac_asinner=asinner
 AC_CHECK_LIB($ac_m, $ac_asinner,
-      [AC_MSG_ERROR([found `\$ac_asinner' (= `$ac_asinner') in `\$ac_m' (= `$at_m')])])
+      [AC_MSG_ERROR([found `\$ac_asinner' (= `$ac_asinner') in `\$ac_m' (= `$ac_m')])])
 
 ])
 
@@ -163,7 +163,7 @@ AT_CHECK([sed 's/  */ /g;s/^ //;s/ $//' config.libobjs], [],
 	 [${LIBOBJDIR}autoconf_ftnirp$U.o
 ])
 
-AT_CLEANUP([config.libobjs])
+AT_CLEANUP
 
 
 # AC_CHECK_HEADERS
@@ -202,7 +202,7 @@ AT_CHECK_DEFINES(
 [#define HAVE_HEADER2_H 1
 ])
 
-AT_CLEANUP([header1.h header2.h])
+AT_CLEANUP
 
 
 # AC_CHECK_HEADERS_NEW
@@ -235,7 +235,7 @@ AT_CHECK_DEFINES(
 /* #undef HAVE_HEADER3_H */
 ])
 
-AT_CLEANUP([header1.h header2.h header3.h])
+AT_CLEANUP
 
 
 # AC_CHECK_MEMBERS
@@ -302,13 +302,13 @@ AC_CHECK_SIZEOF(charcharchar)
 # ----------------------
 AT_CHECK_MACRO_CROSS([AC_CHECK_SIZEOF struct],
 [[AC_C_CONST
-AC_CHECK_SIZEOF([struct { char c; int x; }])
-AC_CHECK_SIZEOF([const struct { const char *p; int x; }])
+AC_CHECK_SIZEOF([struct x], [], [struct x { char c; int x; };])
+AC_CHECK_SIZEOF([const struct x], [], [struct x { const char *p; int x; };])
 AC_CHECK_SIZEOF([struct nosuchstruct])
 ]],
-[AT_CHECK([[grep "#define SIZEOF_STRUCT___CHAR_C__INT_X___ [^0]" config.h]],
+[AT_CHECK([[grep "#define SIZEOF_STRUCT_X [^0]" config.h]],
 	 0, ignore)
-AT_CHECK([[grep "#define SIZEOF_CONST_STRUCT___CONST_CHAR_PP__INT_X___ [^0]" config.h]],
+AT_CHECK([[grep "#define SIZEOF_CONST_STRUCT_X [^0]" config.h]],
 	 0, ignore)
 AT_CHECK([[grep "#define SIZEOF_STRUCT_NOSUCHSTRUCT 0" config.h]],
 	 0, ignore)
@@ -455,7 +455,7 @@ AS_EXIT(0)
 AT_CHECK_AUTOCONF
 AT_CHECK_CONFIGURE
 
-AT_CLEANUP(path)
+AT_CLEANUP
 
 
 
@@ -470,7 +470,11 @@ AT_KEYWORDS([cross])
 # cross-compiling or not.
 
 _AT_CHECK_AC_MACRO(
-  [[AC_C_BIGENDIAN([ac_endian=big],[ac_endian=little],[ac_endian=unknown])
+  [[AC_C_BIGENDIAN(
+      [ac_endian=big],
+      [ac_endian=little],
+      [ac_endian=unknown],
+      [ac_endian=universal])
    echo $ac_endian > at-endian
 ]])
 
@@ -479,7 +483,11 @@ _AT_CHECK_AC_MACRO(
   [[# Force cross compiling.
    cross_compiling=yes
    ac_tool_warned=yes
-   AC_C_BIGENDIAN([ac_endian=big],[ac_endian=little],[ac_endian=unknown])
+   AC_C_BIGENDIAN(
+     [ac_endian=big],
+     [ac_endian=little],
+     [ac_endian=unknown],
+     [ac_endian=universal])
    ac_prevendian=`cat at-endian`
    # Check that we have found the same result as in the previous run
    # or unknown (because the cross-compiling check is allowed to fail;
@@ -490,13 +498,14 @@ _AT_CHECK_AC_MACRO(
    fi
 ]])
 
-# Make sure AC_C_BIGENDIAN with no argument will define WORDS_BIGENDIAN
+# Make sure AC_C_BIGENDIAN with no argument will create a config.h template
+# containing "WORDS_BIGENDIAN".
 AT_CONFIGURE_AC([[AC_C_BIGENDIAN]])
 # --force is necessary, the computer might be too fast.
 AT_CHECK_AUTOHEADER([--force])
 AT_CHECK([grep WORDS_BIGENDIAN config.hin], [], [ignore])
 
-AT_CLEANUP(at-endian)
+AT_CLEANUP
 
 
 # ------------------------------ #
@@ -537,7 +546,85 @@ AS_EXIT(0)
 AT_CHECK_AUTOCONF
 AT_CHECK_CONFIGURE
 
-AT_CLEANUP(path)
+AT_CLEANUP
+
+
+
+# ----------------------------- #
+# AC_PATH_PROGS_FEATURE_CHECK.  #
+# ----------------------------- #
+
+AT_SETUP([AC_PATH_PROGS_FEATURE_CHECK])
+
+# This test doesn't work if `pwd` contains white space
+case `pwd` in
+  *\ * | *\	*) AT_CHECK([exit 77]) ;;
+esac
+
+AT_CHECK_PROGS_PREPARE
+
+AT_DATA([configure.ac],
+[[AC_INIT
+pwd=`pwd`
+p="1${PATH_SEPARATOR}2${PATH_SEPARATOR}3${PATH_SEPARATOR}4${PATH_SEPARATOR}5${PATH_SEPARATOR}6"
+path=`echo $p | sed -e 's,\([[0-9]]\),'"$pwd"'/path/\1,g'`
+fail=false
+
+# Find first candidate and stop search
+AC_PATH_PROGS_FEATURE_CHECK(TOOL1, [tool better],
+  [$ac_path_TOOL1 && ac_cv_path_TOOL1=$ac_path_TOOL1 ac_path_TOOL1_found=:],
+  fail=:, $path)
+test -z "$TOOL1" || fail=:
+test "$ac_cv_path_TOOL1" = "$pwd/path/1/tool" || fail=:
+
+# Keep searching each candidate
+AC_PATH_PROGS_FEATURE_CHECK(TOOL2, [tool better],
+  [$ac_path_TOOL2 && ac_cv_path_TOOL2=$ac_path_TOOL2],
+  fail=:, $path)
+test "$ac_cv_path_TOOL2" = "$pwd/path/6/better" || fail=:
+
+# Only accept better candidate
+AC_PATH_PROGS_FEATURE_CHECK(TOOL3, [tool better],
+  [case "$ac_path_TOOL3" in #(
+    *better) ac_cv_path_TOOL3=$ac_path_TOOL3;;
+  esac],
+  fail=:, $path)
+test "$ac_cv_path_TOOL3" = "$pwd/path/6/better" || fail=:
+
+# When a tool is not found, and no action is given for not-found,
+# the variable is left empty.
+AC_PATH_PROGS_FEATURE_CHECK(TOOL4, missing,
+  [ac_cv_path_TOOL4=$ac_path_TOOL4], [], $path)
+test -z "$ac_cv_path_TOOL4" || fail=:
+
+# Test action when tool is not found
+AC_PATH_PROGS_FEATURE_CHECK(TOOL5, missing, [],
+  [ac_cv_path_TOOL5='not found'], $path)
+test "$ac_cv_path_TOOL5" = "not found" || fail=:
+
+# Test that pre-set tool bypasses feature test
+TOOL6=$pwd/path/6/better
+AC_PATH_PROGS_FEATURE_CHECK(TOOL6, tool, fail=:, fail=:, $path)
+test "$ac_cv_path_TOOL6" = "$pwd/path/6/better" || fail=:
+
+# A blank pre-set does not bypass feature test
+TOOL7=
+AC_PATH_PROGS_FEATURE_CHECK(TOOL7, [tool better],
+  [$ac_path_TOOL7 && ac_cv_path_TOOL7=$ac_path_TOOL7 ac_path_TOOL7_found=:],
+  fail=:, $path)
+test -z "$TOOL7" || fail=:
+test "$ac_cv_path_TOOL7" = "$pwd/path/1/tool" || fail=:
+
+# No AC-OUTPUT, we don't need config.status.
+$fail &&
+  AC_MSG_ERROR([[PATH_PROG failed]])
+AS_EXIT(0)
+]])
+
+AT_CHECK_AUTOCONF
+AT_CHECK_CONFIGURE
+
+AT_CLEANUP
 
 
 
@@ -566,4 +653,5 @@ AT_CLEANUP
 
 
 AT_CHECK_MACRO([AC_SYS_RESTARTABLE_SYSCALLS], , ,[-W no-obsolete])
+AT_CHECK_MACRO([AC_FUNC_SETVBUF_REVERSED], , ,[-W no-obsolete])
 AT_CHECK_MACRO([AC_FUNC_WAIT3], , ,[-W no-obsolete])
