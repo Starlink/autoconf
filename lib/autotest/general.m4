@@ -1,50 +1,30 @@
 # This file is part of Autoconf.                          -*- Autoconf -*-
 # M4 macros used in building test suites.
-m4_define([_AT_COPYRIGHT_YEARS],
-[Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-2009 Free Software Foundation, Inc.])
+m4_define([_AT_COPYRIGHT_YEARS], [
+Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+Free Software Foundation, Inc.
+])
 
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2, or (at your option)
-# any later version.
+# This file is part of Autoconf.  This program is free
+# software; you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
+# Under Section 7 of GPL version 3, you are granted additional
+# permissions described in the Autoconf Configure Script Exception,
+# version 3.0, as published by the Free Software Foundation.
+#
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA.
+# and a copy of the Autoconf Configure Script Exception along with
+# this program; see the files COPYINGv3 and COPYING.EXCEPTION
+# respectively.  If not, see <http://www.gnu.org/licenses/>.
 
-# As a special exception, the Free Software Foundation gives unlimited
-# permission to copy, distribute and modify the configure scripts that
-# are the output of Autoconf.  You need not follow the terms of the GNU
-# General Public License when using or distributing such scripts, even
-# though portions of the text of Autoconf appear in them.  The GNU
-# General Public License (GPL) does govern all other use of the material
-# that constitutes the Autoconf program.
-#
-# Certain portions of the Autoconf source text are designed to be copied
-# (in certain cases, depending on the input) into the output of
-# Autoconf.  We call these the "data" portions.  The rest of the Autoconf
-# source text consists of comments plus executable code that decides which
-# of the data portions to output in any given case.  We call these
-# comments and executable code the "non-data" portions.  Autoconf never
-# copies any of the non-data portions into its output.
-#
-# This special exception to the GPL applies to versions of Autoconf
-# released by the Free Software Foundation.  When you make and
-# distribute a modified version of Autoconf, you may extend this special
-# exception to the GPL to apply to your modified version as well, *unless*
-# your modified version has the potential to copy into its output some
-# of the text that was the non-data portion of the version that you started
-# with.  (In other words, unless your change moves or copies text from
-# the non-data portions to the data portions.)  If your modification has
-# such potential, you must delete any notice of this special exception
-# to the GPL from your modified version.
 
 # _m4_divert(DIVERSION-NAME)
 # --------------------------
@@ -987,11 +967,16 @@ m4_divert_push([PREPARE_TESTS])dnl
 for at_program in : $at_tested
 do
   test "$at_program" = : && continue
-  _AS_PATH_WALK([$PATH], [test -f "$as_dir/$at_program" && break])
-  if test -f "$as_dir/$at_program"; then
+  case $at_program in
+    [[\\/]* | ?:[\\/]* ) $at_program_=$at_program ;;]
+    * )
+    _AS_PATH_WALK([$PATH], [test -f "$as_dir/$at_program" && break])
+    at_program_=$as_dir/$at_program ;;
+  esac
+  if test -f "$at_program_"; then
     {
-      AS_ECHO(["$at_srcdir/AT_LINE: $as_dir/$at_program --version"])
-      "$as_dir/$at_program" --version </dev/null
+      AS_ECHO(["$at_srcdir/AT_LINE: $at_program_ --version"])
+      "$at_program_" --version </dev/null
       echo
     } >&AS_MESSAGE_LOG_FD 2>&1
   else
@@ -1584,22 +1569,23 @@ else
   AS_BOX([$as_me.log was created.])
 
   echo
-  AS_ECHO(["Please send \`${at_testdir+${at_testdir}/}$as_me.log' ]dnl
-[and all information you think might help:
+  if $at_debug_p; then
+    at_msg='per-test log files'
+  else
+    at_msg="\`${at_testdir+${at_testdir}/}$as_me.log'"
+  fi
+  AS_ECHO(["Please send $at_msg and all information you think might help:
 
    To: <AT_PACKAGE_BUGREPORT>
    Subject: @<:@AT_PACKAGE_STRING@:>@ $as_me: dnl
 $at_fail_list${at_fail_list:+ failed${at_xpass_list:+, }}dnl
 $at_xpass_list${at_xpass_list:+ passed unexpectedly}
+
+You may investigate any problem if you feel able to do so, in which
+case the test suite provides a good starting point.  Its output may
+be found below \`${at_testdir+${at_testdir}/}$as_me.dir'.
 "])
-  if test $at_debug_p = false; then
-    echo
-    echo 'You may investigate any problem if you feel able to do so, in which'
-    echo 'case the test suite provides a good starting point.  Its output may'
-    AS_ECHO(["be found below \`${at_testdir+${at_testdir}/}$as_me.dir'."])
-    echo
-  fi
-    exit 1
+  exit 1
 fi
 
 exit 0
@@ -1615,7 +1601,7 @@ m4_divert([KILL])
 
 # _AT_ARG_OPTION(OPTIONS,HELP-TEXT,[ARGS],[ACTION-IF-GIVEN],
 #                [ACTION-IF-NOT-GIVEN])
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------
 # Internal implementation of AT_ARG_OPTION & AT_ARG_OPTION_ARG
 m4_defun([_AT_ARG_OPTION],
 [m4_divert_once([HELP_OTHER],
@@ -1833,8 +1819,8 @@ m4_case([$1],
 # Since the -k option is case-insensitive, the list is stored in lower case
 # to avoid duplicates that differ only by case.
 _AT_DEFINE_SETUP([AT_KEYWORDS],
-[m4_append_uniq_w([AT_keywords], m4_tolower(m4_dquote(_m4_expand([$1
-]))))])
+[m4_append_uniq_w([AT_keywords], m4_tolower(_m4_expand([$1
+])))])
 
 
 # AT_CAPTURE_FILE(FILE)

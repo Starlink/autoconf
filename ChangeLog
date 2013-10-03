@@ -1,3 +1,756 @@
+2009-11-21  Eric Blake  <ebb9@byu.net>
+
+	Release Version 2.65.
+	* NEWS: Mention the release.
+
+	Prepare for release.
+	* build-aux/announce-gen: Sync from upstream.
+	* build-aux/config.guess: Likewise.
+	* build-aux/config.sub: Likewise.
+	* cfg.mk (gnu_rel_host, url_dir_list): Move...
+	* maint.mk: ...here, copying ideas from gnulib.
+	(major): Rename...
+	(stable): ...to this, copying gnulib.
+	* HACKING (release): Document changes in process.
+
+	Avoid spurious newline in traced macros.
+	* bin/autoreconf.in (tracing): Drop newline before parsing traced
+	arguments; regression from 2009-11-14.
+
+2009-11-20  Eric Blake  <ebb9@byu.net>
+
+	Allow absolute names in AT_TESTED.
+	* lib/autotest/general.m4 (AT_INIT) <PREPARE_TESTS>: Check for
+	absolute names before path walk.
+	* THANKS: Update.
+	Suggested by Allan Clark.
+
+2009-11-14  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Fix AC_CONFIG_SUBDIRS tracing in autoreconf.
+	* bin/autoreconf.in (autoreconf_current_directory): Collapse
+	newlines in the autoconf trace output, similar to how automake
+	invokes autoconf, so that newlines do not matter in the argument
+	to AC_CONFIG_SUBDIRS.
+	* tests/torture.at (Deep Package): Expose this issue in the
+	test.
+	* THANKS: Update.
+	Report by Nathan Schulte.
+
+2009-11-09  Eric Blake  <ebb9@byu.net>
+
+	Fix AC_FUNC_MMAP for cygwin.
+	* lib/autoconf/functions.m4 (AC_FUNC_MMAP): Make the test more
+	portable: Actually check for <sys/param.h>, and only use MAP_FIXED
+	on an address previously returned from mmap.
+	* THANKS: Update.
+	Reported by Corinna Vinschen.
+
+2009-11-04  Eric Blake  <ebb9@byu.net>
+
+	Redocument AS_DIRNAME, even with its flaws.
+	* doc/autoconf.texi (Common Shell Constructs) <AS_DIRNAME>:
+	Restore documenatation, since dirname mentions it.
+	Reported by Peter Johansson.
+
+	Update upstream files.
+	* build-aux/announce-gen: Synchronize from upstream.
+	* build-aux/config.guess: Likewise.
+	* build-aux/config.sub: Likewise.
+	* build-aux/gendocs.sh: Likewise.
+	* build-aux/git-version-gen: Likewise.
+	* build-aux/texinfo.tex: Likewise.
+	* build-aux/update-copyright: Likewise.
+	* doc/standards.texi: Likewise.
+	* lib/Autom4te/Channels.pm: Likewise.
+	* lib/Autom4te/Configure_ac.pm: Likewise.
+	* lib/Autom4te/FileUtils.pm: Likewise.
+	* lib/Autom4te/Struct.pm: Likewise.
+	* lib/Autom4te/XFile.pm: Likewise.
+
+2009-11-04  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Coverage for autom4te cache creation issues.
+	* tests/tools.at (autom4te cache creation): New test.
+
+2009-11-03  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Fix testsuite failures with SHELL=zsh.
+	* tests/statesave.m4 (AC_STATE_SAVE): Ignore argv and ARGC when
+	comparing configure variables.
+
+2009-11-03  Eric Blake  <ebb9@byu.net>
+	and Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Update NEWS for recent fixes.
+	* NEWS: Add some entries.
+
+2009-10-31  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Micro-optimization of config.status substitution.
+	* lib/autoconf/status.m4 (_AC_OUTPUT_FILES_PREPARE): No need to
+	concatenate an empty second string, when we have exactly 148
+	characters to substitute.
+	* tests/torture.at (Substitute a 2000-byte string): Add test
+	exposure for runs of backslashes near the 148 character limit.
+
+	Fix testsuite failure on AIX 4.3.3.
+	* lib/autoconf/general.m4 (_AC_RUN_LOG_LIMIT): Remove conftest.err
+	also if it is empty.
+
+	Fix testsuite failure on IRIX and AIX.
+	* tests/torture.at (Substitute and define special characters):
+	Double the backslash before the double-quote in
+	AC_DEFINE_UNQUOTED, as documented for here-documents.
+
+2009-10-31  Eric Blake  <ebb9@byu.net>
+
+	Fix cross-manual link to gcc.
+	* doc/autoconf.texi (Portable C and C++): Provide uref rather than
+	xref when building for html.
+	Reported via Karl Berry.
+
+	Update authors.
+	* AUTHORS: Document recent copyright assignments.
+
+2009-10-31  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Fix AC_OPENMP configure message for non-C compilers.
+	* lib/autoconf/lang.m4 (AC_LANG_DEFINE): Accept as additional
+	fourth arg the compiler variable name, defined in _AC_CC($1).
+	(_AC_CC): New language dispatch macro.
+	* lib/autoconf/erlang.m4 (AC_LANG(Erlang)): Adjust.
+	* lib/autoconf/fortran.m4 (AC_LANG(Fortran 77), AC_LANG(Fortran)):
+	Likewise.
+	* lib/autoconf/c.m4 (AC_LANG(C), AC_LANG(C++))
+	(AC_LANG(Objective C), AC_LANG(Objective C++)): Likewise.
+	(AC_OPENMP): Use _AC_CC instead of $CC.
+
+	Do not fail OpenMP tests on systems without aclocal.
+	* tests/c.at (AC_OPENMP and C, AC_OPENMP and C++): Override
+	`ACLOCAL=true' for autoreconf, the tests don't need aclocal.
+	* tests/fortran.at (AC_OPENMP and Fortran 77)
+	(AC_OPENMP and Fortran): Likewise.
+
+2009-10-31  Bruno Haible  <bruno@clisp.org>
+	    Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Improve cache variable documentation.
+	* doc/autoconf.texi (AC_PROG_AWK, AC_PROG_GREP, AC_PROG_EGREP,
+	AC_PROG_FGREP, AC_PROG_INSTALL, AC_PROG_MKDIR_P, AC_PROG_LEX,
+	AC_PROG_YACC, AC_CHECK_PROG, AC_CHECK_PROGS, AC_PATH_PROG,
+	AC_PATH_PROGS): Don't suggest to use the cache variable, only to
+	override it, or preferably, a non-cache variable associated with
+	the test.
+	(AC_PROG_SED): Likewise. Fix name of cache variable.
+	(AC_FUNC_GETMNTENT): Fix name cache variable.
+	(AC_FUNC_LSTAT): Fix typo.
+
+2009-10-31  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Fix AC_OPENMP for Fortran (F77 and FC).
+	* lib/autoconf/fortran.m4 (AC_LANG_FUNC_LINK_TRY(Fortran): New.
+	* tests/c.at (AC_C_RESTRICT and C++, AC_OPENMP and C)
+	(AC_OPENMP and C++): New tests.
+	* tests/fortran.at (AC_OPENMP and Fortran 77)
+	(AC_OPENMP and Fortran): New tests.
+	* THANKS: Update.
+	Report by Bart Oldeman.
+
+	Perl coverage convenience targets.
+	* Makefile.am (PERL_COVERAGE_DB, PERL_COVERAGE_FLAGS)
+	(PERL_COVER): New variables.
+	(check-coverage, check-coverage-run, check-coverage-report)
+	(clean-coverage): New phony targets.
+	(clean-local): Depend on clean-coverage.
+
+2009-10-28  Eric Blake  <ebb9@byu.net>
+
+	Fix corner cases in AS_LITERAL_IF and AS_TR_SH.
+	* lib/m4sugar/m4sh.m4 (AS_LITERAL_IF): Fix bug with unbalanced
+	parens.  Move guts...
+	(_AS_LITERAL_IF): into new helper.
+	(AS_TR_SH, AS_TR_CPP): Fix bugs with expansion of wrong macro.
+	Move guts...
+	(_AS_TR_SH, _AS_TR_SH_LITERAL, _AS_TR_SH_INDIR, _AS_TR_CPP)
+	(_AS_TR_CPP_LITERAL, _AS_TR_CPP_INDIR): ...into new helpers.
+	(AS_VAR_PUSHDEF): Hoist m4_require, by moving guts...
+	(_AS_VAR_PUSHDEF): ...into new helper.
+	* tests/m4sh.at (AS@&t@_LITERAL_IF): Enhance test.
+
+	Minor optimizations to m4sh.
+	* lib/m4sugar/m4sh.m4 (AS_VAR_IF, AS_IDENTIFIER_IF)
+	(AS_LITERAL_IF): Parse fewer bytes during expansion, by visiting
+	if-true and if-false arguments only once.
+
+	Optimize m4_escape for common case.
+	* lib/m4sugar/m4sugar.m4 (m4_escape): Don't use regex if string is
+	already sane, by copying from AS_LITERAL_IF.  Move guts...
+	(_m4_escape): ...into new helper.
+
+	Fix m4_text_wrap handling of quoted whitespace.
+	* lib/m4sugar/m4sugar.m4 (m4_escape): New macro.
+	(m4_text_wrap): Use it to avoid issues with embedded [ and ].
+	* tests/m4sugar.at (m4@&t@_text_wrap): Test it.
+	* NEWS: Document this.
+	* doc/autoconf.texi (Text processing Macros) <m4_escape>:
+	Likewise.
+	Reported by Mike Frysinger.
+
+2009-10-27  Eric Blake  <ebb9@byu.net>
+
+	Mention another feature of AC_RUN_IFELSE.
+	* doc/autoconf.texi (Runtime) <AC_RUN_IFELSE>: Mention that
+	compiled test program still exists during if-true branch.
+	* THANKS: Update.
+	Reported by Stefano Lattarini, suggestion by Ralf Wildenhues.
+
+2009-10-26  Paolo Bonzini  <bonzini@gnu.org>
+
+	Pass Autom4te path down to programs that autoreconf invokes.
+	* bin/autoreconf.in (autom4te): New variable.  Export its value
+	as $ENV{'AUTOM4TE'}.  Suggested by Peter Johansson.
+	* THANKS: Update.
+
+2009-10-20  Eric Blake  <ebb9@byu.net>
+
+	Fix AC_TYPE_UINT64_T on Tru64 with gcc 3.4.4.
+	* lib/autoconf/types.m4 (_AC_TYPE_UNSIGNED_INT_BODY)
+	(_AC_TYPE_INT_BODY): Avoid undefined behavior of attempting shift
+	wider than type.
+	* NEWS: Document this.
+	Reported by Rainer Orth.
+
+2009-10-17  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Fix a couple of index entries in the manual.
+	* doc/autoconf.texi (Polymorphic Variables): Fix index entries
+	for AS_VAR_APPEND, AS_VAR_ARITH.
+
+2009-10-15  Eric Blake  <ebb9@byu.net>
+
+	Fix typos in INSTALL.
+	* doc/install.texi (Basic Installation, Installation Names): Fix
+	typos in last patch.
+	Repored by Ralf Wildenhues.
+
+	Improve INSTALL wording.
+	* doc/install.texi (Basic Installation): Clarify installcheck
+	behavior.
+	(Installation Names): Mention that --prefix only overrides
+	directory locations not specified on the command line.  Prefer
+	/alternate/directory over /path/to.  Remove a sentence targeted to
+	the developer, not the user.
+	* THANKS: Update.
+	Suggested by Alfred M. Szmidt.
+
+2009-10-15  Peter Breitenlohner  <peb@mppmu.mpg.de>
+
+	Fix typos in documentation.
+	* doc/autoconf.texi (Cache Variable Index): Fix typo.
+	(Libraries) <AC_SEARCH_LIBS>: Mention 'none required' result.
+
+2009-10-09  Bruno Haible  <bruno@clisp.org>
+	    Ralf Wildenhues <Ralf.Wildenhues@gmx.de>
+
+	Recommend `sh -n' debugging, and public result variables for macros.
+	* doc/autoconf.texi (Debugging): Recommend to use "bash -n
+	configure".  Recommend the use of result variables as an
+	alternative to run-if-true/run-if-false parameters.
+
+2009-10-05  Bruno Haible  <bruno@clisp.org>
+
+	* doc/autoconf.texi (Particular Functions): Swap sections about
+	AC_FUNC_MBRTOWC and AC_FUNC_MEMCMP.
+
+2009-10-01  Paolo Bonzini  <bonzini@gnu.org>
+
+	Unconditionally check for junk ./--version after mkdir search loop.
+	* lib/autoconf/programs.m4 (AC_PROG_MKDIR_P): Always check for
+	presence of ./--version.  Reported by Eric Blake.
+
+2009-09-22  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Clarify documentation about Solaris sed quantifier restriction.
+	* doc/autoconf.texi (Limitations of Usual Tools) <sed>: '*' does
+	not work after subexpressions, \{M,N\} only after one-character
+	expressions.  From GCC PR 38923.
+
+2009-09-21  Eric Blake  <ebb9@byu.net>
+
+	Fit configure output in 80 columns.
+	* lib/autoconf/functions.m4
+	(AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK): Shorten message.
+
+2009-09-18  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Use consistent notation for cache variables.
+	* doc/autoconf.texi (Generic Programs): Remove `$' before
+	variable name.
+
+	Documentation of specific and general cache variables.
+	* doc/autoconf.texi (Default Includes, Alternative Programs)
+	(Particular Programs, Generic Programs, Files, Libraries)
+	(Function Portability, Particular Functions, Generic Functions)
+	(Particular Headers, Generic Headers, Declarations)
+	(Generic Declarations, Particular Structures, Particular Types)
+	(Specific Compiler Characteristics)
+	(Generic Compiler Characteristics, C Compiler, System Services):
+	Document lots of cache variables.
+	* NEWS: Update.
+	Suggested by Bruno Haible.
+
+	New cache variable index in the manual.
+	* doc/autoconf.texi: Define new index `CA' for cache variables.
+	(caindex): New macro.
+	(Cache Variable Index): New appendix node.
+	(Top, Indices): Adjust menus.
+	(Cache Variable Names, Site Defaults): Adjust text.
+	* doc/Makefile.am (CLEANFILES): Add files generated for CA index.
+
+	New FAQ node: Debugging.
+	* doc/autoconf.texi (Debugging): New node.
+	(Top, FAQ): Adjust menus.
+	Report by Bruno Haible.
+
+	Document AM_MAKEFLAGS workaround to the macro override problem.
+	* doc/autoconf.texi (Macros and Submakes): Automake makefiles
+	provide AM_MAKEFLAGS to help with overriding macros in submake
+	invocations.
+	Prompted by bug report from Bruno Haible.
+
+2009-09-15  Peter Breitenlohner  <peb@mppmu.mpg.de>
+
+	Implement and document Objective C++ support.
+	* lib/autoconf/c.m4 (AC_LANG(Objective C++), AC_LANG_OBJCXX)
+	(AC_LANG_PREPROC(Objective C++), AC_PROG_OBJCXXCPP)
+	(AC_LANG_COMPILER(Objective C++), AC_PROG_OBJCXX)
+	(_AC_PROG_OBJCXX_G): New macros.
+	(_AC_ARG_VAR_CPPFLAGS, _AC_ARG_VAR_LDFLAGS)
+	(_AC_ARG_VAR_LIBS): Adjusted.
+	* doc/autoconf.texi (Objective C++ Compiler): New node.
+	(Preset Output Variables): Document OBJCXXFLAGS.
+	(Language Choice): Document `Objective C++' language.
+	* NEWS: Updated.
+	* tests/local.at (AT_CHECK_ENV): Ignore AC_SUBSTed Objective C++
+	related variables.
+
+2009-09-15  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Work around DJGPP shell function return bug with command substitutions.
+	DJGPP bash 2.04 has a bug in that `return $ac_retval' done in a
+	shell function which also contains a command substitution causes
+	the shell to barf.  For more details and a fix see:
+	<http://www.delorie.com/djgpp/mail-archives/browse.cgi?p=djgpp-workers/2009/09/09/03:35:08>
+	Possible workaround include putting the `return' in a subshell
+	or calling another function to set the status.
+	* lib/autoconf/general.m4 (_AC_PREPROC_IFELSE_BODY)
+	(_AC_COMPILE_IFELSE_BODY, _AC_LINK_IFELSE_BODY)
+	(_AC_RUN_IFELSE_BODY, _AC_COMPUTE_INT_BODY): Use AS_SET_STATUS
+	instead of `return'.
+	* doc/autoconf.texi (Common Shell Constructs, Shell Functions):
+	Document the issue.
+	* THANKS: Update.
+	Report by Rugxulo and Reuben Thomas.
+
+	DJGPP fix: Do not redirect standard input in configure scripts.
+	* lib/autoconf/general.m4 (_AC_INIT_DEFAULTS): If $DJGPP is
+	nonempty, do not dup fd 0 to AS_ORIGINAL_STDIN_FD, do not close
+	fd 0.
+
+2009-09-14  Eric Blake  <ebb9@byu.net>
+
+	Quote result of m4_toupper and m4_tolower.
+	* lib/m4sugar/m4sugar.m4 (m4_tolower, m4_toupper): Quote result.
+	* lib/autotest/general.m4 (AT_KEYWORDS): Adjust caller.
+	* tests/m4sugar.at (m4@&t@_toupper and m4@&t@_tolower): New test.
+	* NEWS: Document this.
+	* THANKS: Update.
+	Reported by Sam Steingold.
+
+2009-09-14  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	DJGPP fix: remove both conftest and conftest.exe.
+	The DJGPP compiler may create both `a.out' and `a.exe' without -o,
+	and both `conftest' and `conftest.exe' with `-o conftest', but not
+	with `-o conftest.exe'.
+	* lib/autoconf/lang.m4 (_AC_COMPILER_EXEEXT_O): Also remove
+	`conftest' without $ac_exeext suffix.
+
+	DJGPP fix: do not try to source /dev/null as cache or site file.
+	* lib/autoconf/general.m4 (AC_SITE_LOAD, AC_CACHE_LOAD): Do not
+	load the cache or site file if it is `/dev/null', as DJGPP treats
+	it as a regular file, but the shell then warns about it later.
+	Fixes several test suite failures on DJGPP.
+
+	testsuite: pass $configure_options to configure invocations.
+	* tests/local.at (AT_CHECK_CONFIGURE): Add $configure_options
+	to configure command line.
+	* tests/autotest.at, tests/base.at, tests/c.at, tests/torture.at:
+	Likewise for each configure invocation.
+	* README-hacking: Document configure_options.
+
+	testsuite: improve Erlang tests portability, overridability.
+	* tests/autotest.at (Erlang Eunit unit tests): Use "no" as
+	value-if-not-found for Erlang tools.
+	* tests/erlang.at: Likewise.  Also, use AS_EXIT instead of plain
+	exit.
+
+2009-09-13  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* bin/autoupdate.in: Fix typos in comments.
+
+	Improve autotest testsuite summary message.
+	* lib/autotest/general.m4 (AT_INIT): Hint at the toplevel log
+	only if not $at_debug_p.  Always hint at the per-test output.
+
+	Four new autoupdate tests, expected failures.
+	* tests/tools.at (autoupdating macros recursively)
+	(autoupdating with m4@&t@_pushdef, autoupdating with AC_REQUIRE)
+	(autoupdating with complex quoting): New tests.
+
+	Fix description of AC_CHECK_LIB regarding other deplibs.
+	* doc/autoconf.texi (Libraries): Library linking may not fail
+	even without missing additional libs.
+
+2009-09-12  Eric Blake  <ebb9@byu.net>
+
+	Track recent copyright assignments.
+	* AUTHORS: Update.
+
+	Improve documentation on quoting.
+	* doc/autoconf.texi (Autoconf Language): Clarify quoting example.
+	* THANKS: Update.
+	Reported by santilín.
+
+2009-09-11  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	New config.status option --config.
+	* lib/autoconf/status.m4 (_AC_OUTPUT_CONFIG_STATUS): Implement
+	--config.
+	* doc/autoconf.texi (config.status Invocation): Document it.
+	* NEWS: Update.
+	* tests/torture.at (configure invocation): Test it.
+	Suggested several times, by several people, in the past.
+
+2009-09-10  Eric Blake  <ebb9@byu.net>
+
+	Document that AS_INIT is automatically used.
+	* doc/autoconf.texi (Initialization Macros) <AS_INIT>: Add words
+	to clarify that only bare-bones scripts need a direct AS_INIT.
+	Suggested by Reuben Thomas.
+
+	Clarify portability pitfall of test.
+	* doc/autoconf.texi (Limitations of Builtins) <test>: Give more
+	reasons why -a and -o are not portable.
+	Reported by Reuben Thomas.
+
+2009-09-10  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Document sed limitation with escaped metacharacters.
+	* doc/autoconf.texi (Limitations of Usual Tools) <sed>: Use `%'
+	rather than `/' as delimiter in an example `s' command.
+	Document inconsistent treatment of escaped metacharacters.
+	* THANKS: Update.
+	Report by Dave Korn, with additional input from Paolo Bonzini
+	and Eric Blake.
+
+	Document temporary directory `$tmp' for use in config.status.
+	* doc/autoconf.texi (Configuration Actions): Document `$tmp'.
+	* NEWS: Update.
+
+2009-09-09  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Update License to GPLv3+ including new Autoconf Exception.
+	* NEWS, README: Update licensing information.
+	* COPYING.EXCEPTION: New file.
+	* Makefile.am (EXTRA_DIST): Distribute it.
+	* cfg.mk (autom4te-update): Remove copyright change warning.
+	* lib/autoconf/autoconf.m4, lib/autoconf/autoheader.m4,
+	lib/autoconf/autoscan.m4, lib/autoconf/autotest.m4,
+	lib/autoconf/autoupdate.m4, lib/autoconf/c.m4,
+	lib/autoconf/erlang.m4, lib/autoconf/fortran.m4,
+	lib/autoconf/functions.m4, lib/autoconf/general.m4,
+	lib/autoconf/headers.m4, lib/autoconf/lang.m4,
+	lib/autoconf/libs.m4, lib/autoconf/oldnames.m4,
+	lib/autoconf/programs.m4, lib/autoconf/specific.m4,
+	lib/autoconf/status.m4, lib/autoconf/types.m4,
+	lib/autotest/autotest.m4, lib/autotest/general.m4,
+	lib/autotest/specific.m4, lib/m4sugar/foreach.m4,
+	lib/m4sugar/m4sh.m4, lib/m4sugar/m4sugar.m4: Update exception
+	statement, bump to GPLv3.
+	* bin/autoconf.as, bin/autoheader.in, bin/autom4te.in,
+	bin/autoreconf.in, bin/autoscan.in, bin/autoupdate.in,
+	bin/ifnames.in: Bump to GPLv3+, adjust --version output
+	to reflect the GPLv3+ and the Autoconf Exception.
+	* lib/Autom4te/C4che.pm, lib/Autom4te/ChannelDefs.pm,
+	lib/Autom4te/General.pm, lib/Autom4te/Request.pm,
+	lib/autom4te.in, lib/autoscan/autoscan.pre,
+	lib/emacs/autoconf-mode.el, lib/emacs/autotest-mode.el,
+	lib/freeze.mk, tests/atlocal.in, tests/autoscan.at,
+	tests/autotest.at, tests/base.at, tests/c.at,
+	tests/compile.at, tests/erlang.at, tests/foreign.at,
+	tests/fortran.at, tests/local.at, tests/m4sh.at,
+	tests/m4sugar.at, tests/mktests.sh, tests/semantics.at,
+	tests/statesave.m4, tests/suite.at, tests/tools.at,
+	tests/torture.at, tests/wrapper.as: Bump to GPLv3+.
+
+	Allow to work on systems without Fcntl::flock implementation.
+	* configure.ac (PERL_FLOCK): New substitution variable with test
+	whether Fcntl::flock is implemented by the system.
+	* bin/Makefile.am (edit): Substitute @PERL_FLOCK@.
+	* bin/autom4te.in: Call XFile::lock only if flock is
+	implemented.
+
+2009-09-04  Reuben Thomas <rrt@sc3d.org>  (tiny change)
+
+	Mention the Autoconf archive.
+	* doc/autoconf.texi (Coding Style): Add a link.
+
+2009-08-30  Bruno Haible  <bruno@clisp.org>
+
+	Document another Solaris tr pitfall.
+	* doc/autoconf.texi (Limitations of Usual Tools) <tr>: Mention
+	that Solaris /usr/bin/tr does not only have problems with
+	replacing NUL bytes but discards all NUL bytes from the input.
+
+2009-09-04  Eric Blake  <ebb9@byu.net>
+
+	Improve wording about what goes before AC_INIT.
+	* doc/autoconf.texi (Initializing configure): Update wording.
+	(Versioning) <AC_PREREQ>: Remove misleading text, to match
+	autoscan's behavior.
+	* THANKS: Update.
+	Reported by NightStrike, with input from Ralf Wildenhues.
+
+2009-09-04  Thomas Jahns  <jahns@dkrz.de>  (tiny change)
+
+	Fix illegal tab character in Fortran source.
+	* lib/autoconf/fortran.m4 (AC_FC_SRCEXT): Change TAB back to
+	multiple spaces; regression introduced 2008-10-23.
+	* NEWS: Mention this.
+	* THANKS: Update.
+
+2009-08-22  Romain Lenglet  <romain.lenglet@laposte.net>
+
+	Fix AT_CHECK_EUNIT for versions of Erlang/OTP without init:stop/1.
+	* lib/autotest/specific.m4 (AT_CHECK_EUNIT): Support older
+	versions of Erlang/OTP with an erlang:stop() function that doesn't
+	take arguments.
+
+2009-08-22  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Drop unneeded line in Eunit test.
+	* tests/autotest.at (Erlang Eunit unit tests): Do not copy
+	install-sh.
+
+	Fix build dependencies for Erlang macro files.
+	* lib/freeze.mk (autotest_m4f_dependencies): Add
+	$(src_libdir)/autotest/specific.m4.
+	* tests/Makefile.am (AUTOCONF_FILES): Add erlang.m4.
+
+2009-09-19  Paolo Bonzini  <bonzini@gnu.org>
+
+	Use a separate program to test whether the compiler works.
+	* lib/autoconf/erlang.m4 (_AC_LANG_NULL_PROGRAM(Erlang)): New.
+	* lib/autoconf/lang.m4 (AC_LANG_DEFINE): Copy _AC_LANG_NULL_PROGRAM.
+	(_AC_LANG_NULL_PROGRAM(), _AC_LANG_NULL_PROGRAM): New.
+	(_AC_COMPILER_EXEEXT_DEFAULT): Print here "whether the xyz compiler
+	works", before exiting.
+	(_AC_COMPILER_EXEEXT_WORKS): Merge into _AC_COMPILER_EXEEXT_CROSS,
+	remove the "whether the xyz compiler works" message, use
+	conftest$ac_cv_exeext instead of $ac_file.
+	(_AC_COMPILER_EXEEXT): Try _AC_COMPILER_EXEEXT_DEFAULT using
+	the null program, and clean conftest.out only after
+	_AC_COMPILER_EXEEXT_CROSS.
+	(AC_NO_EXECUTABLES): Use _AC_LANG_NULL_PROGRAM.
+	(_AC_COMPILER_OBJEXT): Use _AC_LANG_NULL_PROGRAM.
+
+2009-08-18  Bruno Haible  <bruno@clisp.org>
+
+	Document Solaris tr range and NUL limitations.
+	* doc/autoconf.texi (Limitations of Usual Tools): Mention that
+	Solaris /usr/bin/tr does not support ranges, nor the '\0' octal
+	escape.
+
+2009-08-14  Eric Blake  <ebb9@byu.net>
+
+	Simplify version control metadata.
+	* .cvsignore: Delete.
+	* bin/.cvsignore: Likewise.
+	* config/.cvsignore: Likewise.
+	* doc/.cvsignore: Likewise.
+	* lib/.cvsignore: Likewise.
+	* lib/autoconf/.cvsignore: Likewise.
+	* lib/Autom4te/.cvsignore: Likewise.
+	* lib/autoscan/.cvsignore: Likewise.
+	* lib/autotest/.cvsignore: Likewise.
+	* lib/emacs/.cvsignore: Likewise.
+	* lib/m4sugar/.cvsignore: Likewise.
+	* man/.cvsignore: Likewise.
+	* tests/.cvsignore: Likewise.
+	* bin/.gitignore: Likewise.
+	* build-aux/.gitignore: Likewise.
+	* config/.gitignore: Likewise.
+	* doc/.gitignore: Likewise.
+	* lib/.gitignore: Likewise.
+	* lib/autoconf/.gitignore: Likewise.
+	* lib/Autom4te/.gitignore: Likewise.
+	* lib/autoscan/.gitignore: Likewise.
+	* lib/autotest/.gitignore: Likewise.
+	* lib/emacs/.gitignore: Likewise.
+	* lib/m4sugar/.gitignore: Likewise.
+	* man/.gitignore: Likewise.
+	* tests/.gitignore: Likewise.
+	* .gitignore: Consolidate all rules into one file.
+
+	Normalize remaining copyright lines.
+	* BUGS: Reformat copyright line, using UPDATE_COPYRIGHT_FORCE.
+	* NEWS: Likewise.
+	* README-hacking: Likewise.
+	* TODO: Likewise.
+	* lib/Autom4te/ChannelDefs.pm: Likewise.
+	* lib/autoconf/fortran.m4: Likewise.
+	* lib/autoconf/general.m4: Likewise.
+	* lib/autoconf/lang.m4: Likewise.
+	* lib/autotest/general.m4: Likewise.
+	* maint.mk: Likewise.
+	* tests/compile.at: Likewise.
+
+	Improve copyright updating.
+	* build-aux/update-copyright: Resynchronize from upstream.
+	* maint.mk (update-copyright): Simplify based on gnulib.
+	(update-copyright-env): New variable.
+	* cfg.mk (update-copyright-exclude-regexp): Delete.
+	(update-copyright-env): New override.
+	* .x-update-copyright: New file.
+	* lib/Autom4te/Makefile.am: Add copyright.
+	* lib/Autom4te/Channels.pm: Revert copyright update to upstream
+	file.
+	* lib/Autom4te/Configure_ac.pm: Likewise.
+	* lib/Autom4te/FileUtils.pm: Likewise.
+	* lib/Autom4te/Struct.pm: Likewise.
+	* lib/Autom4te/XFile.pm: Likewise.
+
+	Update copyright.
+	* AUTHORS: Include 2009 in copyright.
+	* lib/Autom4te/C4che.pm: Likewise.
+	* lib/Autom4te/Channels.pm: Likewise.
+	* lib/Autom4te/Configure_ac.pm: Likewise.
+	* lib/Autom4te/FileUtils.pm: Likewise.
+	* lib/Autom4te/General.pm: Likewise.
+	* lib/Autom4te/Request.pm: Likewise.
+	* lib/Autom4te/Struct.pm: Likewise.
+	* lib/autoconf/Makefile.am: Likewise.
+	* lib/autoconf/autoconf.m4: Likewise.
+	* lib/autoconf/autoscan.m4: Likewise.
+	* lib/autoconf/autoupdate.m4: Likewise.
+	* lib/autoconf/functions.m4: Likewise.
+	* lib/autoconf/libs.m4: Likewise.
+	* lib/autoconf/oldnames.m4: Likewise.
+	* lib/autoconf/types.m4: Likewise.
+	* lib/autoscan/Makefile.am: Likewise.
+	* lib/autoscan/autoscan.pre: Likewise.
+	* lib/autotest/Makefile.am: Likewise.
+	* lib/autotest/autotest.m4: Likewise.
+	* lib/emacs/autoconf-mode.el: Likewise.
+	* lib/emacs/autotest-mode.el: Likewise.
+	* lib/freeze.mk: Likewise.
+	* lib/m4sugar/foreach.m4: Likewise.
+	* man/Makefile.am: Likewise.
+	* tests/atlocal.in: Likewise.
+	* tests/autoscan.at: Likewise.
+	* tests/foreign.at: Likewise.
+	* tests/fortran.at: Likewise.
+	* tests/mktests.sh: Likewise.
+	* tests/semantics.at: Likewise.
+	* tests/suite.at: Likewise.
+	* tests/wrapper.as: Likewise.
+
+	Prepare to bulk update copyright years.
+	* build-aux/update-copyright: New file.
+	* cfg.mk (gnulib-update): Sync it from gnulib.
+	(update-copyright-exclude-regexp): New variable.
+	(web-manual): Move...
+	* maint.mk (web-manual): ...here, to match gnulib.
+	(update-copyright): New target, copied from gnulib's
+	maint.mk (it would be nice to sync this file...).
+	(build_aux): New macro.
+	(VC_LIST, emit_upload_commands): Use it.
+	* build-aux/texinfo.tex: Resynchronize from upstream.
+	* lib/autoconf/general.m4 (_AC_COPYRIGHT_YEARS): Reformat to meet
+	expected pattern.
+	* lib/autotest/general.m4 (_AT_COPYRIGHT_YEARS): Likewise.
+
+2009-08-12  Paolo Bonzini  <bonzini@gnu.org>
+
+	Fix testsuite log capturing for tests 183 and 186.
+	* tests/autotest.at (AT_CHECK_AT_PREP): Prepend AT_dir to
+	testsuite log file for AT_CAPTURE_FILE.
+
+2009-08-10  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Ensure we do not regress with AC_CHECK_MEMBERS.
+	* tests/semantics.at (AC_CHECK_MEMBERS): Expose the recent
+	AC_CHECK_MEMBERS fix.
+	(AC_CHECK_MEMBER): New test group.
+
+2009-08-10  Jeff Squyres  <jsquyres@cisco.com>  (tiny change)
+
+	Fix typo in AC_REQUIRE description.
+	* doc/autoconf.texi (Prerequisite macros): Fix typo.
+
+2009-08-10  Paolo Bonzini  <bonzini@gnu.org>
+
+	Fix description of the macro generated by AC_CHECK_MEMBERS.
+	* lib/autoconf/types.m4 (_AC_CHECK_MEMBERS): Fix regex
+	replacement.  Reported by Bruno Haible.
+
+2009-08-07  Romain Lenglet  <romain.lenglet@laposte.net>
+
+	* lib/autoconf/erlang.m4 (AC_LANG(Erlang)): Make AC_RUN_IFELSE
+	fail if the test module doesn't compile.
+
+2009-08-02  Paolo Bonzini  <bonzini@gnu.org>
+
+	Use exit code to detect no occurrences with grep.
+	* tests/autotest.at (Erlang Eunit unit tests): Fix grep invocation.
+
+2009-08-01  Romain Lenglet  <romain.lenglet@laposte.net>
+	    Paolo Bonzini  <bonzini@gnu.org>
+
+	* lib/autotest/specific.m4 (AT_CHECK_EUNIT): New file.
+	* lib/autotest/Makefile.am (dist_autotestlib_DATA): Add specific.m4.
+	* lib/autoconf/autotest.m4 (AC_CONFIG_TESTDIR): Add definitions of
+	variables used by AT_CHECK_EUNIT macro: ERL, ERLC, ERLCFLAGS.
+	* tests/autotest.at (Erlang Eunit unit tests): Add test for macro
+	AT_CHECK_EUNIT.
+	* doc/autoconf.texi (Writing Testsuites): Document macro
+	AT_CHECK_EUNIT.
+	* NEWS: Mention macro AT_CHECK_EUNIT.
+
+2009-07-30  Paolo Bonzini  <bonzini@gnu.org>
+	    Joel E. Denny  <jdenny@clemson.edu>
+
+	Clarify comparison of echo, printf, and AS_ECHO*.
+	* doc/autoconf.texi (Limitations of Builtins): In echo's entry,
+	give a reason why printf is better than echo.  In printf's
+	entry, cross-reference echo's entry.
+
+2009-07-30  Paolo Bonzini  <bonzini@gnu.org>
+
+	Add back AH_CHECK_HEADERS.
+	* lib/autoconf/general.m4 (AH_CHECK_HEADERS): New.
+	* NEWS: Create new section.
+
+2009-07-29  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	testsuite: avoid bogus hostname match from inner test logs.
+	* tests/autotest.at (Hard fail): Check more restrictively for
+	passed tests, so that hostnames recorded in the log file do not
+	wrongly match.
+	Report by Ludovic Courtès.
+
 2009-07-26  Eric Blake  <ebb9@byu.net>
 
 	Release Version 2.64.
@@ -19853,8 +20606,8 @@
 	coding: utf-8
 	End:
 
-	Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
-	Free Software Foundation, Inc.
+	Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+	2009 Free Software Foundation, Inc.
 
 	This program is free software: you can redistribute it and/or
 	modify it under the terms of the GNU General Public License as

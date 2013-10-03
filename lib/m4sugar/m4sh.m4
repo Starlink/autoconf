@@ -4,49 +4,27 @@
 #
 # Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
 # 2009 Free Software Foundation, Inc.
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2, or (at your option)
-# any later version.
+
+# This file is part of Autoconf.  This program is free
+# software; you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
+# Under Section 7 of GPL version 3, you are granted additional
+# permissions described in the Autoconf Configure Script Exception,
+# version 3.0, as published by the Free Software Foundation.
+#
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA.
-#
-# As a special exception, the Free Software Foundation gives unlimited
-# permission to copy, distribute and modify the configure scripts that
-# are the output of Autoconf.  You need not follow the terms of the GNU
-# General Public License when using or distributing such scripts, even
-# though portions of the text of Autoconf appear in them.  The GNU
-# General Public License (GPL) does govern all other use of the material
-# that constitutes the Autoconf program.
-#
-# Certain portions of the Autoconf source text are designed to be copied
-# (in certain cases, depending on the input) into the output of
-# Autoconf.  We call these the "data" portions.  The rest of the Autoconf
-# source text consists of comments plus executable code that decides which
-# of the data portions to output in any given case.  We call these
-# comments and executable code the "non-data" portions.  Autoconf never
-# copies any of the non-data portions into its output.
-#
-# This special exception to the GPL applies to versions of Autoconf
-# released by the Free Software Foundation.  When you make and
-# distribute a modified version of Autoconf, you may extend this special
-# exception to the GPL to apply to your modified version as well, *unless*
-# your modified version has the potential to copy into its output some
-# of the text that was the non-data portion of the version that you started
-# with.  (In other words, unless your change moves or copies text from
-# the non-data portions to the data portions.)  If your modification has
-# such potential, you must delete any notice of this special exception
-# to the GPL from your modified version.
-#
+# and a copy of the Autoconf Configure Script Exception along with
+# this program; see the files COPYINGv3 and COPYING.EXCEPTION
+# respectively.  If not, see <http://www.gnu.org/licenses/>.
+
 # Written by Akim Demaille, Pavel Roskin, Alexandre Oliva, Lars J. Aas
 # and many other people.
 
@@ -1529,15 +1507,15 @@ m4_define([AS_HELP_STRING],
 # we worry if the first character also matches m4_cr_symbol1 (ie. does not
 # match m4_cr_digit).
 m4_define([AS_IDENTIFIER_IF],
-[m4_if(m4_index([$1], [@]), [-1],
-       [_$0($@)],
-       [_$0(m4_bpatsubst([[$1]], [@&t@]), [$2], [$3])])])
+[m4_if(_$0(m4_if(m4_index([$1], [@]), [-1],
+  [[$1]], [m4_bpatsubst([[$1]], [@&t@])])), [-], [$2], [$3])])
+
 m4_define([_AS_IDENTIFIER_IF],
-[m4_cond([[$1]], [], [$3],
+[m4_cond([[$1]], [], [],
 	 [m4_eval(m4_len(m4_translit([[$1]], ]]dnl
-m4_dquote(m4_dquote(m4_defn([m4_cr_symbols2])))[[)) > 0)], [1], [$3],
+m4_dquote(m4_dquote(m4_defn([m4_cr_symbols2])))[[)) > 0)], [1], [],
 	 [m4_len(m4_translit(m4_format([[%.1s]], [$1]), ]]dnl
-m4_dquote(m4_dquote(m4_defn([m4_cr_symbols1])))[[))], [0], [$2], [$3])])
+m4_dquote(m4_dquote(m4_defn([m4_cr_symbols1])))[[))], [0], [-])])
 
 
 # AS_LITERAL_IF(EXPRESSION, IF-LITERAL, IF-NOT-LITERAL)
@@ -1559,20 +1537,20 @@ m4_dquote(m4_dquote(m4_defn([m4_cr_symbols1])))[[))], [0], [$2], [$3])])
 # profiling shows that it is faster to use m4_translit.
 #
 # Because the translit is stripping quotes, it must also neutralize anything
-# that might be in a macro name, as well as comments and commas.  All the
-# problem characters are unified so that a single m4_index can scan the
-# result.
+# that might be in a macro name, as well as comments, commas, or unbalanced
+# parentheses.  All the problem characters are unified so that a single
+# m4_index can scan the result.
 #
 # Rather than expand m4_defn every time AS_LITERAL_IF is expanded, we
 # inline its expansion up front.
 m4_define([AS_LITERAL_IF],
-[m4_cond([m4_eval(m4_index(m4_quote($1), [@S|@]) == -1)], [0], [$3],
-	 [m4_index(m4_translit(m4_quote($1),
-			       [[]`,#]]]dnl
-m4_dquote(m4_dquote(m4_defn([m4_cr_symbols2])))[[,
-			       [$$$]),
-		   [$])], [-1], [$2],
-	 [$3])])
+[_$0(m4_expand([$1]), [$2], [$3])])
+
+m4_define([_AS_LITERAL_IF],
+[m4_if(m4_cond([m4_eval(m4_index([$1], [@S|@]) == -1)], [0], [],
+  [m4_index(m4_translit([$1], [[]`,#()]]]dnl
+m4_dquote(m4_dquote(m4_defn([m4_cr_symbols2])))[[, [$$$]), [$])],
+  [-1], [-]), [-], [$2], [$3])])
 
 
 # AS_TMPDIR(PREFIX, [DIRECTORY = $TMPDIR [= /tmp]])
@@ -1758,13 +1736,18 @@ as_tr_sh="eval sed 'y%*+%pp%;s%[[^_$as_cr_alnum]]%_%g'"
 # For speed, we inline the literal definitions that can be computed up front.
 m4_defun_init([AS_TR_SH],
 [AS_REQUIRE([_$0_PREPARE])],
-[AS_LITERAL_IF([$1],
-	      [m4_translit([$1], [*+[]]]]dnl
-m4_dquote(m4_dquote(m4_defn([m4_cr_not_symbols2])))[[,
-				 [pp[]]]]dnl
-m4_dquote(m4_dquote(m4_for(,1,255,,[[_]])))[[)],
-  [`AS_ECHO(["_AS_ESCAPE(m4_dquote(m4_expand([$1])),
-    [`], [\])"]) | $as_tr_sh`])])
+[_$0(m4_expand([$1]))])
+
+m4_define([_AS_TR_SH],
+[_AS_LITERAL_IF([$1], [$0_LITERAL], [$0_INDIR])([$1])])
+
+m4_define([_AS_TR_SH_LITERAL],
+[m4_translit([[$1]],
+  [*+[]]]m4_dquote(m4_defn([m4_cr_not_symbols2]))[,
+  [pp[]]]m4_dquote(m4_for(,1,255,,[[_]]))[)])
+
+m4_define([_AS_TR_SH_INDIR],
+[`AS_ECHO(["_AS_ESCAPE([[$1]], [`], [\])"]) | $as_tr_sh`])
 
 
 # _AS_TR_CPP_PREPARE
@@ -1785,12 +1768,18 @@ as_tr_cpp="eval sed 'y%*$as_cr_letters%P$as_cr_LETTERS%;s%[[^_$as_cr_alnum]]%_%g
 # See implementation comments in AS_TR_SH.
 m4_defun_init([AS_TR_CPP],
 [AS_REQUIRE([_$0_PREPARE])],
-[AS_LITERAL_IF([$1],
-	      [m4_translit([$1], [*[]]]]dnl
-m4_dquote(m4_dquote(m4_defn([m4_cr_letters])m4_defn([m4_cr_not_symbols2])))[[,
-				 [P[]]]]dnl
-m4_dquote(m4_dquote(m4_defn([m4_cr_LETTERS])m4_for(,1,255,,[[_]])))[[)],
-	      [`AS_ECHO(["$1"]) | $as_tr_cpp`])])
+[_$0(m4_expand([$1]))])
+
+m4_define([_AS_TR_CPP],
+[_AS_LITERAL_IF([$1], [$0_LITERAL], [$0_INDIR])([$1])])
+
+m4_define([_AS_TR_CPP_LITERAL],
+[m4_translit([$1],
+  [*[]]]m4_dquote(m4_defn([m4_cr_letters])m4_defn([m4_cr_not_symbols2]))[,
+  [P[]]]m4_dquote(m4_defn([m4_cr_LETTERS])m4_for(,1,255,,[[_]]))[)])
+
+m4_define([_AS_TR_CPP_INDIR],
+[`AS_ECHO(["$1"]) | $as_tr_cpp`])
 
 
 # _AS_TR_PREPARE
@@ -1931,9 +1920,9 @@ m4_define([AS_VAR_GET],
 # Polymorphic, and avoids sh expansion error upon interrupt or term signal.
 m4_define([AS_VAR_IF],
 [AS_LITERAL_IF([$1],
-  [AS_IF([test "x$$1" = x""$2], [$3], [$4])],
+  [AS_IF([test "x$$1" = x""$2]],
   [AS_VAR_COPY([as_val], [$1])
-   AS_IF([test "x$as_val" = x""$2], [$3], [$4])])])
+   AS_IF([test "x$as_val" = x""$2]]), [$3], [$4])])
 
 
 # AS_VAR_PUSHDEF and AS_VAR_POPDEF
@@ -1981,9 +1970,12 @@ m4_define([AS_VAR_POPDEF],
 # don't work.  Therefore, we must require the preparation ourselves.
 m4_defun_init([AS_VAR_PUSHDEF],
 [AS_REQUIRE([_AS_TR_SH_PREPARE])],
-[AS_LITERAL_IF([$2],
-	       [m4_pushdef([$1], [AS_TR_SH($2)])],
-	       [as_$1=AS_TR_SH($2)
+[_$0([$1], m4_expand([$2]))])
+
+m4_define([_AS_VAR_PUSHDEF],
+[_AS_LITERAL_IF([$2],
+		[m4_pushdef([$1], [_AS_TR_SH_LITERAL([$2])])],
+		[as_$1=_AS_TR_SH_INDIR([$2])
 m4_pushdef([$1], [$as_[$1]])])])
 
 

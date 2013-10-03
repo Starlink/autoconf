@@ -26,15 +26,8 @@ _autoreconf = autoreconf -i -v && rm -f INSTALL
 # Version management.
 announce_gen   = $(srcdir)/build-aux/announce-gen
 
-# Use alpha.gnu.org for alpha and beta releases.
-# Use ftp.gnu.org for major releases.
-gnu_ftp_host-alpha = alpha.gnu.org
-gnu_ftp_host-beta = alpha.gnu.org
-gnu_ftp_host-major = ftp.gnu.org
-gnu_rel_host = $(gnu_ftp_host-$(RELEASE_TYPE))
-
-url_dir_list = \
-  ftp://$(gnu_rel_host)/gnu/autoconf
+# Used in maint.mk's web-manual rule
+manual_title = Creating Automatic Configuration Scripts
 
 # The GnuPG ID of the key used to sign the tarballs.
 gpg_key_ID = F4850180
@@ -59,8 +52,9 @@ gnulib-update:
 	cp $(gnulib_dir)/build-aux/mdate-sh $(srcdir)/build-aux
 	cp $(gnulib_dir)/build-aux/missing $(srcdir)/build-aux
 	cp $(gnulib_dir)/build-aux/move-if-change $(srcdir)/build-aux
-	cp $(gnulib_dir)/build-aux/vc-list-files $(srcdir)/build-aux
 	cp $(gnulib_dir)/build-aux/texinfo.tex $(srcdir)/build-aux
+	cp $(gnulib_dir)/build-aux/update-copyright $(srcdir)/build-aux
+	cp $(gnulib_dir)/build-aux/vc-list-files $(srcdir)/build-aux
 	cp $(gnulib_dir)/doc/fdl.texi $(srcdir)/doc
 	cp $(gnulib_dir)/doc/gendocs_template $(srcdir)/doc
 	cp $(gnulib_dir)/doc/gnu-oids.texi $(srcdir)/doc
@@ -97,18 +91,10 @@ autom4te-update:
 	  $(move_if_change) Fetchdir/$$file $(srcdir)/lib/$$file || exit; \
 	done
 	rm -fr Fetchdir > /dev/null 2>&1
-	@echo
-	@echo "Please avoid committing copyright changes until GPLv3 is sorted"
-	@echo
 
 # Tests not to run.
 local-checks-to-skip ?= \
   changelog-check sc_unmarked_diagnostics
 
-.PHONY: web-manual
-web-manual:
-	@cd $(srcdir)/doc ; \
-	  $(SHELL) ../build-aux/gendocs.sh -o '$(abs_builddir)/doc/manual' \
-	    --email $(PACKAGE_BUGREPORT) $(PACKAGE) \
-	    "$(PACKAGE_NAME) - Creating Automatic Configuration Scripts"
-	@echo " *** Upload the doc/manual directory to web-cvs."
+# Always use longhand copyrights.
+update-copyright-env = UPDATE_COPYRIGHT_USE_INTERVALS=0

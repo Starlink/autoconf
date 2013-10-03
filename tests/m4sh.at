@@ -7,8 +7,8 @@ AT_BANNER([M4sh.])
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2, or (at your option)
-# any later version.
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,9 +16,7 @@ AT_BANNER([M4sh.])
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA.
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ## ---------------- ##
 ## LINENO support.  ##
@@ -1043,13 +1041,13 @@ AT_DATA_M4SH([script.as], [[dnl
 AS_INIT
 echo AS_LITERAL_IF([lit], [ok], [ERR]) 1
 echo AS_LITERAL_IF([l$it], [ERR], [ok]) 2
-echo AS_LITERAL_IF([l``it], [ERR], [ok]) 3
+echo AS_LITERAL_IF([l`case a in b) ;; esac`it], [ERR], [ok]) 3
 m4_define([mac], [lit])
 echo AS_LITERAL_IF([mac], [ok], [ERR]) 4
 echo AS_LITERAL_IF([mac($, ``)], [ok], [ERR]) 5
 m4_define([mac], [l$it])
 echo AS_LITERAL_IF([mac], [ERR], [ok]) 6
-m4_define([mac], [l`it])
+m4_define([mac], [l``it])
 echo AS_LITERAL_IF([mac], [ERR], [ok]) 7
 ]])
 

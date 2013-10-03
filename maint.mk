@@ -2,7 +2,8 @@
 # This Makefile fragment tries to be general-purpose enough to be
 # used by at least coreutils, idutils, CPPI, Bison, and Autoconf.
 
-## Copyright (C) 2001-2009 Free Software Foundation, Inc.
+## Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+## Free Software Foundation, Inc.
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -21,6 +22,9 @@
 # ME := $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 ME := maint.mk
 
+# Override this in cfg.mk if you use a non-standard build-aux directory.
+build_aux ?= $(srcdir)/build-aux
+
 # Do not save the original name or timestamp in the .tar.gz file.
 # Use --rsyncable if available.
 gzip_rsyncable := \
@@ -31,7 +35,7 @@ GIT = git
 VC = $(GIT)
 VC-tag = git tag -s -m '$(VERSION)'
 
-VC_LIST = $(srcdir)/build-aux/vc-list-files -C $(srcdir)
+VC_LIST = $(build_aux)/vc-list-files -C $(srcdir)
 
 VC_LIST_EXCEPT = \
   $(VC_LIST) | if test -f $(srcdir)/.x-$@; then	\
@@ -54,6 +58,20 @@ my_distdir = $(PACKAGE)-$(VERSION)
 # Old releases are stored here.
 # Used for diffs.
 release_archive_dir ?= ../release
+
+# Override gnu_rel_host and url_dir_list in cfg.mk if these are not right.
+# Use alpha.gnu.org for alpha and beta releases.
+# Use ftp.gnu.org for stable releases.
+gnu_ftp_host-alpha = alpha.gnu.org
+gnu_ftp_host-beta = alpha.gnu.org
+gnu_ftp_host-stable = ftp.gnu.org
+gnu_rel_host ?= $(gnu_ftp_host-$(RELEASE_TYPE))
+
+ifeq ($(gnu_rel_host),ftp.gnu.org)
+url_dir_list ?= http://ftpmirror.gnu.org/$(PACKAGE)
+else
+url_dir_list ?= ftp://$(gnu_rel_host)/gnu/$(PACKAGE)
+endif
 
 # Prevent programs like 'sort' from considering distinct strings to be equal.
 # Doing it here saves us from having to set LC_ALL elsewhere in this file.
@@ -552,16 +570,16 @@ move_if_change ?= move-if-change
 emit_upload_commands:
 	@echo =====================================
 	@echo =====================================
-	@echo "$(srcdir)/build-aux/gnupload $(GNUPLOADFLAGS) \\"
+	@echo "$(build_aux)/gnupload $(GNUPLOADFLAGS) \\"
 	@echo "    --to $(gnu_rel_host):$(PACKAGE) \\"
 	@echo "  $(rel-files)"
 	@echo '# send the /tmp/announcement e-mail'
 	@echo =====================================
 	@echo =====================================
 
-.PHONY: alpha beta major
-alpha beta major: news-date-check changelog-check $(local-check)
-	test $@ = major						\
+.PHONY: alpha beta stable
+alpha beta stable: news-date-check changelog-check $(local-check)
+	test $@ = stable						\
 	  && { echo $(VERSION) | grep -E '^[0-9]+(\.[0-9]+)+$$'	\
 	       || { echo "invalid version string: $(VERSION)" 1>&2; exit 1;};}\
 	  || :
@@ -575,3 +593,31 @@ alpha beta major: news-date-check changelog-check $(local-check)
 	$(VC) commit -m \
 	  '$(prev_version_file): Record previous version: $(VERSION).' \
 	  $(prev_version_file)
+
+
+.PHONY: web-manual
+web-manual:
+	@test -z "$(manual_title)" \
+	  && { echo define manual_title in cfg.mk 1>&2; exit 1; } || :
+	@cd '$(srcdir)/doc'; \
+	  $(SHELL) ../build-aux/gendocs.sh -o '$(abs_builddir)/doc/manual' \
+	     --email $(PACKAGE_BUGREPORT) $(PACKAGE) \
+	    "$(PACKAGE_NAME) - $(manual_title)"
+	@echo " *** Upload the doc/manual directory to web-cvs."
+
+# If you want to set UPDATE_COPYRIGHT_* environment variables,
+# put the assignments in this variable.
+update-copyright-env ?=
+
+# Run this rule once per year (usually early in January)
+# to update all FSF copyright year lists in your project.
+# If you have an additional project-specific rule,
+# add it in cfg.mk along with a line 'update-copyright: prereq'.
+# By default, exclude all variants of COPYING; you can also
+# add exemptions (such as ChangeLog..* for rotated change logs)
+# in the file .x-update-copyright.
+.PHONY: update-copyright
+update-copyright:
+	grep -l -w Copyright $$($(VC_LIST_EXCEPT))		\
+		$(srcdir)/ChangeLog | grep -v COPYING		\
+	  | $(update-copyright-env) xargs $(build_aux)/$@

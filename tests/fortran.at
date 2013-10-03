@@ -2,12 +2,13 @@
 
 AT_BANNER([Fortran low level compiling/preprocessing macros.])
 
-# Copyright (C) 2000, 2001, 2003, 2008 Free Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2003, 2008, 2009 Free Software Foundation,
+# Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2, or (at your option)
-# any later version.
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,10 +16,7 @@ AT_BANNER([Fortran low level compiling/preprocessing macros.])
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA.
-
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Since the macros which compile are required by most tests, check
 # them first.  But remember that looking for a compiler is even more
@@ -75,3 +73,83 @@ if test "$ac_compiler_gnu" = yes; then
   esac
 fi
 ]])
+
+
+## ------------------------- ##
+## AC_OPENMP and Fortran 77. ##
+## ------------------------- ##
+
+AT_SETUP([AC_OPENMP and Fortran 77])
+
+AT_DATA([configure.ac],
+[[AC_INIT
+AC_PROG_F77
+AC_LANG([Fortran 77])
+AC_OPENMP
+if test "X$ac_cv_prog_f77_openmp" = Xunsupported; then
+  AS_EXIT([77])
+fi
+FFLAGS="$FFLAGS $OPENMP_FFLAGS"
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+]])
+
+AT_DATA([Makefile.in],
+[[foo@EXEEXT@: foo.@OBJEXT@
+	@F77@ @FFLAGS@ @LDFLAGS@ -o $@ foo.@OBJEXT@
+
+foo.@OBJEXT@: foo.f
+	@F77@ @FFLAGS@ -c foo.f
+]])
+
+AT_DATA([foo.f],
+[[       program main
+      end
+]])
+
+: ${MAKE=make}
+AT_CHECK([env ACLOCAL=true autoreconf -vi], [], [ignore], [ignore])
+AT_CHECK([./configure $configure_options], [], [ignore], [ignore])
+AT_CHECK([$MAKE], [], [ignore], [ignore])
+
+AT_CLEANUP
+
+
+## ---------------------- ##
+## AC_OPENMP and Fortran. ##
+## ---------------------- ##
+
+AT_SETUP([AC_OPENMP and Fortran])
+
+AT_DATA([configure.ac],
+[[AC_INIT
+AC_PROG_FC
+AC_LANG([Fortran])
+AC_OPENMP
+if test "X$ac_cv_prog_fc_openmp" = Xunsupported; then
+  AS_EXIT([77])
+fi
+FCFLAGS="$FCFLAGS $OPENMP_FCFLAGS"
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+]])
+
+AT_DATA([Makefile.in],
+[[foo@EXEEXT@: foo.@OBJEXT@
+	@FC@ @FCFLAGS@ @LDFLAGS@ -o $@ foo.@OBJEXT@
+
+foo.@OBJEXT@: foo.f
+	@FC@ @FCFLAGS@ -c foo.f
+]])
+
+AT_DATA([foo.f],
+[[      program main
+      end
+]])
+
+: ${MAKE=make}
+AT_CHECK([env ACLOCAL=true autoreconf -vi], [], [ignore], [ignore])
+AT_CHECK([./configure $configure_options], [], [ignore], [ignore])
+AT_CHECK([$MAKE], [], [ignore], [ignore])
+
+AT_CLEANUP

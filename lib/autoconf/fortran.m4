@@ -1,50 +1,28 @@
 # This file is part of Autoconf.                       -*- Autoconf -*-
 # Fortran languages support.
-# Copyright (C) 2001, 2003, 2004, 2005, 2006, 2007, 2008, 2009
-# Free Software Foundation, Inc.
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2, or (at your option)
-# any later version.
+# Copyright (C) 2001, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free
+# Software Foundation, Inc.
+
+# This file is part of Autoconf.  This program is free
+# software; you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
+# Under Section 7 of GPL version 3, you are granted additional
+# permissions described in the Autoconf Configure Script Exception,
+# version 3.0, as published by the Free Software Foundation.
+#
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA.
-#
-# As a special exception, the Free Software Foundation gives unlimited
-# permission to copy, distribute and modify the configure scripts that
-# are the output of Autoconf.  You need not follow the terms of the GNU
-# General Public License when using or distributing such scripts, even
-# though portions of the text of Autoconf appear in them.  The GNU
-# General Public License (GPL) does govern all other use of the material
-# that constitutes the Autoconf program.
-#
-# Certain portions of the Autoconf source text are designed to be copied
-# (in certain cases, depending on the input) into the output of
-# Autoconf.  We call these the "data" portions.  The rest of the Autoconf
-# source text consists of comments plus executable code that decides which
-# of the data portions to output in any given case.  We call these
-# comments and executable code the "non-data" portions.  Autoconf never
-# copies any of the non-data portions into its output.
-#
-# This special exception to the GPL applies to versions of Autoconf
-# released by the Free Software Foundation.  When you make and
-# distribute a modified version of Autoconf, you may extend this special
-# exception to the GPL to apply to your modified version as well, *unless*
-# your modified version has the potential to copy into its output some
-# of the text that was the non-data portion of the version that you started
-# with.  (In other words, unless your change moves or copies text from
-# the non-data portions to the data portions.)  If your modification has
-# such potential, you must delete any notice of this special exception
-# to the GPL from your modified version.
-#
+# and a copy of the Autoconf Configure Script Exception along with
+# this program; see the files COPYINGv3 and COPYING.EXCEPTION
+# respectively.  If not, see <http://www.gnu.org/licenses/>.
+
 # Written by David MacKenzie, with help from
 # Franc,ois Pinard, Karl Berry, Richard Pixley, Ian Lance Taylor,
 # Roland McGrath, Noah Friedman, david d zuhn, and many others.
@@ -162,7 +140,7 @@ fi[]dnl
 
 # AC_LANG(Fortran 77)
 # -------------------
-AC_LANG_DEFINE([Fortran 77], [f77], [F], [],
+AC_LANG_DEFINE([Fortran 77], [f77], [F], [F77], [],
 [ac_ext=f
 ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&AS_MESSAGE_LOG_FD'
 ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&AS_MESSAGE_LOG_FD'
@@ -229,6 +207,11 @@ m4_define([AC_LANG_CALL(Fortran 77)],
 [      call $2])])
 
 
+# AC_LANG_FUNC_LINK_TRY(Fortran 77)(FUNCTION)
+# -------------------------------------------
+m4_define([AC_LANG_FUNC_LINK_TRY(Fortran 77)],
+[AC_LANG_PROGRAM([],
+[      call $1])])
 
 ## ------------------------ ##
 ## 1b. Language selection.  ##
@@ -237,7 +220,7 @@ m4_define([AC_LANG_CALL(Fortran 77)],
 
 # AC_LANG(Fortran)
 # ----------------
-AC_LANG_DEFINE([Fortran], [fc], [FC], [Fortran 77],
+AC_LANG_DEFINE([Fortran], [fc], [FC], [FC], [Fortran 77],
 [ac_ext=${ac_fc_srcext-f}
 ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&AS_MESSAGE_LOG_FD'
 ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&AS_MESSAGE_LOG_FD'
@@ -1200,11 +1183,12 @@ for ac_flag in none -ffree-form -FR -free -qfree -Mfree -Mfreeform \
 	       -freeform "-f free"
 do
   test "x$ac_flag" != xnone && FCFLAGS="$ac_fc_freeform_FCFLAGS_save $ac_flag"
+dnl Use @&t@ below to ensure that editors don't turn 8+ spaces into tab.
   AC_COMPILE_IFELSE([
   program freeform
        ! FIXME: how to best confuse non-freeform compilers?
        print *, 'Hello ', &
-	   'world.'
+     @&t@     'world.'
        end],
 		    [ac_cv_fc_freeform=$ac_flag; break])
 done

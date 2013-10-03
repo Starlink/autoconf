@@ -6,7 +6,7 @@ START-INFO-DIR-ENTRY
 * Standards: (standards).       GNU coding standards.
 END-INFO-DIR-ENTRY
 
-   The GNU coding standards, last updated June 7, 2009.
+   The GNU coding standards, last updated September 14, 2009.
 
    Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software
@@ -25,7 +25,7 @@ File: standards.info,  Node: Top,  Next: Preface,  Prev: (dir),  Up: (dir)
 Version
 *******
 
-The GNU coding standards, last updated June 7, 2009.
+The GNU coding standards, last updated September 14, 2009.
 
    Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software
@@ -65,8 +65,8 @@ programs written in C, but many of the rules and principles are useful
 even if you write in another programming language.  The rules often
 state reasons for writing in a certain way.
 
-   This release of the GNU Coding Standards was last updated June 7,
-2009.
+   This release of the GNU Coding Standards was last updated September
+14, 2009.
 
    If you did not obtain this file directly from the GNU project and
 recently, please check for a newer version.  You can get the GNU Coding
@@ -3733,7 +3733,7 @@ them:
      is preferable to setting them in environment variables:
           CC=gcc ./configure
      as it helps to recreate the same configuration later with
-     `config.status'.
+     `config.status'.  However, both methods should be supported.
 
    All `configure' scripts should accept all of the "detail" options
 and the variable settings, whether or not they make any difference to
@@ -5654,74 +5654,74 @@ Index
 
 
 Tag Table:
-Node: Top805
-Node: Preface2072
-Node: Legal Issues4186
-Node: Reading Non-Free Code4656
-Node: Contributions6386
-Node: Trademarks8624
-Node: Design Advice10259
-Node: Source Language10851
-Node: Compatibility12977
-Node: Using Extensions14605
-Node: Standard C16181
-Node: Conditional Compilation18584
-Node: Program Behavior19982
-Node: Non-GNU Standards21098
-Node: Semantics23379
-Node: Libraries28098
-Node: Errors29343
-Node: User Interfaces31836
-Node: Graphical Interfaces33441
-Node: Command-Line Interfaces34477
-Node: --version36509
-Node: --help42410
-Node: Option Table43283
-Node: OID Allocations58238
-Node: Memory Usage59999
-Node: File Usage61035
-Node: Writing C61785
-Node: Formatting62757
-Node: Comments67046
-Node: Syntactic Conventions70598
-Node: Names74060
-Node: System Portability76272
-Node: CPU Portability79163
-Node: System Functions83064
-Node: Internationalization88261
-Node: Character Set92255
-Node: Quote Characters93068
-Node: Mmap94588
-Node: Documentation95296
-Node: GNU Manuals96402
-Node: Doc Strings and Manuals102140
-Node: Manual Structure Details103693
-Node: License for Manuals105111
-Node: Manual Credits106085
-Node: Printed Manuals106478
-Node: NEWS File107164
-Node: Change Logs107842
-Node: Change Log Concepts108596
-Node: Style of Change Logs110685
-Node: Simple Changes113185
-Node: Conditional Changes114627
-Node: Indicating the Part Changed116049
-Node: Man Pages116576
-Node: Reading other Manuals118782
-Node: Managing Releases119573
-Node: Configuration120354
-Node: Makefile Conventions128975
-Node: Makefile Basics129974
-Node: Utilities in Makefiles133148
-Node: Command Variables135646
-Node: DESTDIR138892
-Node: Directory Variables141066
-Node: Standard Targets155559
-Ref: Standard Targets-Footnote-1169172
-Node: Install Command Categories169272
-Node: Releases173805
-Node: References177735
-Node: GNU Free Documentation License183582
-Node: Index208749
+Node: Top811
+Node: Preface2084
+Node: Legal Issues4204
+Node: Reading Non-Free Code4674
+Node: Contributions6404
+Node: Trademarks8642
+Node: Design Advice10277
+Node: Source Language10869
+Node: Compatibility12995
+Node: Using Extensions14623
+Node: Standard C16199
+Node: Conditional Compilation18602
+Node: Program Behavior20000
+Node: Non-GNU Standards21116
+Node: Semantics23397
+Node: Libraries28116
+Node: Errors29361
+Node: User Interfaces31854
+Node: Graphical Interfaces33459
+Node: Command-Line Interfaces34495
+Node: --version36527
+Node: --help42428
+Node: Option Table43301
+Node: OID Allocations58256
+Node: Memory Usage60017
+Node: File Usage61053
+Node: Writing C61803
+Node: Formatting62775
+Node: Comments67064
+Node: Syntactic Conventions70616
+Node: Names74078
+Node: System Portability76290
+Node: CPU Portability79181
+Node: System Functions83082
+Node: Internationalization88279
+Node: Character Set92273
+Node: Quote Characters93086
+Node: Mmap94606
+Node: Documentation95314
+Node: GNU Manuals96420
+Node: Doc Strings and Manuals102158
+Node: Manual Structure Details103711
+Node: License for Manuals105129
+Node: Manual Credits106103
+Node: Printed Manuals106496
+Node: NEWS File107182
+Node: Change Logs107860
+Node: Change Log Concepts108614
+Node: Style of Change Logs110703
+Node: Simple Changes113203
+Node: Conditional Changes114645
+Node: Indicating the Part Changed116067
+Node: Man Pages116594
+Node: Reading other Manuals118800
+Node: Managing Releases119591
+Node: Configuration120372
+Node: Makefile Conventions129037
+Node: Makefile Basics130036
+Node: Utilities in Makefiles133210
+Node: Command Variables135708
+Node: DESTDIR138954
+Node: Directory Variables141128
+Node: Standard Targets155621
+Ref: Standard Targets-Footnote-1169234
+Node: Install Command Categories169334
+Node: Releases173867
+Node: References177797
+Node: GNU Free Documentation License183644
+Node: Index208811
 
 End Tag Table

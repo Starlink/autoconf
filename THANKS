@@ -24,7 +24,9 @@ Alexandre Duret-Lutz        duret_g@epita.fr
 Alexandre Julliard          ?
 Alexandre Oliva             oliva@lsd.ic.unicamp.br
 Alfred G. de Wijn           dwijn@iluvatar.eu.org
+Alfred M. Szmidt            ams@gnu.org
 Allan Caffee                allan.caffee@gmail.com
+Allan Clark                 allanc@chickenandporn.com
 Andreas Buening             andreas.buening@nexgo.de
 Andreas Jaeger              aj@suse.de
 Andreas Schott              schott@rzg.mpg.de
@@ -41,6 +43,7 @@ Arto C. Nirkko              ?
 Artur Frysiak               wiget@pld.org.pl
 Assar Westerlund            assar@sics.se
 Axel Thimm                  Axel.Thimm@physik.fu-berlin.de
+Bart Oldeman                bartoldeman@users.sourceforge.net
 Ben Elliston                bje@redhat.com
 Ben Pfaff                   pfaffben@debian.org
 Bill Moseley                moseley@hank.org
@@ -76,6 +79,7 @@ Christian Rössel            christian.roessel@gmx.de
 Christopher Hulbert         cchgroupmail@gmail.com
 Christopher Lee             chrislee@ri.cmu.edu
 Clinton Roy                 clinton.roy@gmail.com
+Corinna Vinschen            corinna-cygwin@cygwin.com
 Cort Dougan                 cort@cs.nmt.edu
 D'Arcy A MacIsaac           ?
 Dalibor Topic               robilad@kaffe.org
@@ -86,6 +90,7 @@ Daniel Reed                 ?
 Daniele Arena               daniele@ripe.net
 Dave Adams                  adams@hpesdwa.fc.hp.com
 Dave Erickson               retrorandomaccess@hotmail.com
+Dave Korn                   dave.korn.cygwin@googlemail.com
 Dave Love                   fx@gnu.org
 David Byron                 dbyron@hheld.com
 David Carter                david@carter.net
@@ -260,10 +265,12 @@ Momchil Velkov              velco@fadata.bg
 Monty Taylor                mordred@inaugust.com
 Morten Eriksen              mortene@sim.no
 Motoyuki Kasahara           m-kasahr@sra.co.jp
+Nathan Schulte              reklipz@gmail.com
 Nathanael Nerode            neroden@gcc.gnu.org
 Nelson H. F. Beebe          beebe@math.utah.edu
 Nicolas Joly                njoly@pasteur.fr
 Nicolás Lichtmaier          jnl@synapsis-sa.com.ar
+NightStrike                 nightstrike@gmail.com
 Nishio Futoshi              fut_nis@d3.dion.ne.jp
 Noah Elliott                elliott@hera.llnl.gov
 Noah Friedman               friedman@gnu.ai.mit.edu
@@ -291,6 +298,7 @@ Per Øyvind Karlsen          peroyvind@mandriva.org
 Peter Breitenlohner         peb@mppmu.mpg.de
 Peter Eisentraut            peter_e@gmx.net
 Peter Hendrickson           pdh@wiredyne.com
+Peter Johansson             trojkan@gmail.com
 Peter O'Gorman              peter@pogma.com
 Peter Palfrader             weasel@debian.org
 Peter Simons                simons@cryp.to
@@ -317,14 +325,17 @@ Rolf Ebert                  rolf.ebert.gcc@gmx.de
 Rolf Vandevaart             Rolf.Vandevaart@sun.com
 Romain Lenglet              romain.lenglet@laposte.net
 Ruediger Kuhlmann           info@ruediger-kuhlmann.de
+Rugxulo                     rugxulo@gmail.com
 Ruslan Babayev              ruslan@babayev.com
 Russ Allbery                rra@stanford.edu
 Russ Boylan                 ross@biostat.ucsf.edu
 Ryuji Abe                   raeva@t3.rim.or.jp
 Sam Sexton                  Sam.Sexton@reuters.com
 Sam Sirlin                  sam@kalessin.jpl.nasa.gov
+Sam Steingold               sds@gnu.org
 Sam Varshavchik             mrsam@courier-mta.com
 Sander Niemeijer            niemeijer@science-and-technology.nl
+santilín                    listas@gestiong.org
 Scott Bambrough             scottb@corelcomputer.com
 Scott Stanton               stanton@scriptics.com
 Sebastian Freundt           hroptatyr@gna.org
@@ -334,6 +345,7 @@ Simon Leinen                simon@lia.di.epfl.ch
 Slava Sysoltsev             Viatcheslav.Sysoltsev@h-d-gmbh.de
 Stefan Seefeld              stefan@codesourcery.com
 Stefan `Sec' Zehl           ?
+Stefano Lattarini           stefano.lattarini@gmail.com
 Stepan Kasal                kasal@ucw.cz
 Stéphane Chazelas           Stephane_Chazelas@yahoo.fr
 Stephen Gildea              filtered@against.spam
@@ -351,6 +363,7 @@ T.E. Dickey                 dickey@clark.net
 Ted Bullock                 tbullock@canada.com
 Theodore Ts'o               tytso@mit.edu
 Thien-Thi Nguyen            ttn@gnu.org
+Thomas Jahns                jahns@dkrz.de
 Thomas Winder               tom@vlsivie.tuwien.ac.at
 Tim Freeman                 tim@fungible.com
 Tim Mooney                  mooney@dogbert.cc.ndsu.NoDak.edu
