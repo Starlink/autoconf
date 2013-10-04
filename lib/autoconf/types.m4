@@ -76,16 +76,12 @@
 # arguments.
 
 
-
-# _AC_CHECK_TYPE_NEW(TYPE,
-#		     [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND],
-#		     [INCLUDES = DEFAULT-INCLUDES])
-# ------------------------------------------------------------
-# Check whether the type TYPE is supported by the system, maybe via the
-# the provided includes.  This macro implements the former task of
-# AC_CHECK_TYPE, with one big difference though: AC_CHECK_TYPE was
-# grepping in the headers, which, BTW, led to many problems until the
-# extended regular expression was correct and did not given false positives.
+# _AC_CHECK_TYPE_NEW_BODY
+# -----------------------
+# Shell function body for _AC_CHECK_TYPE_NEW.  This macro implements the
+# former task of AC_CHECK_TYPE, with one big difference though: AC_CHECK_TYPE
+# used to grep in the headers, which, BTW, led to many problems until the
+# extended regular expression was correct and did not give false positives.
 # It turned out there are even portability issues with egrep...
 #
 # The most obvious way to check for a TYPE is just to compile a variable
@@ -93,8 +89,9 @@
 #
 #	  TYPE my_var;
 #
-# Unfortunately this does not work for const qualified types in C++,
-# where you need an initializer.  So you think of
+# (TYPE being the second parameter to the shell function, hence $[]2 in m4).
+# Unfortunately this does not work for const qualified types in C++, where
+# you need an initializer.  So you think of
 #
 #	  TYPE my_var = (TYPE) 0;
 #
@@ -146,23 +143,51 @@
 # C++ disallows defining types inside `sizeof ()', but that's OK,
 # since we don't want to consider unnamed structs to be types for C++,
 # precisely because they don't work in cases like that.
-m4_define([_AC_CHECK_TYPE_NEW],
-[AS_VAR_PUSHDEF([ac_Type], [ac_cv_type_$1])dnl
-AC_CACHE_CHECK([for $1], [ac_Type],
-[AS_VAR_SET([ac_Type], [no])
-AC_COMPILE_IFELSE(
-  [AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT([$4])],
-     [if (sizeof ($1))
-       return 0;])],
-  [AC_COMPILE_IFELSE(
-     [AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT([$4])],
-	[if (sizeof (($1)))
-	  return 0;])],
-     [],
-     [AS_VAR_SET([ac_Type], [yes])])])])
-AS_VAR_IF([ac_Type], [yes], [$2], [$3])[]dnl
+m4_define([_AC_CHECK_TYPE_NEW_BODY],
+[  AS_LINENO_PUSH([$[]1])
+  AC_CACHE_CHECK([for $[]2], [$[]3],
+  [AS_VAR_SET([$[]3], [no])
+  AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM([$[]4],
+       [if (sizeof ($[]2))
+	 return 0;])],
+    [AC_COMPILE_IFELSE(
+       [AC_LANG_PROGRAM([$[]4],
+	  [if (sizeof (($[]2)))
+	    return 0;])],
+       [],
+       [AS_VAR_SET([$[]3], [yes])])])])
+  AS_LINENO_POP
+])dnl
+
+# _AC_CHECK_TYPE_NEW(TYPE,
+#		     [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND],
+#		     [INCLUDES = DEFAULT-INCLUDES])
+# ------------------------------------------------------------
+# Check whether the type TYPE is supported by the system, maybe via the
+# the provided includes.
+AC_DEFUN([_AC_CHECK_TYPE_NEW],
+[AC_REQUIRE_SHELL_FN([ac_fn_]_AC_LANG_ABBREV[_check_type],
+  [AS_FUNCTION_DESCRIBE([ac_fn_]_AC_LANG_ABBREV[_check_type],
+    [LINENO TYPE VAR INCLUDES],
+    [Tests whether TYPE exists after having included INCLUDES, setting
+     cache variable VAR accordingly.])],
+    [$0_BODY])]dnl
+[AS_VAR_PUSHDEF([ac_Type], [ac_cv_type_$1])]dnl
+[ac_fn_[]_AC_LANG_ABBREV[]_check_type "$LINENO" "$1" "ac_Type" ]dnl
+["AS_ESCAPE([AC_INCLUDES_DEFAULT([$4])], [""])"
+AS_VAR_IF([ac_Type], [yes], [$2], [$3])
 AS_VAR_POPDEF([ac_Type])dnl
 ])# _AC_CHECK_TYPE_NEW
+
+
+# _AC_CHECK_TYPES(TYPE)
+# ---------------------
+# Helper to AC_CHECK_TYPES, which generates two of the four arguments
+# to _AC_CHECK_TYPE_NEW that are based on TYPE.
+m4_define([_AC_CHECK_TYPES],
+[[$1], [AC_DEFINE_UNQUOTED(AS_TR_CPP([HAVE_$1]), [1],
+  [Define to 1 if the system has the type `$1'.])]])
 
 
 # AC_CHECK_TYPES(TYPES,
@@ -172,14 +197,8 @@ AS_VAR_POPDEF([ac_Type])dnl
 # TYPES is an m4 list.  There are no ambiguities here, we mean the newer
 # AC_CHECK_TYPE.
 AC_DEFUN([AC_CHECK_TYPES],
-[m4_foreach([AC_Type], [$1],
-  [_AC_CHECK_TYPE_NEW(AC_Type,
-		      [AC_DEFINE_UNQUOTED(AS_TR_CPP(HAVE_[]AC_Type), 1,
-					  [Define to 1 if the system has the
-					   type `]AC_Type['.])
-$2],
-		      [$3],
-		      [$4])])])
+[m4_map_args_sep([_AC_CHECK_TYPE_NEW(_$0(], [)[
+$2], [$3], [$4])], [], $1)])
 
 
 # _AC_CHECK_TYPE_OLD(TYPE, DEFAULT)
@@ -232,17 +251,16 @@ m4_define([_AC_CHECK_TYPE_MAYBE_TYPE_P],
 # 3. $2 seems to be a type	     => NEW plus a warning
 # 4. default			     => NEW
 AC_DEFUN([AC_CHECK_TYPE],
-[m4_if($#, 3,
-	 [_AC_CHECK_TYPE_NEW($@)],
-       $#, 4,
-	 [_AC_CHECK_TYPE_NEW($@)],
-       _AC_CHECK_TYPE_REPLACEMENT_TYPE_P([$2]), 1,
-	 [_AC_CHECK_TYPE_OLD($@)],
-       _AC_CHECK_TYPE_MAYBE_TYPE_P([$2]), 1,
-	 [AC_DIAGNOSE([syntax],
-		    [$0: assuming `$2' is not a type])_AC_CHECK_TYPE_NEW($@)],
-       [_AC_CHECK_TYPE_NEW($@)])[]dnl
-])# AC_CHECK_TYPE
+[m4_cond([$#], [3],
+  [_AC_CHECK_TYPE_NEW],
+	 [$#], [4],
+  [_AC_CHECK_TYPE_NEW],
+	 [_AC_CHECK_TYPE_REPLACEMENT_TYPE_P([$2])], [1],
+  [_AC_CHECK_TYPE_OLD],
+	 [_AC_CHECK_TYPE_MAYBE_TYPE_P([$2])], [1],
+  [AC_DIAGNOSE([syntax],
+	       [$0: assuming `$2' is not a type])_AC_CHECK_TYPE_NEW],
+  [_AC_CHECK_TYPE_NEW])($@)])# AC_CHECK_TYPE
 
 
 
@@ -626,56 +644,93 @@ AC_DEFUN([AC_TYPE_UINT16_T], [_AC_TYPE_UNSIGNED_INT(16)])
 AC_DEFUN([AC_TYPE_UINT32_T], [_AC_TYPE_UNSIGNED_INT(32)])
 AC_DEFUN([AC_TYPE_UINT64_T], [_AC_TYPE_UNSIGNED_INT(64)])
 
-# _AC_TYPE_INT(NBITS)
-# -------------------
-AC_DEFUN([_AC_TYPE_INT],
-[
-  AC_CACHE_CHECK([for int$1_t], [ac_cv_c_int$1_t],
-    [ac_cv_c_int$1_t=no
-     for ac_type in 'int$1_t' 'int' 'long int' \
+# _AC_TYPE_INT_BODY
+# -----------------
+# Shell function body for _AC_TYPE_INT.
+m4_define([_AC_TYPE_INT_BODY],
+[  AS_LINENO_PUSH([$[]1])
+  AC_CACHE_CHECK([for int$[]2_t], [$[]3],
+    [AS_VAR_SET([$[]3], [no])
+     for ac_type in int$[]2_t 'int' 'long int' \
 	 'long long int' 'short int' 'signed char'; do
        AC_COMPILE_IFELSE(
 	 [AC_LANG_BOOL_COMPILE_TRY(
 	    [AC_INCLUDES_DEFAULT],
-	    [[0 < ($ac_type) (((($ac_type) 1 << ($1 - 2)) - 1) * 2 + 1)]])],
+	    [0 < ($ac_type) (((($ac_type) 1 << ($[]2 - 2)) - 1) * 2 + 1)])],
 	 [AC_COMPILE_IFELSE(
 	    [AC_LANG_BOOL_COMPILE_TRY(
 	       [AC_INCLUDES_DEFAULT],
-	       [[($ac_type) (((($ac_type) 1 << ($1 - 2)) - 1) * 2 + 1)
-		 < ($ac_type) (((($ac_type) 1 << ($1 - 2)) - 1) * 2 + 2)]])],
+	       [($ac_type) (((($ac_type) 1 << ($[]2 - 2)) - 1) * 2 + 1)
+		 < ($ac_type) (((($ac_type) 1 << ($[]2 - 2)) - 1) * 2 + 2)])],
 	    [],
-	    [AS_CASE([$ac_type], [int$1_t],
-	       [ac_cv_c_int$1_t=yes],
-	       [ac_cv_c_int$1_t=$ac_type])])])
-       test "$ac_cv_c_int$1_t" != no && break
+	    [AS_CASE([$ac_type], [int$[]2_t],
+	       [AS_VAR_SET([$[]3], [yes])],
+	       [AS_VAR_SET([$[]3], [$ac_type])])])])
+       AS_VAR_IF([$[]3], [no], [], [break])
      done])
-  case $ac_cv_c_int$1_t in #(
+  AS_LINENO_POP
+])# _AC_TYPE_INT_BODY
+
+# _AC_TYPE_INT(NBITS)
+# -------------------
+# Set a variable ac_cv_c_intNBITS_t to `yes' if intNBITS_t is available,
+# `no' if it is not and no replacement types could be found, and a C type
+# if it is not available but a replacement signed integer type of width
+# exactly NBITS bits was found.  In the third case, intNBITS_t is AC_DEFINEd
+# to type, as well.
+AC_DEFUN([_AC_TYPE_INT],
+[AC_REQUIRE_SHELL_FN([ac_fn_c_find_intX_t],
+  [AS_FUNCTION_DESCRIBE([ac_fn_c_find_intX_t], [LINENO BITS VAR],
+    [Finds a signed integer type with width BITS, setting cache variable VAR
+     accordingly.])],
+    [$0_BODY])]dnl
+[ac_fn_c_find_intX_t "$LINENO" "$1" "ac_cv_c_int$1_t"
+case $ac_cv_c_int$1_t in #(
   no|yes) ;; #(
   *)
     AC_DEFINE_UNQUOTED([int$1_t], [$ac_cv_c_int$1_t],
       [Define to the type of a signed integer type of width exactly $1 bits
        if such a type exists and the standard includes do not define it.]);;
-  esac
+esac
 ])# _AC_TYPE_INT
 
-# _AC_TYPE_UNSIGNED_INT(NBITS)
-# ----------------------------
-AC_DEFUN([_AC_TYPE_UNSIGNED_INT],
-[
-  AC_CACHE_CHECK([for uint$1_t], [ac_cv_c_uint$1_t],
-    [ac_cv_c_uint$1_t=no
-     for ac_type in 'uint$1_t' 'unsigned int' 'unsigned long int' \
+# _AC_TYPE_UNSIGNED_INT_BODY
+# --------------------------
+# Shell function body for _AC_TYPE_UNSIGNED_INT.
+m4_define([_AC_TYPE_UNSIGNED_INT_BODY],
+[  AS_LINENO_PUSH([$[]1])
+  AC_CACHE_CHECK([for uint$[]2_t], $[]3,
+    [AS_VAR_SET([$[]3], [no])
+     for ac_type in uint$[]2_t 'unsigned int' 'unsigned long int' \
 	 'unsigned long long int' 'unsigned short int' 'unsigned char'; do
        AC_COMPILE_IFELSE(
 	 [AC_LANG_BOOL_COMPILE_TRY(
 	    [AC_INCLUDES_DEFAULT],
-	    [[($ac_type) -1 >> ($1 - 1) == 1]])],
-	 [AS_CASE([$ac_type], [uint$1_t],
-	    [ac_cv_c_uint$1_t=yes],
-	    [ac_cv_c_uint$1_t=$ac_type])])
-       test "$ac_cv_c_uint$1_t" != no && break
+	    [($ac_type) -1 >> ($[]2 - 1) == 1])],
+	 [AS_CASE([$ac_type], [uint$[]2_t],
+	    [AS_VAR_SET([$[]3], [yes])],
+	    [AS_VAR_SET([$[]3], [$ac_type])])])
+       AS_VAR_IF([$[]3], [no], [], [break])
      done])
-  case $ac_cv_c_uint$1_t in #(
+  AS_LINENO_POP
+])# _AC_TYPE_UNSIGNED_INT_BODY
+
+
+# _AC_TYPE_UNSIGNED_INT(NBITS)
+# ----------------------------
+# Set a variable ac_cv_c_uintNBITS_t to `yes' if uintNBITS_t is available,
+# `no' if it is not and no replacement types could be found, and a C type
+# if it is not available but a replacement unsigned integer type of width
+# exactly NBITS bits was found.  In the third case, uintNBITS_t is AC_DEFINEd
+# to type, as well.
+AC_DEFUN([_AC_TYPE_UNSIGNED_INT],
+[AC_REQUIRE_SHELL_FN([ac_fn_c_find_uintX_t],
+  [AS_FUNCTION_DESCRIBE([ac_fn_c_find_uintX_t], [LINENO BITS VAR],
+    [Finds an unsigned integer type with width BITS, setting cache variable VAR
+     accordingly.])],
+  [$0_BODY])]dnl
+[ac_fn_c_find_uintX_t "$LINENO" "$1" "ac_cv_c_uint$1_t"
+case $ac_cv_c_uint$1_t in #(
   no|yes) ;; #(
   *)
     m4_bmatch([$1], [^\(8\|32\|64\)$],
@@ -725,8 +780,8 @@ Remove this warning and the `AC_CACHE_CHECK' when you adjust the code.])
 # ---------------------------------------------------------------
 AC_DEFUN([AC_CHECK_SIZEOF],
 [AS_LITERAL_IF([$1], [],
-	       [AC_FATAL([$0: requires literal arguments])])dnl
-# The cast to long int works around a bug in the HP C Compiler
+	       [m4_fatal([$0: requires literal arguments])])]dnl
+[# The cast to long int works around a bug in the HP C Compiler
 # version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
 # declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
 # This bug is HP SR number 8606223364.
@@ -748,8 +803,8 @@ AC_DEFINE_UNQUOTED(AS_TR_CPP(sizeof_$1), $AS_TR_SH([ac_cv_sizeof_$1]),
 # -----------------------------------------------------
 AC_DEFUN([AC_CHECK_ALIGNOF],
 [AS_LITERAL_IF([$1], [],
-	       [AC_FATAL([$0: requires literal arguments])])dnl
-# The cast to long int works around a bug in the HP C Compiler,
+	       [m4_fatal([$0: requires literal arguments])])]dnl
+[# The cast to long int works around a bug in the HP C Compiler,
 # see AC_CHECK_SIZEOF for more information.
 _AC_CACHE_CHECK_INT([alignment of $1], [AS_TR_SH([ac_cv_alignof_$1])],
   [(long int) offsetof (ac__type_alignof_, y)],
@@ -805,6 +860,26 @@ you adjust the code.])
 # Generic checks.  #
 # ---------------- #
 
+# _AC_CHECK_MEMBER_BODY
+# ---------------------
+# Shell function body for AC_CHECK_MEMBER.
+m4_define([_AC_CHECK_MEMBER_BODY],
+[  AS_LINENO_PUSH([$[]1])
+  AC_CACHE_CHECK([for $[]2.$[]3], [$[]4],
+  [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([$[]5],
+[static $[]2 ac_aggr;
+if (ac_aggr.$[]3)
+return 0;])],
+		[AS_VAR_SET([$[]4], [yes])],
+  [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([$[]5],
+[static $[]2 ac_aggr;
+if (sizeof ac_aggr.$[]3)
+return 0;])],
+		[AS_VAR_SET([$[]4], [yes])],
+		[AS_VAR_SET([$[]4], [no])])])])
+  AS_LINENO_POP
+])dnl
+
 # AC_CHECK_MEMBER(AGGREGATE.MEMBER,
 #		  [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND],
 #		  [INCLUDES = DEFAULT-INCLUDES])
@@ -812,32 +887,31 @@ you adjust the code.])
 # AGGREGATE.MEMBER is for instance `struct passwd.pw_gecos', shell
 # variables are not a valid argument.
 AC_DEFUN([AC_CHECK_MEMBER],
-[AS_LITERAL_IF([$1], [],
-	       [AC_FATAL([$0: requires literal arguments])])dnl
-m4_bmatch([$1], [\.], ,
-	 [m4_fatal([$0: Did not see any dot in `$1'])])dnl
-AS_VAR_PUSHDEF([ac_Member], [ac_cv_member_$1])dnl
-dnl Extract the aggregate name, and the member name
-AC_CACHE_CHECK([for $1], [ac_Member],
-[AC_COMPILE_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT([$4])],
-[dnl AGGREGATE ac_aggr;
-static m4_bpatsubst([$1], [\..*]) ac_aggr;
-dnl ac_aggr.MEMBER;
-if (ac_aggr.m4_bpatsubst([$1], [^[^.]*\.]))
-return 0;])],
-		[AS_VAR_SET([ac_Member], [yes])],
-[AC_COMPILE_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT([$4])],
-[dnl AGGREGATE ac_aggr;
-static m4_bpatsubst([$1], [\..*]) ac_aggr;
-dnl sizeof ac_aggr.MEMBER;
-if (sizeof ac_aggr.m4_bpatsubst([$1], [^[^.]*\.]))
-return 0;])],
-		[AS_VAR_SET([ac_Member], [yes])],
-		[AS_VAR_SET([ac_Member], [no])])])])
-AS_VAR_IF([ac_Member], [yes], [$2], [$3])dnl
+[AC_REQUIRE_SHELL_FN([ac_fn_]_AC_LANG_ABBREV[_check_member],
+  [AS_FUNCTION_DESCRIBE([ac_fn_]_AC_LANG_ABBREV[_check_member],
+    [LINENO AGGR MEMBER VAR INCLUDES],
+    [Tries to find if the field MEMBER exists in type AGGR, after including
+     INCLUDES, setting cache variable VAR accordingly.])],
+    [_$0_BODY])]dnl
+[AS_LITERAL_IF([$1], [], [m4_fatal([$0: requires literal arguments])])]dnl
+[m4_if(m4_index([$1], [.]), -1, [m4_fatal([$0: Did not see any dot in `$1'])])]dnl
+[AS_VAR_PUSHDEF([ac_Member], [ac_cv_member_$1])]dnl
+[ac_fn_[]_AC_LANG_ABBREV[]_check_member "$LINENO" ]dnl
+[m4_bpatsubst([$1], [^\([^.]*\)\.\(.*\)], ["\1" "\2"]) "ac_Member" ]dnl
+["AS_ESCAPE([AC_INCLUDES_DEFAULT([$4])], [""])"
+AS_VAR_IF([ac_Member], [yes], [$2], [$3])
 AS_VAR_POPDEF([ac_Member])dnl
 ])# AC_CHECK_MEMBER
 
+
+# _AC_CHECK_MEMBERS(AGGREGATE.MEMBER)
+# -----------------------------------
+# Helper to AC_CHECK_MEMBERS, which generates two of the four
+# arguments to AC_CHECK_MEMBER that are based on AGGREGATE and MEMBER.
+m4_define([_AC_CHECK_MEMBERS],
+[[$1], [AC_DEFINE_UNQUOTED(AS_TR_CPP([HAVE_$1]), [1],
+  [Define to 1 if `]m4_bpatsubst([$1],
+    [^\([^.]*\)\.\(.*\)], [[\1' is a member of `\2]])['.])]])
 
 # AC_CHECK_MEMBERS([AGGREGATE.MEMBER, ...],
 #		   [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND]
@@ -845,15 +919,8 @@ AS_VAR_POPDEF([ac_Member])dnl
 # ---------------------------------------------------------
 # The first argument is an m4 list.
 AC_DEFUN([AC_CHECK_MEMBERS],
-[m4_foreach([AC_Member], [$1],
-  [AC_CHECK_MEMBER(AC_Member,
-	 [AC_DEFINE_UNQUOTED(AS_TR_CPP(HAVE_[]AC_Member), 1,
-			    [Define to 1 if `]m4_bpatsubst(AC_Member,
-						     [^[^.]*\.])[' is
-			     member of `]m4_bpatsubst(AC_Member, [\..*])['.])
-$2],
-		 [$3],
-		 [$4])])])
+[m4_map_args_sep([AC_CHECK_MEMBER(_$0(], [)[
+$2], [$3], [$4])], [], $1)])
 
 
 

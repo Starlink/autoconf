@@ -1,7 +1,7 @@
 # M4 macros used in building Autoconf test suites.        -*- Autotest -*-
 
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-# Free Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+# 2009 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -50,8 +50,8 @@ AT_CHECK([$at_diff "$1" "$2"])
 # If the shell handles `-n' well, use it to check the syntax of PROGRAM;
 # otherwise, do nothing.
 m4_define([AT_CHECK_SHELL_SYNTAX],
-[AS_IF([test "$ac_cv_sh_n_works" = yes],
-  [AT_CHECK([/bin/sh -n $1])])])
+[AT_SKIP_IF([test "$ac_cv_sh_n_works" != yes])
+AT_CHECK([/bin/sh -n $1])])
 
 m4_define([AT_CHECK_PERL_SYNTAX],
 [AT_CHECK([autom4te_perllibdir=$abs_top_srcdir/lib $PERL -c "$abs_top_builddir"/bin/$1],
@@ -134,10 +134,8 @@ m4_define([AT_CHECK_AUTOM4TE],
 # Escape the invalid tokens with @&t@.
 m4_define([AT_DATA_M4SUGAR],
 [AT_DATA([$1],
-[m4_bpatsubsts([$2],
-	       [@&t@],    [@&@&t@t@],
-	       [\(m4\)_], [\1@&t@_],
-	       [dnl],     [d@&t@nl])])])
+[m4_bpatsubst([$2], [\(@.\)\(.@\)\|\(m4\)\(_\)\|\(d\)\(nl\)],
+              [\1\3\5@&t@\2\4\6])])])
 
 
 # AT_CHECK_M4SUGAR(FLAGS, [EXIT-STATUS = 0], STDOUT, STDERR)
@@ -159,10 +157,8 @@ AT_CHECK_AUTOM4TE([--language=m4sugar script.4s -o script $1],
 # Escape the invalid tokens with @&t@.
 m4_define([AT_DATA_M4SH],
 [AT_DATA([$1],
-[m4_bpatsubsts([$2],
-	       [@&t@],        [@&@&t@t@],
-	       [\(m4\|AS\)_], [\1@&t@_],
-	       [dnl],         [d@&t@nl])])])
+[m4_bpatsubst([$2], [\(@.\)\(.@\)\|\(m4\|AS\)\(_\)\|\(d\)\(nl\)],
+              [\1\3\5@&t@\2\4\6])])])
 
 
 # AT_CHECK_M4SH(FLAGS, [EXIT-STATUS = 0], STDOUT, STDERR)
@@ -183,10 +179,8 @@ m4_define([AT_CHECK_M4SH],
 # Escape the invalid tokens with @&t@.
 m4_define([AT_DATA_AUTOCONF],
 [AT_DATA([$1],
-[m4_bpatsubsts([$2],
-	       [@&t@],            [@&@&t@t@],
-	       [\(m4\|AS\|AC\)_], [\1@&t@_],
-	       [dnl],             [d@&t@nl])])])
+[m4_bpatsubst([$2], [\(@.\)\(.@\)\|\(m4\|AS\|AC\)\(_\)\|\(d\)\(nl\)],
+              [\1\3\5@&t@\2\4\6])])])
 
 
 
@@ -195,21 +189,7 @@ m4_define([AT_DATA_AUTOCONF],
 # Create a full configure.ac running BODY, with a config header set up,
 # AC_OUTPUT, and environment checking hooks.
 m4_define([AT_CONFIGURE_AC],
-[AT_DATA_AUTOCONF([aclocal.m4],
-[[
-# AC_STATE_SAVE(FILE)
-# -------------------
-# Save the shell variables and directory listing.  AT_CHECK_ENV uses these to
-# confirm that no test modifies variables outside the Autoconf namespace or
-# leaves temporary files.  AT_CONFIG_CMP uses the variable dumps to confirm that
-# tests have the same side effects regardless of caching.
-m4_defun([AC_STATE_SAVE],
-[(set) 2>&1 | sort >state-env.$][1
-ls -1 | sed '/^at-/d;/^state-/d;/^config\./d' | sort >state-ls.$][1
-])# AC_STATE_SAVE
-]])
-
-AT_DATA([configure.ac],
+[AT_DATA([configure.ac],
 [[AC_INIT
 AC_CONFIG_HEADERS(config.h:config.hin)
 AC_STATE_SAVE(before)]
@@ -220,6 +200,7 @@ AC_STATE_SAVE(after)
 cp "$abs_top_srcdir/build-aux/install-sh" \
    "$abs_top_srcdir/build-aux/config.guess" \
    "$abs_top_srcdir/build-aux/config.sub" .
+cp "$abs_top_srcdir/tests/statesave.m4" aclocal.m4
 ])# AT_CONFIGURE_AC
 
 
@@ -229,8 +210,8 @@ cp "$abs_top_srcdir/build-aux/install-sh" \
 # were running too fast.
 m4_define([AT_CHECK_AUTOCONF],
 [AT_CHECK_M4([autoconf --force $1], [$2], [$3], [$4])
-if test -s configure; then
-  AT_CHECK_SHELL_SYNTAX(configure)
+if test -s configure && test "$ac_cv_sh_n_works" = yes; then
+  AT_CHECK_SHELL_SYNTAX([configure])
 fi
 ])
 
@@ -285,7 +266,7 @@ m4_define([AT_CHECK_CONFIGURE],
 #   Set by AC_OUTPUT.
 # - AC_SUBST'ed variables
 #   (FIXME: Generate a list of these automatically.)
-# - _|@|.[*#?$].|LINENO|OLDPWD|PIPESTATUS|RANDOM|SECONDS
+# - _|@|.[*#?$].|argv|ARGC|LINENO|OLDPWD|PIPESTATUS|RANDOM|SECONDS
 #   Some variables some shells use and change.
 #   `.[*#?$].' catches `$#' etc. which are displayed like this:
 #      | '!'=18186
@@ -293,10 +274,19 @@ m4_define([AT_CHECK_CONFIGURE],
 #      | '$'=6908
 #
 m4_define([AT_CHECK_ENV],
-[# Compare directory listings.
+[m4_divert_once([PREPARE_TESTS], [_AT_CHECK_ENV])dnl
+AT_CHECK([at_check_env])])
+m4_define([_AT_CHECK_ENV],
+[AS_FUNCTION_DESCRIBE([at_check_env], [],
+[Compare the directory and environment state both before and after a run,
+and return non-zero status if they differ inappropriately.])
+at_check_env ()
+{
+# Compare directory listings.
 test -f state-ls.before ||
   AS_ERROR([state-ls.before not present])
-test -f state-ls.after && { AT_CMP([state-ls.before], [state-ls.after]) }
+test -f state-ls.after \
+  && { $at_diff state-ls.before state-ls.after || return 1; }
 # Compare variable space dumps.
 if test -f state-env.before && test -f state-env.after; then
   for act_file in state-env.before state-env.after
@@ -306,7 +296,8 @@ if test -f state-env.before && test -f state-env.after; then
       [(exec_)?prefix|DEFS|CONFIG_STATUS],
       [CC|CFLAGS|CPP|GCC|CXX|CXXFLAGS|CXXCPP|GXX|F77|FFLAGS|FLIBS|G77],
       [ERL|ERLC|ERLCFLAGS|ERLANG_PATH_ERL|ERLANG_ROOT_DIR|ERLANG_LIB_DIR],
-      [ERLANG_INSTALL_LIB_DIR|OBJC|OBJCPP|OBJCFLAGS],
+      [ERLANG_LIB_DIR_.*|ERLANG_LIB_VER_.*|ERLANG_INSTALL_LIB_DIR],
+      [ERLANG_INSTALL_LIB_DIR_.*|ERLANG_ERTS_VER|OBJC|OBJCPP|OBJCFLAGS],
       [OPENMP_CFLAGS],
       [LIBS|LIB@&t@OBJS|LTLIBOBJS|LDFLAGS],
       [INSTALL(_(DATA|PROGRAM|SCRIPT))?],
@@ -320,14 +311,15 @@ if test -f state-env.before && test -f state-env.after; then
       [ALLOCA|GETLOADAVG_LIBS|KMEM_GROUP|NEED_SETGID|POW_LIB],
       [AWK|LEX|LEXLIB|LEX_OUTPUT_ROOT|LN_S|M4|MKDIR_P|RANLIB|SET_MAKE|YACC],
       [GREP|[EF]GREP|SED],
-      [[_@]|.[*#?$].|LINENO|OLDPWD|PIPESTATUS|RANDOM|SECONDS]))=' \
+      [[_@]|.[*#?$].],
+      [argv|ARGC|LINENO|OLDPWD|PIPESTATUS|RANDOM|SECONDS]))=' \
      $act_file 2>/dev/null |
       # There may be variables spread on several lines; remove latter lines.
       $GREP '^m4_defn([m4_re_word])=' >clean-$act_file
   done
-  AT_CMP([clean-state-env.before], [clean-state-env.after])
+  $at_diff clean-state-env.before clean-state-env.after
 fi
-])
+} [#]at_check_env])
 
 
 # AT_CONFIG_CMP(VAR-FILE-A, VAR-FILE-B)
@@ -511,8 +503,3 @@ AT_CLEANUP[]dnl
 ## ----------------------- ##
 
 AT_INIT
-AT_COPYRIGHT(
-[Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software
-Foundation, Inc.
-This is free software; see the source for copying conditions.  There is NO
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.])

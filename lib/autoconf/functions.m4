@@ -1,7 +1,7 @@
 # This file is part of Autoconf.			-*- Autoconf -*-
 # Checking for functions.
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software
-# Foundation, Inc.
+# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+# Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -61,53 +61,75 @@
 ## 1. Generic tests for functions.  ##
 ## -------------------------------- ##
 
+# _AC_CHECK_FUNC_BODY
+# -------------------
+# Shell function body for AC_CHECK_FUNC.
+m4_define([_AC_CHECK_FUNC_BODY],
+[  AS_LINENO_PUSH([$[]1])
+  AC_CACHE_CHECK([for $[]2], [$[]3],
+  [AC_LINK_IFELSE([AC_LANG_FUNC_LINK_TRY($[]2)],
+		  [AS_VAR_SET([$[]3], [yes])],
+		  [AS_VAR_SET([$[]3], [no])])])
+  AS_LINENO_POP
+])# _AC_CHECK_FUNC_BODY
+
 
 # AC_CHECK_FUNC(FUNCTION, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
 # -----------------------------------------------------------------
+# Check whether FUNCTION links in the current language.  Set the cache
+# variable ac_cv_func_FUNCTION accordingly, then execute
+# ACTION-IF-FOUND or ACTION-IF-NOT-FOUND.
 AC_DEFUN([AC_CHECK_FUNC],
-[AS_VAR_PUSHDEF([ac_var], [ac_cv_func_$1])dnl
-AC_CACHE_CHECK([for $1], [ac_var],
-[AC_LINK_IFELSE([AC_LANG_FUNC_LINK_TRY([$1])],
-		[AS_VAR_SET([ac_var], [yes])],
-		[AS_VAR_SET([ac_var], [no])])])
-AS_VAR_IF([ac_var], [yes], [$2], [$3])dnl
-AS_VAR_POPDEF([ac_var])dnl
-])# AC_CHECK_FUNC
+[AC_REQUIRE_SHELL_FN([ac_fn_]_AC_LANG_ABBREV[_check_func],
+  [AS_FUNCTION_DESCRIBE([ac_fn_]_AC_LANG_ABBREV[_check_func],
+    [LINENO FUNC VAR],
+    [Tests whether FUNC exists, setting the cache variable VAR accordingly])],
+  [_$0_BODY])]dnl
+[AS_VAR_PUSHDEF([ac_var], [ac_cv_func_$1])]dnl
+[ac_fn_[]_AC_LANG_ABBREV[]_check_func "$LINENO" "$1" "ac_var"
+AS_VAR_IF([ac_var], [yes], [$2], [$3])
+AS_VAR_POPDEF([ac_var])])# AC_CHECK_FUNC
 
 
-# _AH_CHECK_FUNCS(FUNCTION...)
-# ----------------------------
-m4_define([_AH_CHECK_FUNCS],
-[m4_foreach_w([AC_Func], [$1],
-   [AH_TEMPLATE(AS_TR_CPP([HAVE_]m4_defn([AC_Func])),
-      [Define to 1 if you have the `]m4_defn([AC_Func])[' function.])])])
+# _AH_CHECK_FUNC(FUNCTION)
+# ------------------------
+# Prepare the autoheader snippet for FUNCTION.
+m4_define([_AH_CHECK_FUNC],
+[AH_TEMPLATE(AS_TR_CPP([HAVE_$1]),
+  [Define to 1 if you have the `$1' function.])])
 
 
 # AC_CHECK_FUNCS(FUNCTION..., [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
 # ---------------------------------------------------------------------
+# Check for each whitespace-separated FUNCTION, and perform
+# ACTION-IF-FOUND or ACTION-IF-NOT-FOUND for each function.
+# Additionally, make the preprocessor definition HAVE_FUNCTION
+# available for each found function.  Either ACTION may include
+# `break' to stop the search.
 AC_DEFUN([AC_CHECK_FUNCS],
-[_AH_CHECK_FUNCS([$1])dnl
-for ac_func in $1
-do
-AC_CHECK_FUNC($ac_func,
-	      [AC_DEFINE_UNQUOTED(AS_TR_CPP([HAVE_$ac_func])) $2],
-	      [$3])dnl
-done
-])
+[m4_map_args_w([$1], [_AH_CHECK_FUNC(], [)])]dnl
+[AS_FOR([AC_func], [ac_func], [$1],
+[AC_CHECK_FUNC(AC_func,
+	       [AC_DEFINE_UNQUOTED(AS_TR_CPP([HAVE_]AC_func)) $2],
+	       [$3])dnl])
+])# AC_CHECK_FUNCS
 
+
+# _AC_CHECK_FUNC_ONCE(FUNCTION)
+# -----------------------------
+# Check for a single FUNCTION once.
+m4_define([_AC_CHECK_FUNC_ONCE],
+[_AH_CHECK_FUNC([$1])AC_DEFUN([_AC_Func_$1],
+  [m4_divert_text([INIT_PREPARE], [AS_VAR_APPEND([ac_func_list], [" $1"])])
+_AC_FUNCS_EXPANSION])AC_REQUIRE([_AC_Func_$1])])
 
 # AC_CHECK_FUNCS_ONCE(FUNCTION...)
 # --------------------------------
+# Add each whitespace-separated name in FUNCTION to the list of functions
+# to check once.
 AC_DEFUN([AC_CHECK_FUNCS_ONCE],
-[
-  _AH_CHECK_FUNCS([$1])
-  m4_foreach_w([AC_Func], [$1],
-    [AC_DEFUN([_AC_Func_]m4_defn([AC_Func]),
-       [m4_divert_text([INIT_PREPARE],
-	  [ac_func_list="$ac_func_list AC_Func"])
-	_AC_FUNCS_EXPANSION])
-     AC_REQUIRE([_AC_Func_]m4_defn([AC_Func]))])
-])
+[m4_map_args_w([$1], [_AC_CHECK_FUNC_ONCE(], [)])])
+
 m4_define([_AC_FUNCS_EXPANSION],
 [
   m4_divert_text([DEFAULTS], [ac_func_list=])
@@ -119,8 +141,8 @@ m4_define([_AC_FUNCS_EXPANSION],
 # AC_REPLACE_FUNCS(FUNCTION...)
 # -----------------------------
 AC_DEFUN([AC_REPLACE_FUNCS],
-[m4_foreach_w([AC_Func], [$1], [AC_LIBSOURCE(AC_Func.c)])dnl
-AC_CHECK_FUNCS([$1], , [_AC_LIBOBJ($ac_func)])
+[m4_map_args_w([$1], [AC_LIBSOURCE(], [.c)])]dnl
+[AC_CHECK_FUNCS([$1], , [_AC_LIBOBJ($ac_func)])
 ])
 
 
@@ -630,10 +652,12 @@ if test $ac_cv_func_getgroups = yes; then
 		  [ac_cv_func_getgroups_works=no],
 		  [ac_cv_func_getgroups_works=no])
    ])
-  if test $ac_cv_func_getgroups_works = yes; then
-    AC_DEFINE(HAVE_GETGROUPS, 1,
-	      [Define to 1 if your system has a working `getgroups' function.])
-  fi
+else
+  ac_cv_func_getgroups_works=no
+fi
+if test $ac_cv_func_getgroups_works = yes; then
+  AC_DEFINE(HAVE_GETGROUPS, 1,
+	    [Define to 1 if your system has a working `getgroups' function.])
 fi
 LIBS=$ac_save_LIBS
 ])# AC_FUNC_GETGROUPS
@@ -1733,8 +1757,9 @@ AC_RUN_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT
 	    && t.st_mtime - s.st_mtime < 120);]])],
 	      ac_cv_func_utime_null=yes,
 	      ac_cv_func_utime_null=no,
-	      ac_cv_func_utime_null=no)])
-if test $ac_cv_func_utime_null = yes; then
+	      ac_cv_func_utime_null='guessing yes')])
+if test "x$ac_cv_func_utime_null" != xno; then
+  ac_cv_func_utime_null=yes
   AC_DEFINE(HAVE_UTIME_NULL, 1,
 	    [Define to 1 if `utime(file, NULL)' sets file's timestamp to the
 	     present.])

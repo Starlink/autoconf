@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 # Copyright (C) 1992, 1993, 1994, 1995, 1999, 2000, 2001, 2002, 2003,
-# 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+# 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -82,6 +82,37 @@ else ac_cv_sh_n_works=no
 fi
 ])
 AC_SUBST([ac_cv_sh_n_works])
+
+AC_MSG_CHECKING([for characters that cannot appear in file names])
+AC_CACHE_VAL([ac_cv_unsupported_fs_chars],
+[ac_cv_unsupported_fs_chars=
+for c in '\\' \" '<' '>' '*' '?' '|'
+do
+  touch "conftest.t${c}t" 2>/dev/null
+  test -f "conftest.t${c}t" && rm -f "conftest.t${c}t" && continue
+  # $c cannot be used in a file name.
+  ac_cv_unsupported_fs_chars=$ac_cv_unsupported_fs_chars$c
+done
+])
+if test -n "$ac_cv_unsupported_fs_chars"; then
+  AC_MSG_RESULT([$ac_cv_unsupported_fs_chars])
+else
+  AC_MSG_RESULT([none])
+fi
+
+AC_SUBST([ac_cv_unsupported_fs_chars])
+
+AC_CACHE_CHECK([whether directories can have trailing spaces],
+	       [ac_cv_dir_trailing_space],
+[rm -rf 'conftest.d ' && mkdir 'conftest.d ' && touch 'conftest.d /tfile' 2>/dev/null
+stat=$?
+rm -rf 'conftest.d '
+case $stat$? in #(
+   00) ac_cv_dir_trailing_space=yes ;; #(
+   *) ac_cv_dir_trailing_space=no ;;
+esac
+])
+AC_SUBST([ac_cv_dir_trailing_space])
 
 # Initialize the test suite.
 AC_CONFIG_TESTDIR([tests])
@@ -197,7 +228,7 @@ AC_CONFIG_FILES([component.xml])
 
 AC_OUTPUT
 # Report the state of this version of Autoconf if this is a beta.
-m4_bmatch(m4_defn([AC_PACKAGE_VERSION]),  [[a-z]],
+m4_bmatch(m4_defn([AC_PACKAGE_VERSION]), [[-a-z]],
 [    cat <<EOF
 
 You are about to use an experimental version of Autoconf.  Be sure to
@@ -205,7 +236,7 @@ read the relevant mailing lists, most importantly <autoconf@gnu.org>.
 
 Below you will find information on the status of this version of Autoconf.
 
-
 EOF
     sed -n '/^\* Status/,$p' $srcdir/BUGS
+echo
 ])dnl

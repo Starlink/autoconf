@@ -2,7 +2,7 @@
 # This Makefile fragment tries to be general-purpose enough to be
 # used by at least coreutils, idutils, CPPI, Bison, and Autoconf.
 
-## Copyright (C) 2001-2008 Free Software Foundation, Inc.
+## Copyright (C) 2001-2009 Free Software Foundation, Inc.
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ this-vc-tag-regexp = v$(VERSION_REGEXP)
 my_distdir = $(PACKAGE)-$(VERSION)
 
 # Old releases are stored here.
-# Used for diffs and xdeltas.
+# Used for diffs.
 release_archive_dir ?= ../release
 
 # Prevent programs like 'sort' from considering distinct strings to be equal.
@@ -480,6 +480,7 @@ cvs-check: vc-diff-check
 
 maintainer-distcheck:
 	$(MAKE) distcheck
+	$(MAKE) -C tests $(AM_MAKEFLAGS) maintainer-check
 	$(MAKE) my-distcheck
 
 # Don't make a distribution if checks fail.
@@ -525,9 +526,8 @@ my-distcheck: $(local-check) $(release_archive_dir)/$(prev-tgz)
 	echo "========================"
 
 prev-tgz = $(PACKAGE)-$(PREV_VERSION).tar.gz
-xd-delta = $(PACKAGE)-$(PREV_VERSION)-$(VERSION).xdelta
 
-rel-files = $(xd-delta) $(DIST_ARCHIVES)
+rel-files = $(DIST_ARCHIVES)
 announcement: NEWS ChangeLog $(rel-files)
 	@$(announce_gen)						\
 	    --release-type=$(RELEASE_TYPE)				\
@@ -549,44 +549,6 @@ www-gnu = http://www.gnu.org
 # Use mv, if you don't have/want move-if-change.
 move_if_change ?= move-if-change
 
-
-# --------------------- #
-# Updating everything.  #
-# --------------------- #
-
-.PHONY: update
-local_updates ?= cvs-update
-update: $(local_updates)
-
-
-# -------------------------- #
-# Updating GNU build tools.  #
-# -------------------------- #
-
-cvs_files ?= \
-  $(srcdir)/build-aux/depcomp \
-  $(srcdir)/build-aux/install-sh \
-  $(srcdir)/build-aux/missing
-gnulib_repo=:pserver:anonymous@cvs.savannah.gnu.org:/sources/gnulib
-.PHONY: wget-update
-wget-update: $(get-targets)
-
-.PHONY: cvs-update
-cvs-update:
-	fail=;								\
-	for f in $(cvs_files) dummy; do					\
-	  test $$f = dummy && continue;					\
-	  test -f $$f || { echo "*** skipping $$f" 1>&2; continue; };	\
-	  cvs diff $$f > /dev/null					\
-	    || { echo "*** $$f is locally modified; skipping it" 1>&2;	\
-		 fail=yes; continue; };					\
-	  file=$$(expr "X$$f" : 'X$(srcdir)/\(.*\)');			\
-	  echo checking out $$file...;					\
-	  $(CVS) -d $(gnulib_repo) co -p gnulib/$$file >$$f.t		\
-	    && $(move_if_change) $$f.t $$f;				\
-	done;								\
-	test "$$fail" && exit 1
-
 emit_upload_commands:
 	@echo =====================================
 	@echo =====================================
@@ -596,9 +558,6 @@ emit_upload_commands:
 	@echo '# send the /tmp/announcement e-mail'
 	@echo =====================================
 	@echo =====================================
-
-$(xd-delta): $(release_archive_dir)/$(prev-tgz) $(distdir).tar.gz
-	xdelta delta -9 $^ $@ || :
 
 .PHONY: alpha beta major
 alpha beta major: news-date-check changelog-check $(local-check)

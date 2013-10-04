@@ -1,4 +1,4 @@
-This is standards.info, produced by makeinfo version 4.8 from
+This is standards.info, produced by makeinfo version 4.13 from
 standards.texi.
 
 INFO-DIR-SECTION GNU organization
@@ -6,14 +6,14 @@ START-INFO-DIR-ENTRY
 * Standards: (standards).       GNU coding standards.
 END-INFO-DIR-ENTRY
 
-   The GNU coding standards, last updated July 25, 2008.
+   The GNU coding standards, last updated June 7, 2009.
 
    Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software
+2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software
 Foundation, Inc.
 
    Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.2 or
+under the terms of the GNU Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
 Texts.  A copy of the license is included in the section entitled "GNU
@@ -25,14 +25,14 @@ File: standards.info,  Node: Top,  Next: Preface,  Prev: (dir),  Up: (dir)
 Version
 *******
 
-The GNU coding standards, last updated July 25, 2008.
+The GNU coding standards, last updated June 7, 2009.
 
    Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software
+2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software
 Foundation, Inc.
 
    Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.2 or
+under the terms of the GNU Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
 Texts.  A copy of the license is included in the section entitled "GNU
@@ -65,8 +65,8 @@ programs written in C, but many of the rules and principles are useful
 even if you write in another programming language.  The rules often
 state reasons for writing in a certain way.
 
-   This release of the GNU Coding Standards was last updated July 25,
-2008.
+   This release of the GNU Coding Standards was last updated June 7,
+2009.
 
    If you did not obtain this file directly from the GNU project and
 recently, please check for a newer version.  You can get the GNU Coding
@@ -494,6 +494,7 @@ interface, and how libraries should behave.
 * Graphical Interfaces::        Standards for graphical interfaces.
 * Command-Line Interfaces::     Standards for command line interfaces.
 * Option Table::                Table of long options.
+* OID Allocations::             Table of OID slots for GNU.
 * Memory Usage::                When and how to care about memory needs.
 * File Usage::                  Which files to use, and where.
 
@@ -1000,13 +1001,19 @@ to invoke the program, on standard output, then exit successfully.
 Other options and arguments should be ignored once this is seen, and
 the program should not perform its normal function.
 
-   Near the end of the `--help' option's output there should be a line
-that says where to mail bug reports.  It should have this format:
+   Near the end of the `--help' option's output, please place lines
+giving the email address for bug reports, the package's home page
+(normally <http://www.gnu.org/software/PKG>, and the general page for
+help using GNU programs.  The format should be like this:
 
-     Report bugs to MAILING-ADDRESS.
+     Report bugs to: MAILING-ADDRESS
+     PKG home page: <http://www.gnu.org/software/PKG/>
+     General help using GNU software: <http://www.gnu.org/gethelp/>
+
+   It is ok to mention other appropriate mailing lists and web pages.
 
 
-File: standards.info,  Node: Option Table,  Next: Memory Usage,  Prev: Command-Line Interfaces,  Up: Program Behavior
+File: standards.info,  Node: Option Table,  Next: OID Allocations,  Prev: Command-Line Interfaces,  Up: Program Behavior
 
 4.8 Table of Long Options
 =========================
@@ -2097,10 +2104,61 @@ meanings, so we can update the table.
      `-z' in `gprof'.
 
 
-File: standards.info,  Node: Memory Usage,  Next: File Usage,  Prev: Option Table,  Up: Program Behavior
+File: standards.info,  Node: OID Allocations,  Next: Memory Usage,  Prev: Option Table,  Up: Program Behavior
 
-4.9 Memory Usage
-================
+4.9 OID Allocations
+===================
+
+The OID (object identifier) 1.3.6.1.4.1.11591 has been assigned to the
+GNU Project (thanks to Werner Koch).  These are used for SNMP, LDAP,
+X.509 certificates, and so on.  The web site
+`http://www.alvestrand.no/objectid' has a (voluntary) listing of many
+OID assignments.
+
+   If you need a new slot for your GNU package, write
+<maintainers@gnu.org>.  Here is a list of arcs currently assigned:
+
+
+     1.3.6.1.4.1.11591 GNU
+
+     1.3.6.1.4.1.11591.1 GNU Radius
+
+     1.3.6.1.4.1.11591.2 GnuPG
+       1.3.6.1.4.1.11591.2.1   notation
+       1.3.6.1.4.1.11591.2.1.1 pkaAddress
+
+     1.3.6.1.4.1.11591.3 GNU Radar
+
+     1.3.6.1.4.1.11591.4 GNU GSS
+
+     1.3.6.1.4.1.11591.5 GNU Mailutils
+
+     1.3.6.1.4.1.11591.5 GNU Shishi
+
+     1.3.6.1.4.1.11591.12 digestAlgorithm
+       1.3.6.1.4.1.11591.12.2 TIGER/192
+       1.3.6.1.4.1.11591.13 encryptionAlgorithm
+         1.3.6.1.4.1.11591.13.2 Serpent
+           1.3.6.1.4.1.11591.13.2.1 Serpent-128-ECB
+           1.3.6.1.4.1.11591.13.2.2 Serpent-128-CBC
+           1.3.6.1.4.1.11591.13.2.3 Serpent-128-OFB
+           1.3.6.1.4.1.11591.13.2.4 Serpent-128-CFB
+           1.3.6.1.4.1.11591.13.2.21 Serpent-192-ECB
+           1.3.6.1.4.1.11591.13.2.22 Serpent-192-CBC
+           1.3.6.1.4.1.11591.13.2.23 Serpent-192-OFB
+           1.3.6.1.4.1.11591.13.2.24 Serpent-192-CFB
+           1.3.6.1.4.1.11591.13.2.41 Serpent-256-ECB
+           1.3.6.1.4.1.11591.13.2.42 Serpent-256-CBC
+           1.3.6.1.4.1.11591.13.2.43 Serpent-256-OFB
+           1.3.6.1.4.1.11591.13.2.44 Serpent-256-CFB
+       1.3.6.1.4.1.11591.14 CRC algorithms
+         1.3.6.1.4.1.11591.14.1 CRC 32
+
+
+File: standards.info,  Node: Memory Usage,  Next: File Usage,  Prev: OID Allocations,  Up: Program Behavior
+
+4.10 Memory Usage
+=================
 
 If a program typically uses just a few meg of memory, don't bother
 making any effort to reduce memory usage.  For example, if it is
@@ -2122,7 +2180,7 @@ in memory and give a fatal error if `malloc' returns zero.
 
 File: standards.info,  Node: File Usage,  Prev: Memory Usage,  Up: Program Behavior
 
-4.10 File Usage
+4.11 File Usage
 ===============
 
 Programs should be prepared to operate when `/usr' and `/etc' are
@@ -3085,7 +3143,7 @@ the functions, variables, options, and important concepts that are part
 of the program.  One combined Index should do for a short manual, but
 sometimes for a complex package it is better to use multiple indices.
 The Texinfo manual includes advice on preparing good index entries, see
-*Note Making Index Entries: (texinfo)Index Entries, and see *Note
+*note Making Index Entries: (texinfo)Index Entries, and see *note
 Defining the Entries of an Index: (texinfo)Indexing Commands.
 
    Don't use Unix man pages as a model for how to write GNU
@@ -3485,11 +3543,8 @@ documentation.
 
    Be sure that man pages include a copyright statement and free
 license.  The simple all-permissive license is appropriate for simple
-man pages:
-
-     Copying and distribution of this file, with or without modification,
-     are permitted in any medium without royalty provided the copyright
-     notice and this notice are preserved.
+man pages (*note License Notices for Other Files: (maintain)License
+Notices for Other Files.).
 
    For long man pages, with enough explanation and documentation that
 they can be considered true manuals, use the GFDL (*note License for
@@ -3731,7 +3786,7 @@ File: standards.info,  Node: Makefile Conventions,  Next: Releases,  Prev: Confi
 This node describes conventions for writing the Makefiles for GNU
 programs.  Using Automake will help you write a Makefile that follows
 these conventions.  For more information on portable Makefiles, see
-POSIX and *Note Portable Make Programming: (autoconf)Portable Make.
+POSIX and *note Portable Make Programming: (autoconf)Portable Make.
 
 * Menu:
 
@@ -3840,7 +3895,7 @@ or `bash', or POSIX features not widely supported in traditional Bourne
 installation should not use any utilities directly except these:
 
      awk cat cmp cp diff echo egrep expr false grep install-info
-     ln ls mkdir mv pwd rm rmdir sed sleep sort tar test touch true
+     ln ls mkdir mv pwd rm rmdir sed sleep sort tar test touch tr true
 
    Compression programs such as `gzip' can be used in the `dist' rule.
 
@@ -3848,7 +3903,7 @@ installation should not use any utilities directly except these:
 options and features of these programs.  For example, don't use `mkdir
 -p', convenient as it may be, because a few systems don't support it at
 all and with others, it is not safe for parallel execution.  For a list
-of known incompatibilities, see *Note Portable Shell Programming:
+of known incompatibilities, see *note Portable Shell Programming:
 (autoconf)Portable Shell.
 
    It is a good idea to avoid creating symbolic links in makefiles,
@@ -4234,8 +4289,8 @@ have Info files, so every program needs `infodir', but not all need
 
 `lispdir'
      The directory for installing any Emacs Lisp files in this package.
-     By default, it should be `/usr/local/share/emacs/site-lisp', but
-     it should be written as `$(datarootdir)/emacs/site-lisp'.
+     By default, it should be `/usr/local/share/emacs/site-lisp', but it
+     should be written as `$(datarootdir)/emacs/site-lisp'.
 
      If you are using Autoconf, write the default as `@lispdir@'.  In
      order to make `@lispdir@' work, you need the following lines in
@@ -4777,7 +4832,7 @@ contain an explanation of the installation procedure.
    The `README' file should also refer to the file which contains the
 copying conditions.  The GNU GPL, if used, should be in a file called
 `COPYING'.  If the GNU LGPL is used, it should be in a file called
-`COPYING.LIB'.
+`COPYING.LESSER'.
 
    Naturally, all the source files must be in the distribution.  It is
 okay to include non-source files in the distribution, provided they are
@@ -4937,10 +4992,10 @@ File: standards.info,  Node: GNU Free Documentation License,  Next: Index,  Prev
 Appendix A GNU Free Documentation License
 *****************************************
 
-                      Version 1.2, November 2002
+                     Version 1.3, 3 November 2008
 
-     Copyright (C) 2000,2001,2002 Free Software Foundation, Inc.
-     51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA
+     Copyright (C) 2000, 2001, 2002, 2007, 2008 Free Software Foundation, Inc.
+     `http://fsf.org/'
 
      Everyone is permitted to copy and distribute verbatim copies
      of this license document, but changing it is not allowed.
@@ -5041,6 +5096,9 @@ Appendix A GNU Free Documentation License
      works in formats which do not have any title page as such, "Title
      Page" means the text near the most prominent appearance of the
      work's title, preceding the beginning of the body of the text.
+
+     The "publisher" means any person or entity that distributes copies
+     of the Document to the public.
 
      A section "Entitled XYZ" means a named subunit of the Document
      whose title either is precisely XYZ or contains XYZ in parentheses
@@ -5307,12 +5365,29 @@ Appendix A GNU Free Documentation License
   9. TERMINATION
 
      You may not copy, modify, sublicense, or distribute the Document
-     except as expressly provided for under this License.  Any other
-     attempt to copy, modify, sublicense or distribute the Document is
-     void, and will automatically terminate your rights under this
-     License.  However, parties who have received copies, or rights,
-     from you under this License will not have their licenses
-     terminated so long as such parties remain in full compliance.
+     except as expressly provided under this License.  Any attempt
+     otherwise to copy, modify, sublicense, or distribute it is void,
+     and will automatically terminate your rights under this License.
+
+     However, if you cease all violation of this License, then your
+     license from a particular copyright holder is reinstated (a)
+     provisionally, unless and until the copyright holder explicitly
+     and finally terminates your license, and (b) permanently, if the
+     copyright holder fails to notify you of the violation by some
+     reasonable means prior to 60 days after the cessation.
+
+     Moreover, your license from a particular copyright holder is
+     reinstated permanently if the copyright holder notifies you of the
+     violation by some reasonable means, this is the first time you have
+     received notice of violation of this License (for any work) from
+     that copyright holder, and you cure the violation prior to 30 days
+     after your receipt of the notice.
+
+     Termination of your rights under this section does not terminate
+     the licenses of parties who have received copies or rights from
+     you under this License.  If your rights have been terminated and
+     not permanently reinstated, receipt of a copy of some or all of
+     the same material does not give you any rights to use it.
 
  10. FUTURE REVISIONS OF THIS LICENSE
 
@@ -5330,7 +5405,41 @@ Appendix A GNU Free Documentation License
      published (not as a draft) by the Free Software Foundation.  If
      the Document does not specify a version number of this License,
      you may choose any version ever published (not as a draft) by the
-     Free Software Foundation.
+     Free Software Foundation.  If the Document specifies that a proxy
+     can decide which future versions of this License can be used, that
+     proxy's public statement of acceptance of a version permanently
+     authorizes you to choose that version for the Document.
+
+ 11. RELICENSING
+
+     "Massive Multiauthor Collaboration Site" (or "MMC Site") means any
+     World Wide Web server that publishes copyrightable works and also
+     provides prominent facilities for anybody to edit those works.  A
+     public wiki that anybody can edit is an example of such a server.
+     A "Massive Multiauthor Collaboration" (or "MMC") contained in the
+     site means any set of copyrightable works thus published on the MMC
+     site.
+
+     "CC-BY-SA" means the Creative Commons Attribution-Share Alike 3.0
+     license published by Creative Commons Corporation, a not-for-profit
+     corporation with a principal place of business in San Francisco,
+     California, as well as future copyleft versions of that license
+     published by that same organization.
+
+     "Incorporate" means to publish or republish a Document, in whole or
+     in part, as part of another Document.
+
+     An MMC is "eligible for relicensing" if it is licensed under this
+     License, and if all works that were first published under this
+     License somewhere other than this MMC, and subsequently
+     incorporated in whole or in part into the MMC, (1) had no cover
+     texts or invariant sections, and (2) were thus incorporated prior
+     to November 1, 2008.
+
+     The operator of an MMC Site may republish an MMC contained in the
+     site under CC-BY-SA on the same site at any time before August 1,
+     2009, provided the MMC is eligible for relicensing.
+
 
 ADDENDUM: How to use this License for your documents
 ====================================================
@@ -5341,7 +5450,7 @@ notices just after the title page:
 
        Copyright (C)  YEAR  YOUR NAME.
        Permission is granted to copy, distribute and/or modify this document
-       under the terms of the GNU Free Documentation License, Version 1.2
+       under the terms of the GNU Free Documentation License, Version 1.3
        or any later version published by the Free Software Foundation;
        with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
        Texts.  A copy of the license is included in the section entitled ``GNU
@@ -5456,6 +5565,7 @@ Index
 * installations, staged:                 DESTDIR.             (line   6)
 * internationalization:                  Internationalization.
                                                               (line   6)
+* LDAP:                                  OID Allocations.     (line   6)
 * left quote:                            Quote Characters.    (line   6)
 * legal aspects:                         Legal Issues.        (line   6)
 * legal papers:                          Contributions.       (line   6)
@@ -5488,6 +5598,7 @@ Index
 * non-POSIX systems, and portability:    System Portability.  (line  32)
 * non-standard extensions:               Using Extensions.    (line   6)
 * NUL characters:                        Semantics.           (line  11)
+* OID allocations for GNU:               OID Allocations.     (line   6)
 * open brace:                            Formatting.          (line   6)
 * optional features, configure-time:     Configuration.       (line 100)
 * options for compatibility:             Compatibility.       (line  14)
@@ -5520,6 +5631,7 @@ Index
 * releasing:                             Managing Releases.   (line   6)
 * sbindir:                               Directory Variables. (line  60)
 * signal handling:                       Semantics.           (line  59)
+* SNMP:                                  OID Allocations.     (line   6)
 * spaces before open-paren:              Formatting.          (line  75)
 * staged installs:                       DESTDIR.             (line   6)
 * standard command-line options:         Command-Line Interfaces.
@@ -5537,77 +5649,79 @@ Index
 * TMPDIR environment variable:           Semantics.           (line  84)
 * trademarks:                            Trademarks.          (line   6)
 * where to obtain standards.texi:        Preface.             (line  17)
+* X.509:                                 OID Allocations.     (line   6)
 
 
 
 Tag Table:
-Node: Top799
-Node: Preface2061
-Node: Legal Issues4176
-Node: Reading Non-Free Code4646
-Node: Contributions6376
-Node: Trademarks8614
-Node: Design Advice10249
-Node: Source Language10841
-Node: Compatibility12967
-Node: Using Extensions14595
-Node: Standard C16171
-Node: Conditional Compilation18574
-Node: Program Behavior19972
-Node: Non-GNU Standards21028
-Node: Semantics23309
-Node: Libraries28028
-Node: Errors29273
-Node: User Interfaces31766
-Node: Graphical Interfaces33371
-Node: Command-Line Interfaces34407
-Node: --version36439
-Node: --help42340
-Node: Option Table42894
-Node: Memory Usage57846
-Node: File Usage58877
-Node: Writing C59627
-Node: Formatting60599
-Node: Comments64888
-Node: Syntactic Conventions68440
-Node: Names71902
-Node: System Portability74114
-Node: CPU Portability77005
-Node: System Functions80906
-Node: Internationalization86103
-Node: Character Set90097
-Node: Quote Characters90910
-Node: Mmap92430
-Node: Documentation93138
-Node: GNU Manuals94244
-Node: Doc Strings and Manuals99982
-Node: Manual Structure Details101535
-Node: License for Manuals102953
-Node: Manual Credits103927
-Node: Printed Manuals104320
-Node: NEWS File105006
-Node: Change Logs105684
-Node: Change Log Concepts106438
-Node: Style of Change Logs108527
-Node: Simple Changes111027
-Node: Conditional Changes112469
-Node: Indicating the Part Changed113891
-Node: Man Pages114418
-Node: Reading other Manuals116730
-Node: Managing Releases117521
-Node: Configuration118302
-Node: Makefile Conventions126923
-Node: Makefile Basics127922
-Node: Utilities in Makefiles131096
-Node: Command Variables133591
-Node: DESTDIR136837
-Node: Directory Variables139011
-Node: Standard Targets153504
-Ref: Standard Targets-Footnote-1167117
-Node: Install Command Categories167217
-Node: Releases171750
-Node: References175677
-Node: GNU Free Documentation License181524
-Node: Index203956
+Node: Top805
+Node: Preface2072
+Node: Legal Issues4186
+Node: Reading Non-Free Code4656
+Node: Contributions6386
+Node: Trademarks8624
+Node: Design Advice10259
+Node: Source Language10851
+Node: Compatibility12977
+Node: Using Extensions14605
+Node: Standard C16181
+Node: Conditional Compilation18584
+Node: Program Behavior19982
+Node: Non-GNU Standards21098
+Node: Semantics23379
+Node: Libraries28098
+Node: Errors29343
+Node: User Interfaces31836
+Node: Graphical Interfaces33441
+Node: Command-Line Interfaces34477
+Node: --version36509
+Node: --help42410
+Node: Option Table43283
+Node: OID Allocations58238
+Node: Memory Usage59999
+Node: File Usage61035
+Node: Writing C61785
+Node: Formatting62757
+Node: Comments67046
+Node: Syntactic Conventions70598
+Node: Names74060
+Node: System Portability76272
+Node: CPU Portability79163
+Node: System Functions83064
+Node: Internationalization88261
+Node: Character Set92255
+Node: Quote Characters93068
+Node: Mmap94588
+Node: Documentation95296
+Node: GNU Manuals96402
+Node: Doc Strings and Manuals102140
+Node: Manual Structure Details103693
+Node: License for Manuals105111
+Node: Manual Credits106085
+Node: Printed Manuals106478
+Node: NEWS File107164
+Node: Change Logs107842
+Node: Change Log Concepts108596
+Node: Style of Change Logs110685
+Node: Simple Changes113185
+Node: Conditional Changes114627
+Node: Indicating the Part Changed116049
+Node: Man Pages116576
+Node: Reading other Manuals118782
+Node: Managing Releases119573
+Node: Configuration120354
+Node: Makefile Conventions128975
+Node: Makefile Basics129974
+Node: Utilities in Makefiles133148
+Node: Command Variables135646
+Node: DESTDIR138892
+Node: Directory Variables141066
+Node: Standard Targets155559
+Ref: Standard Targets-Footnote-1169172
+Node: Install Command Categories169272
+Node: Releases173805
+Node: References177735
+Node: GNU Free Documentation License183582
+Node: Index208749
 
 End Tag Table

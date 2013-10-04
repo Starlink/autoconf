@@ -2,8 +2,8 @@
 
 AT_BANNER([M4sh.])
 
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-# Free Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+# 2009 Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ AT_BANNER([M4sh.])
 ## ---------------- ##
 
 AT_SETUP([LINENO])
+AT_KEYWORDS([m4sh])
 
 # We cannot unset LINENO with Zsh, yet this test case relies on
 # unsetting LINENO to compare its result when (i) LINENO is supported
@@ -51,16 +52,18 @@ AT_CHECK([test -n "${ZSH_VERSION+set}" && exit 77], ignore)
 m4_define([AT_DATA_LINENO],
 [AT_DATA([$1.tas],
 [[AS@&t@_INIT
+m4@&t@_divert_text([0], [
 if $2; then
   AS@&t@_UNSET([LINENO])
 fi
-_AS@&t@_PREPARE
+])
+AS@&t@_LINENO_PREPARE
 echo "Line: $3"
 grep 'Line: .*$4' "$[0]" >/dev/null ||
   AS@&t@_ERROR([cannot find original script])
 exit 0
 ]])
-# If occurrences of $LINENO or __oline__ were wanted, create them.
+# If occurrences of $LINENO or __@&t@oline__ were wanted, create them.
 sed 's/__LINENO__/$''LINENO/g;s/__OLINE__/__''oline__/g' $1.tas >$1.as
 AT_CHECK([autom4te -l m4sh $1.as -o $1])
 ])# AT_DATA_LINENO
@@ -95,12 +98,98 @@ AT_CLEANUP
 
 
 
+## ---------------------- ##
+## LINENO stack support.  ##
+## ---------------------- ##
+
+AT_SETUP([LINENO stack])
+AT_KEYWORDS([m4sh])
+
+AT_DATA_M4SH([script.as],
+[[AS_INIT
+
+AS_LINENO_PUSH([9999])
+test $as_lineno = 9999 || AS_ERROR([bad as_lineno at depth 1])
+AS_LINENO_PUSH([8888])
+test $as_lineno = 9999 || AS_ERROR([bad as_lineno at depth 2])
+AS_LINENO_POP
+test $as_lineno = 9999 || AS_ERROR([bad as_lineno at depth 1])
+AS_LINENO_POP
+test x${as_lineno+set} = xset && AS_ERROR([as_lineno set at depth 0])
+
+AS_EXIT([0])
+]])
+
+AT_CHECK_M4SH
+AT_CHECK([$CONFIG_SHELL ./script])
+
+AT_CLEANUP
+
+
+## ------------- ##
+## AS_BASENAME.  ##
+## ------------- ##
+
+# Strip path from file.
+AT_SETUP([AS@&t@_BASENAME])
+AT_KEYWORDS([m4sh])
+
+AT_DATA_M4SH([script.as],
+[[AS_INIT
+
+m4_define([BASENAME_TEST],
+[base=`AS_BASENAME([$1])`
+test "$base" = "$2" ||
+  echo "basename($1) = $base instead of $2" >&2
+
+base=`_AS_BASENAME_SED([$1])`
+test "$base" = "$2" ||
+  echo "basename_sed($1) = $base instead of $2" >&2])
+
+BASENAME_TEST([//1],             [1])
+BASENAME_TEST([/1],              [1])
+BASENAME_TEST([./1],             [1])
+BASENAME_TEST([../../2],         [2])
+BASENAME_TEST([//1/],            [1])
+BASENAME_TEST([/1/],             [1])
+BASENAME_TEST([./1/],            [1])
+BASENAME_TEST([../../2],         [2])
+BASENAME_TEST([//1/3],           [3])
+BASENAME_TEST([/1/3],            [3])
+BASENAME_TEST([./1/3],           [3])
+BASENAME_TEST([../../2/3],       [3])
+BASENAME_TEST([//1/3///],        [3])
+BASENAME_TEST([/1/3///],         [3])
+BASENAME_TEST([./1/3///],        [3])
+BASENAME_TEST([../../2/3///],    [3])
+BASENAME_TEST([//1//3/],         [3])
+BASENAME_TEST([/1//3/],          [3])
+BASENAME_TEST([./1//3/],         [3])
+BASENAME_TEST([a.c],             [a.c])
+BASENAME_TEST([a.c/],            [a.c])
+BASENAME_TEST([/a.c/],           [a.c])
+BASENAME_TEST([/1/a.c],          [a.c])
+BASENAME_TEST([/1/a.c/],         [a.c])
+BASENAME_TEST([/1/../a.c],       [a.c])
+BASENAME_TEST([/1/../a.c/],      [a.c])
+BASENAME_TEST([./1/a.c],         [a.c])
+BASENAME_TEST([./1/a.c/],        [a.c])
+AS_EXIT(0)
+]])
+
+AT_CHECK_M4SH
+AT_CHECK([$CONFIG_SHELL ./script])
+
+AT_CLEANUP
+
+
 ## ------------ ##
 ## AS_DIRNAME.  ##
 ## ------------ ##
 
-# Build nested dirs.
+# Strip filename component.
 AT_SETUP([AS@&t@_DIRNAME])
+AT_KEYWORDS([m4sh])
 
 AT_DATA_M4SH([script.as],
 [[AS_INIT
@@ -149,7 +238,7 @@ AS_EXIT(0)
 ]])
 
 AT_CHECK_M4SH
-AT_CHECK([./script])
+AT_CHECK([$CONFIG_SHELL ./script])
 
 AT_CLEANUP
 
@@ -159,8 +248,9 @@ AT_CLEANUP
 ## AS_ECHO.  ##
 ## --------- ##
 
-# Build nested dirs.
+# Print literal strings, with/without newline.
 AT_SETUP([AS@&t@_ECHO and AS@&t@_ECHO_N])
+AT_KEYWORDS([m4sh])
 
 AT_DATA_M4SH([script.as],
 [[AS_INIT
@@ -197,64 +287,56 @@ AS_EXIT(0)
 ]])
 
 AT_CHECK_M4SH
-AT_CHECK([./script])
+AT_CHECK([$CONFIG_SHELL ./script])
 
 AT_CLEANUP
 
 
 
-## ------------- ##
-## AS_BASENAME.  ##
-## ------------- ##
+## --------- ##
+## AS_EXIT.  ##
+## --------- ##
 
-# Build nested dirs.
-AT_SETUP([AS@&t@_BASENAME])
+# Exit scripts with given status.
+AT_SETUP([AS@&t@_EXIT])
+AT_KEYWORDS([m4sh AS@&t@_SET_STATUS])
 
 AT_DATA_M4SH([script.as],
 [[AS_INIT
-
-m4_define([BASENAME_TEST],
-[base=`AS_BASENAME([$1])`
-test "$base" = "$2" ||
-  echo "basename($1) = $base instead of $2" >&2
-
-base=`_AS_BASENAME_SED([$1])`
-test "$base" = "$2" ||
-  echo "basename_sed($1) = $base instead of $2" >&2])
-
-BASENAME_TEST([//1],             [1])
-BASENAME_TEST([/1],              [1])
-BASENAME_TEST([./1],             [1])
-BASENAME_TEST([../../2],         [2])
-BASENAME_TEST([//1/],            [1])
-BASENAME_TEST([/1/],             [1])
-BASENAME_TEST([./1/],            [1])
-BASENAME_TEST([../../2],         [2])
-BASENAME_TEST([//1/3],           [3])
-BASENAME_TEST([/1/3],            [3])
-BASENAME_TEST([./1/3],           [3])
-BASENAME_TEST([../../2/3],       [3])
-BASENAME_TEST([//1/3///],        [3])
-BASENAME_TEST([/1/3///],         [3])
-BASENAME_TEST([./1/3///],        [3])
-BASENAME_TEST([../../2/3///],    [3])
-BASENAME_TEST([//1//3/],         [3])
-BASENAME_TEST([/1//3/],          [3])
-BASENAME_TEST([./1//3/],         [3])
-BASENAME_TEST([a.c],             [a.c])
-BASENAME_TEST([a.c/],            [a.c])
-BASENAME_TEST([/a.c/],           [a.c])
-BASENAME_TEST([/1/a.c],          [a.c])
-BASENAME_TEST([/1/a.c/],         [a.c])
-BASENAME_TEST([/1/../a.c],       [a.c])
-BASENAME_TEST([/1/../a.c/],      [a.c])
-BASENAME_TEST([./1/a.c],         [a.c])
-BASENAME_TEST([./1/a.c/],        [a.c])
-AS_EXIT(0)
+test x${1} = xa && AS_EXIT
+test x${1} = xb && AS_EXIT([${2}])
+test x${1} = xc && { AS_SET_STATUS([${2}]); AS_EXIT; }
+test x${1} = xd && trap 's=$?; echo $s; AS_EXIT([$s])' 0
+test x${2} = xe && set -e
+test $[#] -gt 0 || AS_EXIT
+AS_SET_STATUS([3])
+dnl Solaris /bin/sh 'set -e' doesn't react to failed function calls
+test x${2} = xe \
+  && { echo 'skipping rest of test: set -e support is lousy'; exit 77; }
+AS_SET_STATUS([4])
 ]])
 
 AT_CHECK_M4SH
-AT_CHECK([./script])
+AT_CHECK([$CONFIG_SHELL ./script], [1])
+AT_CHECK([$CONFIG_SHELL ./script ''], [4])
+AT_CHECK([$CONFIG_SHELL ./script a], [0])
+AT_CHECK([$CONFIG_SHELL ./script b], [0])
+AT_CHECK([$CONFIG_SHELL ./script b 0], [0])
+AT_CHECK([$CONFIG_SHELL ./script b 2], [2])
+AT_CHECK([$CONFIG_SHELL ./script c 0], [0])
+AT_CHECK([$CONFIG_SHELL ./script c 2], [2])
+AT_CHECK([$CONFIG_SHELL ./script d], [4], [[4
+]])
+dnl If we got to this point without a FAIL, then AS_EXIT at least works.
+dnl The rest of this test relies on semi-decent 'set -e' support, even
+dnl though m4sh in general should not try to rely on it because of
+dnl portability nightmares on what constructs are considered errors across
+dnl various shells; therefore, an overall SKIP result is desirable on
+dnl broken shells like Solaris /bin/sh.
+AT_CHECK([$CONFIG_SHELL ./script '' e], [3])
+AT_CHECK([$CONFIG_SHELL ./script d e], [3], [stdout])
+dnl NetBSD sh fails to output on stderr here.
+AT_CHECK([grep 3 stdout || exit 77], [], [ignore])
 
 AT_CLEANUP
 
@@ -266,6 +348,7 @@ AT_CLEANUP
 
 # Build nested dirs.
 AT_SETUP([AS@&t@_MKDIR_P])
+AT_KEYWORDS([m4sh])
 
 AT_DATA_M4SH([script.as],
 [[AS_INIT
@@ -284,7 +367,7 @@ AS_EXIT(0)
 ]])
 
 AT_CHECK_M4SH
-AT_CHECK([./script])
+AT_CHECK([$CONFIG_SHELL ./script])
 
 AT_CLEANUP
 
@@ -295,8 +378,9 @@ AT_CLEANUP
 ## AS_VERSION_COMPARE.  ##
 ## -------------------- ##
 
-# Build nested dirs.
+# Three-way version comparison.
 AT_SETUP([AS@&t@_VERSION_COMPARE])
+AT_KEYWORDS([m4sh])
 
 AT_DATA_M4SH([script.as],
 [[AS_INIT
@@ -330,7 +414,28 @@ AS_EXIT(0)
 ]])
 
 AT_CHECK_M4SH
-AT_CHECK([./script])
+AT_CHECK([$CONFIG_SHELL ./script])
+
+AT_CLEANUP
+
+
+
+
+## ------- ##
+## as_me.  ##
+## ------- ##
+
+AT_SETUP([as_me])
+AT_KEYWORDS([m4sh])
+
+AT_DATA_M4SH([script.as],
+[[AS_INIT
+AS_ME_PREPARE
+test "$as_me" = script || AS_ECHO([["incorrect value of \$as_me: $as_me"]])
+]])
+
+AT_CHECK_M4SH
+AT_CHECK([$CONFIG_SHELL ./script])
 
 AT_CLEANUP
 
@@ -345,6 +450,7 @@ AT_CLEANUP
 # unknown for `[!...]'.
 
 AT_SETUP([Negated classes in globbing])
+AT_KEYWORDS([m4sh])
 
 AT_DATA_M4SH([script.as],
 [[AS_INIT
@@ -360,7 +466,7 @@ esac
 ]])
 
 AT_CHECK_M4SH
-AT_CHECK([./script])
+AT_CHECK([$CONFIG_SHELL ./script])
 
 AT_CLEANUP
 
@@ -375,10 +481,11 @@ AT_CLEANUP
 # $LINENO support, supports functions.
 
 AT_SETUP([Functions Support])
+AT_KEYWORDS([m4sh])
 
 AT_DATA_M4SH([script.as],
 [[AS_INIT
-_AS_LINENO_PREPARE
+AS_LINENO_PREPARE
 
 func_return () {
   (exit $1)
@@ -402,7 +509,7 @@ fi
 ]])
 
 AT_CHECK_M4SH
-AT_CHECK([./script])
+AT_CHECK([$CONFIG_SHELL ./script])
 
 AT_CLEANUP
 
@@ -417,10 +524,11 @@ AT_CLEANUP
 # $LINENO support, supports functions, and the `return' keyword.
 
 AT_SETUP([Functions and return Support])
+AT_KEYWORDS([m4sh])
 
 AT_DATA_M4SH([script.as],
 [[AS_INIT
-_AS_LINENO_PREPARE
+AS_LINENO_PREPARE
 
 func_success () {
   return 0
@@ -440,7 +548,78 @@ fi
 ]])
 
 AT_CHECK_M4SH
-AT_CHECK([./script])
+AT_CHECK([$CONFIG_SHELL ./script])
+
+AT_CLEANUP
+
+
+## --------------------------- ##
+## Nested AS_REQUIRE_SHELL_FN ##
+## --------------------------- ##
+
+# Hypothesis: M4sh expands nested AS_REQUIRE_SHELL_FN
+# separately.
+
+AT_SETUP([Nested AS@&t@_REQUIRE_SHELL_FN])
+AT_KEYWORDS([m4sh])
+
+AT_DATA_M4SH([script.as], [[dnl
+m4_define([INIT], [oops])dnl
+AS_INIT
+
+m4_defun([TEST_FUNC2_BODY], [
+:
+])
+
+m4_defun([TEST_FUNC1_BODY], [
+AS_REQUIRE_SHELL_FN([test_func2], [], [TEST_FUNC2_BODY])
+:
+])
+
+AS_REQUIRE_SHELL_FN([test_func1], [], [TEST_FUNC1_BODY])
+test_func2
+]])
+
+AT_CHECK_M4SH
+AT_CHECK([$CONFIG_SHELL ./script])
+
+AT_CLEANUP
+
+
+## ------------------- ##
+## Nested AS_REQUIRE.  ##
+## ------------------- ##
+
+# Hypothesis: M4sh expands the requirements of AS_REQUIRE in the
+# requested diversion, even if other AS_REQUIREs are interleaved.
+
+AT_SETUP([Nested AS@&t@_REQUIRE])
+AT_KEYWORDS([m4sh])
+
+AT_DATA_M4SH([script.as], [[dnl
+AS_INIT
+
+m4_defun([in_fn_diversion], still_in_m4sh_init_fn=yes)
+m4_defun([not_in_fn_diversion], still_in_m4sh_init_fn=no)
+
+m4_defun([NESTED], [nested_require_in_fn_diversion=$still_in_m4sh_init_fn])
+
+m4_defun([OUTER], [AS_REQUIRE([NESTED])dnl
+outer_require_in_fn_diversion=$still_in_m4sh_init_fn])
+
+m4_defun([test_init], [
+AS_REQUIRE([in_fn_diversion], , [M4SH-INIT-FN])
+AS_REQUIRE([OUTER], , [M4SH-INIT-FN])
+AS_REQUIRE([not_in_fn_diversion], , [M4SH-INIT-FN])
+])
+
+test_init
+if test $outer_require_in_fn_diversion != yes; then AS_EXIT([1]); fi
+if test $nested_require_in_fn_diversion != no; then AS_EXIT([1]); fi
+]])
+
+AT_CHECK_M4SH
+AT_CHECK([$CONFIG_SHELL ./script])
 
 AT_CLEANUP
 
@@ -450,9 +629,10 @@ AT_CLEANUP
 ## ------------------------------------ ##
 
 # Hypothesis: M4sh expands the requirements of AS_REQUIRE_SHELL_FN
-# in the main diversion, and not in M4SH-INIT.
+# in M4SH-INIT-FN.  This changed after Autoconf 2.63.
 
 AT_SETUP([AS@&t@_REQUIRE_SHELL_FN and m4@&t@_require])
+AT_KEYWORDS([m4sh])
 
 AT_DATA_M4SH([script.as], [[dnl
 AS_INIT
@@ -473,8 +653,8 @@ m4_require([error_if_emitted_in_m4sh_init])
 
 
 m4_defun([test_init], [
-AS_REQUIRE([in_m4_sh_init])
-AS_REQUIRE_SHELL_FN([test_func], [TEST_FUNC_BODY])
+AS_REQUIRE([in_m4_sh_init], , [M4SH-INIT-FN])
+AS_REQUIRE_SHELL_FN([test_func], [], [TEST_FUNC_BODY])
 AS_REQUIRE([not_in_m4_sh_init])
 ])
 
@@ -483,7 +663,7 @@ test_func parameter1
 ]])
 
 AT_CHECK_M4SH
-AT_CHECK([./script])
+AT_CHECK([$CONFIG_SHELL ./script])
 
 AT_CLEANUP
 
@@ -493,11 +673,10 @@ AT_CLEANUP
 ## -------------- ##
 
 AT_SETUP([AS@&t@_HELP_STRING])
-AT_KEYWORDS([m4@&t@_text_wrap m4@&t@_expand])
+AT_KEYWORDS([m4sh m4@&t@_text_wrap m4@&t@_expand])
 
 AT_DATA_M4SH([script.as],
 [[AS_INIT
-_AS_LINENO_PREPARE
 
 echo "AS_HELP_STRING([--an-option],[some text])"
 echo "AS_HELP_STRING([--another-much-longer-option],
@@ -561,7 +740,7 @@ echo "AS_HELP_STRING([--tune4], [check out the tuned formatting],
 ]])
 
 AT_CHECK_M4SH
-AT_CHECK([./script], [0],
+AT_CHECK([$CONFIG_SHELL ./script], [0],
 [[  --an-option             some text
   --another-much-longer-option
                           some other text which should wrap at our default of
@@ -633,8 +812,7 @@ AT_CLEANUP
 ## ------------------- ##
 
 AT_SETUP([AS@&t@_IF and AS@&t@_CASE])
-
-AT_KEYWORDS([m4@&t@_transform_pair])
+AT_KEYWORDS([m4sh m4@&t@_map_args_pair])
 
 AT_DATA_M4SH([script.as], [[dnl
 AS_INIT
@@ -671,6 +849,25 @@ AS_CASE([foo],
         [foo], [echo ten],
         [*],   [echo wrong])
 
+# check for nesting, lists, and side effects, and quoting robustness
+empty=
+AS_IF([AS_IF([$empty], [echo eleven])]) && AS_CASE([foo]) && echo twelve
+rm -f file
+AS_IF([touch file; false]) && echo thirteen
+test -f file && echo fourteen
+rm -f file
+AS_CASE([`touch file; false`]) && test -f file && echo fifteen
+dnl The next line is badly underquoted; don't intentionally copy this style.
+AS_CASE([foo], [foo], m4_do(AS_CASE([bar], [bar], [echo sixteen])))
+dnl Handle blank arguments.
+AS_IF([false], [:], [ ]) && AS_CASE([foo], [foo], []
+) && echo seventeen
+m4_define([empty])AS_IF([:], [empty]
+) && AS_CASE([foo], [foo], [empty]) && echo eighteen
+dnl We can't handle AS_IF([false], [:], [empty]) unless m4_expand is
+dnl taught how to handle m4_require.  The user is responsible for
+dnl avoiding the syntax error in that case.
+
 # check that require works correctly
 m4_for([n], 1, 9, [],
 [m4_defun([FOO]n, [foo]n[=]n)dnl
@@ -706,7 +903,7 @@ echo "foo9=$foo9 bar9=$bar9"
 ]])
 
 AT_CHECK_M4SH
-AT_CHECK([./script], [0], [[one
+AT_CHECK([$CONFIG_SHELL ./script], [0], [[one
 two
 three
 four
@@ -716,6 +913,14 @@ seven
 eight
 nine
 ten
+eleven
+twelve
+thirteen
+fourteen
+fifteen
+sixteen
+seventeen
+eighteen
 foo1=1 bar1=1
 foo2=2 bar2=
 foo3=3 bar3=
@@ -741,20 +946,88 @@ AS_CASE([$[1]]m4_for([i], [1], ]limit[, [], [, i, echo i]), [echo default])
 
 dnl Add --force so autom4te doesn't think `script' is still up to date.
 AT_CHECK_M4SH([--force])
-AT_CHECK([./script 1], [0], [[1
+AT_CHECK([$CONFIG_SHELL ./script 1], [0], [[1
 1
 1
 1
 ]])
-AT_CHECK([./script limit], [0], [limit
+AT_CHECK([$CONFIG_SHELL ./script limit], [0], [limit
 limit
 limit
 limit
 ])
-AT_CHECK([./script default], [0], [[default
+AT_CHECK([$CONFIG_SHELL ./script default], [0], [[default
 default
 ]])
 m4_popdef([limit])
+
+AT_CLEANUP
+
+
+## -------- ##
+## AS_FOR.  ##
+## -------- ##
+
+AT_SETUP([AS@&t@_FOR])
+AT_KEYWORDS([m4sh])
+
+AT_DATA_M4SH([script.as], [[dnl
+AS_INIT
+
+# Simple checks.
+AS_FOR([m4var], [shvar], [a],
+[echo "m4var $shvar"])
+AS_FOR([m4var], [shvar], [b c],
+[echo "m4var $shvar"])
+list='d e'
+AS_FOR([m4var], [shvar], [$list],
+[echo "m4var $shvar"])
+AS_FOR([m4var], [shvar], ["$list"],
+[echo "m4var $shvar"])
+AS_FOR([m4var], [shvar], ['$list'],
+[echo "m4var $shvar"])
+AS_FOR([m4var], [shvar], [\'],
+[echo "m4var $shvar"])
+
+# Syntax checks: cope with empty/blank arguments.
+set f g
+AS_FOR([], [shvar], [],
+[echo "m4_defn([]) $shvar"])
+rm -f file
+AS_FOR([], [shvar], [`touch file`])
+test -f file || exit 1
+AS_FOR([], [shvar], [], [ ])
+m4_define([empty])AS_FOR([], [shvar], [], [empty])
+
+# Check that break works.
+while :
+do
+  AS_FOR([m4var], [shvar], [h i],
+    [echo "m4var"; break 2])
+  exit 1
+done
+while :
+do
+  AS_FOR([m4var], [shvar], [j],
+    [echo "m4var"; break 2])
+  exit 1
+done
+]])
+
+AT_CHECK_M4SH
+AT_CHECK([$CONFIG_SHELL ./script], [0], [[a a
+b b
+c c
+d d
+e e
+d e d e
+$list $list
+' '
+f f
+g g
+h
+j
+]])
 
 AT_CLEANUP
 
@@ -764,6 +1037,7 @@ AT_CLEANUP
 ## --------------- ##
 
 AT_SETUP([AS@&t@_LITERAL_IF])
+AT_KEYWORDS([m4sh])
 
 AT_DATA_M4SH([script.as], [[dnl
 AS_INIT
@@ -780,7 +1054,7 @@ echo AS_LITERAL_IF([mac], [ERR], [ok]) 7
 ]])
 
 AT_CHECK_M4SH
-AT_CHECK([./script], [],
+AT_CHECK([$CONFIG_SHELL ./script], [],
 [[ok 1
 ok 2
 ok 3
@@ -793,18 +1067,181 @@ ok 7
 AT_CLEANUP
 
 
+## ---------- ##
+## AS_VAR_*.  ##
+## ---------- ##
+
+AT_SETUP([AS@&t@_VAR basics])
+AT_KEYWORDS([m4sh AS@&t@_VAR_COPY AS@&t@_VAR_SET AS@&t@_VAR_GET])
+AT_KEYWORDS([AS@&t@_VAR_TEST_SET AS@&t@_VAR_SET_IF AS@&t@_VAR_IF])
+AT_KEYWORDS([AS@&t@_VAR_PUSHDEF AS@&t@_VAR_POPDEF])
+
+AT_DATA_M4SH([script.as], [[dnl
+AS_INIT
+ m4_define([with], [WITH])
+# Literals.
+dnl AS_VAR_SET_IF also covers AS_VAR_TEST_SET
+AS_VAR_SET_IF([foo], [echo oops]) && echo ok
+AS_VAR_SET([foo], ['\a  "weird" `value` with; $fun '\''characters
+']) # 'font-lock
+AS_VAR_COPY([bar], [foo])
+AS_ECHO(["$bar-"])
+AS_ECHO(["AS_VAR_GET([foo])-"])
+AS_VAR_SET_IF([foo], [echo ok], [echo oops])
+AS_VAR_IF([foo], [string], [echo oops]) && echo ok
+AS_VAR_PUSHDEF([tmp], [foo])
+AS_VAR_IF([tmp], ['\a  "weird" `value` with; $fun '\''characters
+'], [echo ok], [echo oops]) # 'font-lock
+AS_VAR_POPDEF([tmp])
+m4_ifdef([tmp], [echo oops])
+
+# Indirects via shell vars.
+echo '===='
+num=1
+AS_VAR_SET_IF([foo$num], [echo oops]) && echo ok
+AS_VAR_SET([foo$num], ['\a  "weird" `value` with; $fun '\''characters
+']) # 'font-lock
+AS_VAR_COPY([bar], [foo$num])
+num=2
+AS_VAR_COPY([foo$num], [bar])
+AS_ECHO(["$foo2-"])
+AS_ECHO(["AS_VAR_GET([foo$num])-"])
+AS_VAR_SET_IF([foo$num], [echo ok], [echo oops])
+AS_VAR_IF([foo$num], [string], [echo oops]) && echo ok
+AS_VAR_PUSHDEF([tmp], [foo$num])
+AS_VAR_IF([tmp], ['\a  "weird" `value` with; $fun '\''characters
+'], [echo ok], [echo oops]) # 'font-lock
+AS_VAR_POPDEF([tmp])
+m4_ifdef([tmp], [echo oops])
+
+# Indirects via command substitution.
+echo '===='
+AS_VAR_SET_IF([`echo foo3`], [echo oops]) && echo ok
+AS_VAR_SET([`echo foo3`], ['\a  "weird" `value` with; $fun '\''characters
+']) # 'font-lock
+AS_VAR_COPY([bar], [`echo foo3`])
+num=2
+AS_VAR_COPY([`echo foo4`], [bar])
+AS_ECHO(["$foo4-"])
+AS_ECHO(["AS_VAR_GET([`echo foo4`])-"])
+AS_VAR_SET_IF([`echo foo4`], [echo ok], [echo oops])
+AS_VAR_IF([`echo foo4`], [string], [echo oops]) && echo ok
+AS_VAR_PUSHDEF([tmp], [`echo foo4`])
+AS_VAR_IF([tmp], ['\a  "weird" `value` with; $fun '\''characters
+'], [echo ok], [echo oops]) # 'font-lock
+AS_VAR_POPDEF([tmp])
+m4_ifdef([tmp], [echo oops])
+:
+]])
+
+AT_CHECK_M4SH
+AT_CHECK([$CONFIG_SHELL ./script], [], [[ok
+\a  "weird" `value` WITH; $fun 'characters
+-
+\a  "weird" `value` WITH; $fun 'characters
+-
+ok
+ok
+ok
+====
+ok
+\a  "weird" `value` WITH; $fun 'characters
+-
+\a  "weird" `value` WITH; $fun 'characters-
+ok
+ok
+ok
+====
+ok
+\a  "weird" `value` WITH; $fun 'characters
+-
+\a  "weird" `value` WITH; $fun 'characters-
+ok
+ok
+ok
+]])
+
+AT_CLEANUP
+
+
+## --------------- ##
+## AS_VAR_APPEND.  ##
+## --------------- ##
+
+AT_SETUP([AS@&t@_VAR_APPEND])
+AT_KEYWORDS([m4sh AS@&t@_VAR])
+
+AT_DATA_M4SH([script.as], [[dnl
+AS_INIT
+# Literals.
+AS_VAR_APPEND([foo], ["hello,  "])
+AS_VAR_APPEND([foo], [world])
+echo "$foo"
+# Indirects via shell vars.
+num=1
+AS_VAR_APPEND([foo$num], ['hello,  '])
+AS_VAR_APPEND([foo$num], [`echo "world"`])
+echo "$foo1"
+# Indirects via command substitution.
+h=hello w=',  world'
+AS_VAR_APPEND([`echo foo2`], [${h}])
+AS_VAR_APPEND([`echo foo2`], ["$w"])
+echo "$foo2"
+]])
+
+AT_CHECK_M4SH
+AT_CHECK([$CONFIG_SHELL ./script], [],
+[[hello,  world
+hello,  world
+hello,  world
+]])
+
+AT_CLEANUP
+
+
+## -------------- ##
+## AS_VAR_ARITH.  ##
+## -------------- ##
+
+AT_SETUP([AS@&t@_VAR_ARITH])
+AT_KEYWORDS([m4sh AS@&t@_VAR])
+
+AT_DATA_M4SH([script.as], [[dnl
+AS_INIT
+# Literals.
+AS_VAR_ARITH([foo], [1 + 1])
+echo "$foo"
+# Indirects via shell vars.
+num=1
+AS_VAR_ARITH([foo$num], [\( 2 + 3 \) \* 4])
+echo "$foo1"
+# Indirects via command substitution.
+AS_VAR_ARITH([`echo foo2`], [0 + -2 + $foo1 / 2])
+echo "$foo2"
+]])
+
+AT_CHECK_M4SH
+AT_CHECK([$CONFIG_SHELL ./script], [],
+[[2
+20
+8
+]])
+
+AT_CLEANUP
+
+
 ## ----------------- ##
 ## AS_INIT cleanup.  ##
 ## ----------------- ##
 
 AT_SETUP([AS@&t@_INIT cleanup])
-
-AT_KEYWORDS([m4@&t@_wrap m4@&t@_wrap_lifo])
+AT_KEYWORDS([m4sh m4@&t@_wrap m4@&t@_wrap_lifo])
 
 AT_DATA_M4SH([script.as], [[dnl
 dnl Registered before AS_INIT's cleanups
 m4_wrap([echo cleanup 1
 ])
+m4_pushdef([_AS_SHELL_FN_SPY])dnl neutralize the spy, we don't care about it
 AS_INIT
 dnl Registered after AS_INIT's cleanups, thus goes to KILL diversion
 m4_wrap([echo cleanup 2
@@ -821,10 +1258,177 @@ echo body
 ]])
 
 AT_CHECK_M4SH
-AT_CHECK([./script], [], [[prep 4
+AT_CHECK([$CONFIG_SHELL ./script], [], [[prep 4
 body
 cleanup 5
 cleanup 1
 ]])
+
+AT_CLEANUP
+
+
+## ------------------- ##
+## AS_INIT_GENERATED.  ##
+## ------------------- ##
+
+AT_SETUP([AS@&t@_INIT_GENERATED])
+AT_KEYWORDS([AS@&t@_MESSAGE AS@&t@_MESSAGE_LOG_FD])
+
+dnl First run, no logging, tests shell selection
+AT_DATA_M4SH([script.as], [[dnl
+AS_INIT
+AS_INIT_GENERATED([child], [echo hello from child])
+cat >>child <<\EOF
+AS_ECHO(["SHELL=$SHELL"])
+EOF
+echo hello from parent
+AS_ECHO(["SHELL=$SHELL"])
+]])
+
+AT_CHECK_M4SH
+AT_CHECK([$CONFIG_SHELL ./script], [0], [stdout])
+AT_CHECK([grep 'SHELL=.' stdout], [0], [ignore])
+sed s/parent/child/ <stdout >expout
+AT_CHECK([./child], [0], [expout])
+SHELL=/bogus
+export SHELL
+cp stdout expout
+mv child child.bak
+AT_CHECK([$CONFIG_SHELL ./script], [0], [expout])
+AT_CHECK([cmp child child.bak])
+AT_CHECK([grep 'SHELL=.' stdout], [0], [ignore])
+sed s/parent/child/ <stdout >expout
+AT_CHECK([./child], [0], [expout])
+
+
+dnl Second run, with logging from parent and child, tests fd handling
+AT_DATA_M4SH([script.as], [[dnl
+AS_INIT
+child=${1-child}
+m4_define([AS_MESSAGE_LOG_FD], [5])
+exec AS_MESSAGE_LOG_FD>log
+AS_INIT_GENERATED([$child], [echo hello1 from $child]) || AS_EXIT([1])
+cat >>$child <<\EOF
+m4_pushdef([AS_MESSAGE_LOG_FD])
+AS_MESSAGE([hello2 from ${child}child])
+m4_popdef([AS_MESSAGE_LOG_FD])
+exec AS_MESSAGE_LOG_FD>>log
+AS_MESSAGE([hello3 from child])
+EOF
+AS_MESSAGE([hello from parent])
+dnl close log in parent before spawning child, for mingw
+exec AS_MESSAGE_LOG_FD>&-
+./$child
+]])
+
+rm -f script
+AT_CHECK_M4SH
+AT_CHECK([$CONFIG_SHELL ./script], [0], [[script: hello from parent
+hello1 from child
+child: hello2 from child
+child: hello3 from child
+]])
+AT_CHECK([[sed 's,:[0-9][0-9]*:,:0:,' log]], [0],
+[[script:0: hello from parent
+child:0: hello3 from child
+]])
+
+# Force write error creating a file on stdout
+if test -w /dev/full && test -c /dev/full; then
+  AT_CHECK([$CONFIG_SHELL ./script /dev/full], [1], [ignore], [ignore])
+fi
+
+AT_CLEANUP
+
+
+## --------------- ##
+## AS_MESSAGE_FD.  ##
+## --------------- ##
+
+AT_SETUP([AS@&t@_MESSAGE_FD])
+AT_KEYWORDS([AS@&t@_MESSAGE AS@&t@_MESSAGE_LOG_FD AS@&t_ORIGINAL_STDIN_FD])
+AT_KEYWORDS([AS@&t@_LINENO_PUSH])
+
+AT_DATA_M4SH([script.as], [[dnl
+AS_INIT
+m4_define([AS_ORIGINAL_STDIN_FD], [5])
+m4_define([AS_MESSAGE_LOG_FD], [6])
+m4_define([AS_MESSAGE_FD], [7])
+exec AS_ORIGINAL_STDIN_FD<&0 </dev/null AS_MESSAGE_LOG_FD>log
+if test $[#] -gt 0; then
+  exec AS_MESSAGE_FD>/dev/null
+else
+  exec AS_MESSAGE_FD>&1
+fi
+AS_LINENO_PUSH([100])
+cat # tests that stdin is neutralized
+AS_MESSAGE([hello world])
+cat <&AS_ORIGINAL_STDIN_FD
+]])
+
+AT_CHECK_M4SH
+AT_CHECK([echo goodbye | $CONFIG_SHELL ./script], [0],
+[[script: hello world
+goodbye
+]])
+AT_CHECK([cat log], [0],
+[[script:100: hello world
+]])
+rm log
+AT_CHECK([echo goodbye | $CONFIG_SHELL ./script silent], [0],
+[[goodbye
+]])
+AT_CHECK([cat log], [0],
+[[script:100: hello world
+]])
+
+AT_CLEANUP
+
+
+## --------------- ##
+## _AS_CLEAN_DIR.  ##
+## --------------- ##
+
+AT_SETUP([_AS@&t@_CLEAN_DIR])
+
+dnl ensure that we can erase all files in a directory.  Note that
+dnl _AS_CLEAN_DIR needs three globs to catch all these files.
+AT_DATA_M4SH([script.as], [[dnl
+AS_INIT
+# Unwritable subdirectories are common during 'make distcheck'.
+mkdir sub sub/unwritable || AS_ERROR([failed to mkdir])
+touch sub/unwritable/file || AS_ERROR([failed to touch])
+chmod a-wx sub/unwritable || AS_ERROR([failed to chmod])
+# Cygwin 1.5 can't touch 'sub/...', so make that file optional.
+touch sub/a sub/aa sub/aaa sub/.a sub/..a sub/.aa \
+  || AS_ERROR([failed to touch])
+touch sub/... 2>/dev/null
+_AS_CLEAN_DIR([sub]) || AS_ERROR([failed to clean])
+# rmdir instead of 'rm -fr' here proves that we emptied sub.
+rmdir sub || AS_ERROR([failed to rmdir])
+]])
+
+AT_CHECK_M4SH
+AT_CHECK([$CONFIG_SHELL ./script])
+
+AT_CLEANUP
+
+
+## -------- ##
+## ECHO_C.  ##
+## -------- ##
+
+AT_SETUP([ECHO_C])
+
+AT_DATA_M4SH([script.as], [[dnl
+AS_INIT
+_AS_PREPARE
+foo=`echo foobar`
+echo "$foo"
+]])
+
+AT_CHECK_M4SH
+AT_CHECK([$CONFIG_SHELL ./script], [], [foobar
+])
 
 AT_CLEANUP

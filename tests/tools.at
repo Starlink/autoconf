@@ -2,8 +2,8 @@
 
 AT_BANNER([Executables (autoheader, autoupdate...).])
 
-# Copyright (C) 2000, 2001, 2003, 2004, 2006, 2007, 2008 Free Software
-# Foundation, Inc.
+# Copyright (C) 2000, 2001, 2003, 2004, 2006, 2007, 2008, 2009 Free
+# Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -130,7 +130,8 @@ AT_CHECK_AUTOM4TE([-o file file.m4])
 # even on slow machines.
 echo BAD >file
 this_year=`TZ=UTC0 date +%Y`
-TZ=UTC0 touch -t `expr $this_year + 1`01010001 file
+AS_VAR_ARITH([next_year], [$this_year + 1])
+TZ=UTC0 touch -t ${next_year}01010001 file
 
 AT_CHECK_AUTOM4TE([--force -o file file.m4])
 AT_CHECK([cat file], 0,
@@ -164,7 +165,7 @@ do
   AT_CHECK([mkdir "$dir" "$cachedir" "$TMPDIR" && touch "$file" || exit 77])
 
   cat >"$file" <<'END'
-[m4@&t@_include(foo.m4)
+[m4@&t@_init[]m4@&t@_include(foo.m4)
 m4@&t@_divert(0)d@&t@nl
 FOO]
 END
@@ -185,7 +186,7 @@ END
   # This exercises a slightly different code path and will catch an open with
   # trailing whitespace:
   cat >"$file" <<'END'
-[m4@&t@_include(foo.m4)
+[m4@&t@_init[]m4@&t@_include(foo.m4)
 m4@&t@_pattern_forbid([^bar$])
 m4@&t@_divert(0)d@&t@nl
 FOO]
@@ -196,7 +197,7 @@ END
   AT_CHECK([grep 'possibly undefined macro' stderr], [], [ignore])
 
   cat >"$file" <<'END'
-[m4@&t@_include(foo.m4)
+[m4@&t@_init[]m4@&t@_include(foo.m4)
 m4@&t@_divert(0)d@&t@nl]
 END
   rm -rf "$file.m4f"
@@ -208,6 +209,37 @@ END
 
   test ! -f b
 done
+
+AT_CLEANUP
+
+
+# autom4te --trace and unusual macro names
+# ----------------------------------------
+
+AT_SETUP([autom4te --trace and unusual macro names])
+
+AT_DATA([file.m4],
+[[
+]])
+AT_CHECK_AUTOM4TE([-t 'TR A CE' -t 'TR(A)CE' file.m4])
+
+AT_CLEANUP
+
+
+AT_SETUP([autom4te --trace and whitespace])
+
+dnl line numbering differs between m4 1.4.6 and 1.4.13 if we don't
+dnl go through a single line wrapper
+AT_DATA_M4SUGAR([file.m4],
+[[m4_define([foo], [m4_echo([  a
+b	c  ], [\
+d\
+])])
+foo
+]])
+AT_CHECK_AUTOM4TE([--language=m4sugar -t 'm4@&t@_echo' file.m4], [0],
+[[file.m4:5:m4@&t@_echo: a b c :d
+]])
 
 AT_CLEANUP
 
@@ -347,6 +379,16 @@ _AS_BAR
 [dnl]
 ]])
 
+dnl This test needs autom4te's cache, in spite of any ~/.autom4te.cfg.
+AT_DATA([.autom4te.cfg], [[
+begin-language: "Autoconf"
+args: --cache=autom4te.cache
+end-language: "Autoconf"
+begin-language: "Autoconf-without-aclocal-m4"
+args: --cache=autom4te.cache
+end-language: "Autoconf-without-aclocal-m4"
+]])
+
 AT_CHECK_AUTOCONF([], 1, [],
 [[configure.ac:2: error: possibly undefined macro: m4@&t@_foo
       If this token and others are legitimate, please use m4@&t@_pattern_allow.
@@ -423,7 +465,7 @@ AT_CLEANUP
 AT_SETUP([autoconf: the empty token])
 
 AT_DATA_M4SH([configure.ac],
-[[m4_pattern_allow([^foo$])
+[[m4_init[]m4_pattern_allow([^foo$])
 m4_divert([0])dnl
  line that begins with a space
 ]])
@@ -580,6 +622,9 @@ AT_CHECK([cat config.hin], 0,
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
 
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 ]])
@@ -658,6 +703,9 @@ The Mouse in a h@t.
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
 
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
@@ -667,6 +715,42 @@ Bottom2 from configure.ac.
 
 The Dog in a h@t.
 /* Bottom from acconfig.h. */
+]])
+
+AT_CLEANUP
+
+
+# autoheader should see through m4 macros, just like autoconf
+# http://lists.gnu.org/archive/html/bug-autoconf/2009-06/msg00000.html
+AT_SETUP([autoheader and macros])
+
+AT_DATA([configure.ac],
+[[AC_INIT
+AC_CONFIG_HEADER([config.h])
+m4_define([PETER], [SIMSALABIM])
+m4_define([PAUL], [OPENSESAME])
+AC_DEFINE([PETER], [10], [Peter's public info])
+AC_DEFINE_UNQUOTED([PAUL], [`expr 4 + 6`], [Paul's public info])
+AC_OUTPUT
+]])
+
+AT_CHECK_AUTOCONF
+AT_CHECK_AUTOHEADER
+AT_CHECK([grep -c SIMSALABIM configure config.h.in], [0],
+[[configure:1
+config.h.in:1
+]])
+AT_CHECK([grep -c OPENSESAME configure config.h.in], [0],
+[[configure:1
+config.h.in:1
+]])
+AT_CHECK([grep -c PETER configure config.h.in], [1],
+[[configure:0
+config.h.in:0
+]])
+AT_CHECK([grep -c PAUL configure config.h.in], [1],
+[[configure:0
+config.h.in:0
 ]])
 
 AT_CLEANUP
@@ -775,7 +859,7 @@ AC_OUTPUT
 AT_CHECK_AUTOUPDATE
 AT_CHECK_AUTOCONF
 AT_CHECK_CONFIGURE
-AT_CHECK([grep 'AC_HEADER_STDC(' configure.ac], 1, [ignore], [ignore])
+AT_CHECK([grep 'AC_HEADER_STDC[(]' configure.ac], 1, [ignore], [ignore])
 AT_CHECK([grep 'AC_HEADER_STDC' configure.ac], 0, [ignore], [ignore])
 
 AT_CLEANUP
@@ -977,6 +1061,26 @@ AT_CHECK([automake --no-force --add-missing], [], [], [ignore])
 AT_CHECK([autoconf])
 AT_CHECK([test "`find configure -newer newer`" = "" ||
 	  { diff old-requests autom4te.cache/requests; exit 1; }])
+
+AT_CLEANUP
+
+
+# autom4te cache locking
+# ----------------------
+
+AT_SETUP([autom4te cache locking])
+
+# Cannot use AT_CHECK here, autotest internals could be messed up.
+
+(echo AC_INIT; sleep 2; echo) \
+  | (autom4te --language=autoconf -o configure -; echo $? >&2 ) 2>errlog &
+AT_CHECK([echo AC_INIT | autom4te --language=autoconf -o configure -])
+wait
+
+# Ignore additional output from shell verbose or xtrace mode.
+AT_CHECK([grep 'cannot rename' errlog], [1])
+AT_CHECK([grep '^0$' errlog], [], [ignore])
+AT_CHECK_CONFIGURE
 
 AT_CLEANUP
 

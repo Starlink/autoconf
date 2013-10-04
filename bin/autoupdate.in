@@ -4,7 +4,7 @@
 
 # autoupdate - modernize an Autoconf file.
 # Copyright (C) 1994, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-# 2007, 2008 Free Software Foundation, Inc.
+# 2007, 2008, 2009 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,8 +29,8 @@ eval 'case $# in 0) exec @PERL@ -S "$0";; *) exec @PERL@ -S "$0" "$@";; esac'
 
 BEGIN
 {
-  my $datadir = $ENV{'autom4te_perllibdir'} || '@datadir@';
-  unshift @INC, $datadir;
+  my $pkgdatadir = $ENV{'autom4te_perllibdir'} || '@pkgdatadir@';
+  unshift @INC, $pkgdatadir;
 
   # Override SHELL.  On DJGPP SHELL may not be set to a shell
   # that can handle redirection and quote arguments correctly,
@@ -53,7 +53,7 @@ my $autom4te = $ENV{'AUTOM4TE'} || '@bindir@/@autom4te-name@';
 my $autoconf = "$autom4te --language=autoconf";
 # We need to find m4sugar.
 my @prepend_include;
-my @include = ('@datadir@');
+my @include = ('@pkgdatadir@');
 my $force = 0;
 # m4.
 my $m4 = $ENV{"M4"} || '@M4@';
@@ -79,6 +79,8 @@ Library directories:
   -I, --include=DIR          append directory DIR to search path
 
 Report bugs to <bug-autoconf\@gnu.org>.
+GNU Autoconf home page: <http://www.gnu.org/software/autoconf/>.
+General help using GNU software: <http://www.gnu.org/gethelp/>.
 ";
 
 # $VERSION
@@ -271,7 +273,8 @@ foreach my $file (@ARGV)
       define([_au__include], defn([include]))
       define([_au___undefine], defn([undefine]))
       define([_au__undefine], [_au__ifdef([$1], [_au___undefine([$1])])])
-      define([_au__save], [m4_ifdef([$1], [m4_copy([$1], [_au_$1])])])
+      define([_au__save], [m4_ifdef([$1],
+	[m4_define([_au_$1], _m4_defn([$1]))])])
       define([_au__restore],
 	[_au_m4_ifdef([_au_$1],
 	  [_au_m4_define([$1], _au__defn([_au_$1]))])])

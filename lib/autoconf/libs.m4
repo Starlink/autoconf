@@ -79,16 +79,16 @@ for ac_lib in '' $2; do
     LIBS="-l$ac_lib $5 $ac_func_search_save_LIBS"
   fi
   AC_LINK_IFELSE([], [AS_VAR_SET([ac_Search], [$ac_res])])
-  AS_VAR_SET_IF([ac_Search], [break])dnl
+  AS_VAR_SET_IF([ac_Search], [break])
 done
-AS_VAR_SET_IF([ac_Search], , [AS_VAR_SET([ac_Search], [no])])dnl
+AS_VAR_SET_IF([ac_Search], , [AS_VAR_SET([ac_Search], [no])])
 rm conftest.$ac_ext
 LIBS=$ac_func_search_save_LIBS])
-ac_res=AS_VAR_GET([ac_Search])
+AS_VAR_COPY([ac_res], [ac_Search])
 AS_IF([test "$ac_res" != no],
   [test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
   $3],
-      [$4])dnl
+      [$4])
 AS_VAR_POPDEF([ac_Search])dnl
 ])
 
@@ -134,7 +134,7 @@ AS_VAR_IF([ac_Lib], [yes],
       [m4_default([$3], [AC_DEFINE_UNQUOTED(AS_TR_CPP(HAVE_LIB$1))
   LIBS="-l$1 $LIBS"
 ])],
-      [$4])dnl
+      [$4])
 AS_VAR_POPDEF([ac_Lib])dnl
 ])# AC_CHECK_LIB
 
@@ -236,21 +236,25 @@ m4_define([_AC_PATH_X_DIRECT],
 # Check X11 before X11Rn because it is often a symlink to the current release.
 ac_x_header_dirs='
 /usr/X11/include
+/usr/X11R7/include
 /usr/X11R6/include
 /usr/X11R5/include
 /usr/X11R4/include
 
 /usr/include/X11
+/usr/include/X11R7
 /usr/include/X11R6
 /usr/include/X11R5
 /usr/include/X11R4
 
 /usr/local/X11/include
+/usr/local/X11R7/include
 /usr/local/X11R6/include
 /usr/local/X11R5/include
 /usr/local/X11R4/include
 
 /usr/local/include/X11
+/usr/local/include/X11R7
 /usr/local/include/X11R6
 /usr/local/include/X11R5
 /usr/local/include/X11R4
