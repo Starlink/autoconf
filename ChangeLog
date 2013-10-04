@@ -1,3 +1,909 @@
+2010-07-02  Eric Blake  <eblake@redhat.com>
+
+	Release Version 2.66.
+	* NEWS: Mention the release.
+
+2010-07-02  Eric Blake  <eblake@redhat.com>
+
+	Pick up some maint.mk improvements from gnulib.
+	* configure.ac (AM_INIT_AUTOMAKE): Require 1.11, and build xz
+	archives by default now.
+	* maint.mk (gzip_rsyncable): Avoid non-portable echo.
+	(VC-tag): Depend on gpg_key_ID.
+	(PREV_VERSION): Don't parse error as version.
+	(announcement): Populate email addresses with defaults.
+	(emit_upload_commands, web-manual): Reflect changes in scripts.
+	(update-NEWS-hash, emit-commit-log, release-prep): New macros.
+	* cfg.mk (announcement_Cc_, announcement_mail_headers_): Override
+	defaults.
+	* HACKING: Modernize a bit.
+
+	Resync upstream files.
+	* GNUmakefile: Run 'make fetch'.
+	* build-aux/announce-gen: Likewise.
+	* build-aux/config.guess: Likewise.
+	* build-aux/config.sub: Likewise.
+	* build-aux/gendocs.sh: Likewise.
+	* build-aux/git-version-gen: Likewise.
+	* build-aux/gnupload: Likewise.
+	* build-aux/texinfo.tex: Likewise.
+	* build-aux/vc-list-files: Likewise.
+	* doc/gendocs_template: Likewise.
+	* doc/gnu-oids.texi: Likewise.
+	* doc/make-stds.texi: Likewise.
+	* doc/standards.texi: Likewise.
+	* lib/Autom4te/Channels.pm: Likewise.
+	* lib/Autom4te/Configure_ac.pm: Likewise.
+	* lib/Autom4te/FileUtils.pm: Likewise.
+	* lib/Autom4te/XFile.pm: Likewise.
+
+	Make AS_TR_SH and AS_TR_CPP similar.
+	* lib/m4sugar/m4sh.m4 (_AS_TR_CPP_LITERAL): Avoid underquoting.
+	(_AS_TR_CPP_INDIR): Handle all polymorphic variables.
+	* tests/m4sh.at (AS@&t@_TR_SH and AS@&t@_TR_CPP): New test.
+	* NEWS: Document the fix.
+	Reported by Bruno Haible.
+
+	Reduce startup cost of autotest.
+	* lib/autotest/general.m4 (_AT_FINISH) <banners>: Rather than
+	doing a recursive find, limit ourselves to top ChangeLog only.
+	Reported by Ralf Wildenhues.
+
+2010-07-02  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	New macro AC_FC_FIXEDFORM, improved AC_FC_FREEFORM, coverage.
+	* lib/autoconf/fortran.m4 (_AC_FC_DIALECT_YEAR): Fix typo in
+	comment.
+	(AC_FC_FREEFORM): Update list of known options for Sun, HP,
+	Lahey/Fujitsu Fortran compilers.  Use M4 quoting consistently.
+	(AC_FC_FIXEDFORM): New macro.
+	* tests/fortran.at (AC_FC_DUMMY_MAIN usage, AC_FC_MAIN usage):
+	Use AC_FC_FIXEDFORM, to avoid testsuite failure with FC=xlf95.
+	(AC_FC_FREEFORM with AC_FC_SRCEXT, AC_FC_FIXEDFORM)
+	(AC_FC_FIXEDFORM with AC_FC_SRCEXT): New tests.
+	* tests/mktests.sh: No need to exclude AC_FC_FREEFORM, it uses
+	AC_LANG_PUSH/AC_LANG_POP.
+	* doc/autoconf.texi (Fortran Compiler): Document it.
+	* NEWS: Update.
+
+2010-07-02  Eric Blake  <eblake@redhat.com>
+
+	Optimize AS_BOX.
+	* lib/m4sugar/m4sh.m4 (AS_BOX): Use less m4 time.
+	(_AS_BOX_LITERAL): Use fewer forks in the common case.
+	* doc/autoconf.texi (Common Shell Constructs) <AS_BOX>: Document
+	the macro.
+	* NEWS: Mention it.
+
+	Use new AS_LITERAL_IF argument when appropriate.
+	* lib/m4sugar/m4sh.m4 (AS_VAR_SET): Reduce m4 overhead.
+	(AS_VAR_IF, AS_VAR_TEST_SET): Provide shorter variant for simple
+	references.
+	Suggested by Bruno Haible.
+
+	Add tests for AS_BOX.
+	* tests/m4sugar.at (m4@&t@_text_box): New test.
+	* tests/m4sh.at (AS@&t@_BOX): Likewise.
+	* lib/m4sugar/m4sugar.m4 (m4_text_box): Support comma.
+	* doc/autoconf.texi (Text processing Macros) <m4_text_box>:
+	Document further limitations.
+
+	Add optional argument to AS_LITERAL_IF.
+	* lib/m4sugar/m4sh.m4 (_AS_LITERAL_IF): Rewrite to generate macro
+	name, without using m4_cond.
+	(_AS_LITERAL_IF_, _AS_LITERAL_IF_YES, _AS_LITERAL_IF_NO): New
+	helpers.
+	(AS_LITERAL_IF, AS_LITERAL_WORD_IF, _AS_TR_SH, _AS_TR_CPP)
+	(_AS_VAR_PUSHDEF): Adjust callers.
+	* lib/autoconf/types.m4 (AC_CHECK_ALIGNOF): Relax restrictions on
+	invalid bytes, since this allows inline struct layouts.
+	(_AC_CHECK_ALIGNOF): New helper macro.
+	* tests/m4sh.at (AS@&t@_LITERAL_IF): Update test.
+	* doc/autoconf.texi (Polymorphic Variables) <AS_LITERAL_IF>:
+	Update documentation.
+
+	Use AS_LITERAL_WORD_IF as appropriate.
+	* lib/autoconf/autoheader.m4 (AH_VERBATIM): Use new macro.
+	* lib/autoconf/general.m4 (AC_REQUIRE_AUX_FILE, AC_CACHE_VAL)
+	(AS_CACHE_CHECK, AC_DEFINE_TRACE, _AC_LIBOBJ): Likewise.
+	* lib/autoconf/libs.m4 (AC_CHECK_LIB): Likewise.
+	* lib/autoconf/status.m4 (AC_CONFIG_SUBDIRS): Likewise.
+	* lib/m4sugar/m4sh.m4 (AS_UNSET, AS_VAR_COPY, AS_VAR_GET)
+	(AS_VAR_IF, AS_VAR_SET, AS_VAR_TEST_SET): Likewise.
+
+	Add AS_LITERAL_WORD_IF.
+	* lib/m4sugar/m4sh.m4 (_AS_LITERAL_IF): Also reject shell quoting
+	characters as non-literal, and provide way to reject space.
+	(AS_LITERAL_WORD_IF): New macro.
+	* doc/autoconf.texi (Polymorphic Variables) <AS_LITERAL_IF>:
+	Document new macro.  Fix example to match reality.
+	* NEWS: Document change and new macro.
+	* tests/m4sh.at (AS@&t@_LITERAL_IF): Update test.
+
+	Optimize AC_DEFINE.
+	* lib/autoconf/general.m4 (_AC_DEFINE_Q): Avoid overhead of
+	AS_LITERAL_IF.
+
+2010-07-02  Stefano Lattarini  <stefano.lattarini@gmail.com>
+	and Eric Blake  <eblake@redhat.com>
+
+	Describe a Solaris /bin/sh bug w.r.t. for loops.
+	* doc/autoconf.texi (Limitations of Shell Builtins) <for>:
+	Document a bug of the 'for' builtin in Solaris /bin/sh, w.r.t.
+	tokens seeming variable assignment in the list of arguments.
+
+2010-06-23  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Improve VPATH handling in config.status for non-Automake projects.
+	* lib/autoconf/status.m4 (_AC_OUTPUT_FILES_PREPARE): Be sure not
+	to remove references to a subdir of srcdir.  Fix treatment of
+	multiple colon-separated VPATH entries.
+	* tests/torture.at (VPATH): New test.
+	Report by Keith Marshall.
+
+	Further improve docs about nested double-quotes and backquotes.
+	* doc/autoconf.texi (Shellology): Remove anchor for pdksh.
+	Move quoting bug example to ...
+	(Shell Substitutions): ... here.  Document which behavior is
+	specified by Posix.
+
+	Coverage for Fortran compiler macros.
+	* tests/fortran.at (AC_OPENMP and Fortran 77)
+	(AC_OPENMP and Fortran): Simplify, using AT_CHECK_CONFIGURE.
+	(AC_F77_DUMMY_MAIN usage, AC_FC_DUMMY_MAIN usage)
+	(AC_F77_MAIN usage, AC_FC_MAIN usage, AC_F77_FUNC usage)
+	(AC_FC_FUNC usage, AC_FC_SRCEXT usage, AC_FC_FREEFORM): New
+	tests.
+	* doc/autoconf.texi (Fortran Compiler): Use GNU coding style
+	on C code snippets.  Add markers for tested examples.
+	Suggest AC_FC_FREEFORM for source file extensions which the
+	compiler might not natively support but which are accepted
+	with help from AC_FC_SRCEXT.  Suggest AC_CONFIG_HEADERS for
+	setups using one of the AC_*MAIN macros.
+
+	Accept any nonzero exit status upon config.status write failure.
+	* tests/torture.at (AC_CONFIG_FILES, HEADERS, LINKS and COMMANDS):
+	Normalize nonzero status to 1 for writing to /dev/full, for HP-UX
+	11.31 cat which exits 2.
+
+	Fix testsuite failure with Tru64 preprocessor.
+	* tests/compile.at (Order of user actions and cleanup): Add
+	incomplete comment to provoke failure with Tru64/OSF 5.1 cc
+	preprocessor.
+
+2010-06-22  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+	and Eric Blake  <eblake@redhat.com>
+
+	Further clarification on sed -e portability.
+	* doc/autoconf.texi (Limitations of Usual Tools) <sed>: Clarify
+	more about sed -e and Posix limitations.
+
+2010-06-22  Bruno Haible  <bruno@clisp.org>
+
+	Document how to use literal newlines in makefile rules.
+	* doc/autoconf.texi (Newlines in Make Rules): New section.
+
+	Document how to write comments in makefile rules.
+	* doc/autoconf.texi (Comments in Make Rules): Mention a workaround
+	syntax.
+
+2010-06-22  Ben Pfaff  <blp@cs.stanford.edu>
+
+	Document how to propogate variables to submakes.
+	* doc/autoconf.texi: Describe technique used by Automake to
+	propagate variables to submakes in more detail.
+
+2010-06-22  Peter Johansson  <trojkan@gmail.com>  (tiny change)
+
+	Be consistent in doc example.
+	* doc/autoconf.texi: (Polymorphic Variables) be consistent in code
+	example and output
+
+2010-06-22  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Add comments for vim syntax highlighting.
+	* doc/autoconf.texi: Restore font-lock in some examples using
+	$$, for vim.
+
+	Formatting cleanups for optional arguments.
+	* doc/autoconf.texi (Configuration Actions, Help Formatting)
+	(External Software): Use @r{} for brackets denoting optional
+	arguments, where @ovar is not safe to use.
+
+	Clarify nested double-quotes and backquotes shell issues.
+	* doc/autoconf.texi (Shellology): New anchor for pdksh.
+	(Shell Substitutions): Link to it for escaped double-quotes
+	within double-quoted backquotes; add ksh example for unescaped
+	inner double-quotes problem.
+
+	Mention Tru64 5.1 fgrep limitation with emtpy patterns.
+	* doc/autoconf.texi (Limitations of Usual Tools): Update.
+
+	Overhaul the manual, esp. the Autotest chapter.
+	* doc/autoconf.texi (Installation Directory Variables):
+	Replace some uses of @var with @code.
+	(Special Shell Variables): Fix misordered paragraph about IFS.
+	(Writing Testsuites): Include paragraph following AT_TESTED in
+	the macro definition.
+	(testsuite Invocation): Failed tests are not rerun.
+	(testsuite Scripts, Autotest Logs, testsuite Invocation)
+	(Making testsuite Scripts): Minor edits for consistency and
+	language.
+
+2010-06-18  Bruno Haible  <bruno@clisp.org>
+
+	Document sed -e limitation.
+	* doc/autoconf.texi (Limitations of Usual Tools): Mention portability
+	problem of sed -e option with script fragments.
+
+2010-06-17  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Document, test, and fix AT_ARG_OPTION, AT_ARG_OPTION_ARG.
+	* lib/autotest/general.m4 (_AT_ARG_OPTION): Fix translation of
+	hyphens to underscores when turning option names to variables.
+	Avoid macro name concatenation garbage with trailing `dnl'.
+	(AT_ARG_OPTION, AT_ARG_OPTION_ARG): Overhaul macro description.
+	The OPTIONS are space-separated, not comma-separated.  The
+	negative form of AT_ARG_OPTION is prefixed with `--no-'.
+	* tests/autotest.at (AT@&t@_ARG_OPTION, AT@&t@_ARG_OPTION_ARG):
+	New tests.
+	* NEWS: Update.
+	* doc/autoconf.texi (Writing Testsuites): Document AT_ARG_OPTION
+	and AT_ARG_OPTION_ARG.
+	(testsuite Invocation): Call the thingies passed to the
+	testsuite options, not arguments.  Note that the testsuite
+	author may add further package-specific options.
+
+	Autotest: enable colored test results.
+	* lib/autotest/general.m4 (HELP_TUNING_BEGIN): New diversion.
+	(HELP_TUNING, HELP_OTHER, HELP_END): Bump diversion numbers.
+	(AT_INIT): Accept
+	--color and --color=never|auto|always.  If desired, colorize
+	test results and testsuite summary on standard output.
+	[HELP_TUNING]: Divert content instead to ...
+	[HELP_TUNING_BEGIN]: ... this diversion, m4_wrapped until the
+	end, when we know whether AT_COLOR_TESTS has been specified.
+	(AT_COLOR_TESTS): New macro, set the default for color to auto.
+	* doc/autoconf.texi (Writing Testsuites): Document it.
+	(testsuite Invocation): Document --color* options.
+	* tests/local.at: Call AT_COLOR_TESTS for Autoconf's testsuite.
+	* tests/autotest.at (color test results): New test, mirroring
+	color.test from Automake.
+	* NEWS: Update.
+
+2010-06-15  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Avoid texinfo bug with backslashes in macro arguments.
+	* doc/autoconf.texi (Text processing Macros)
+	(Common Shell Constructs): Do not use @dvar with backslashes.
+
+2010-06-14  Eric Blake  <eblake@redhat.com>
+
+	Make CONFIG_SITE handling more robust.
+	* lib/autoconf/general.m4 (AC_SITE_LOAD): Avoid leading - and path
+	search, and check for failure to load.
+	* tests/base.at (AC_CACHE_CHECK): Enhance test.
+	* doc/autoconf.texi (Site Defaults): Mention that CONFIG_SITE
+	works best as an absolute path.
+	* NEWS: Document the semantic change.
+
+2010-03-13  Bruno Haible  <bruno@clisp.org>
+	and Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Allow plus signs in AC_ARG_ENABLE and AC_ARG_WITH.
+	* doc/autoconf.texi (External Software): Mention that AC_ARG_WITH
+	accepts packages with a + sign in it.
+	(Package Options): Likewise for AC_ARG_ENABLE.
+	* lib/autoconf/general.m4 (_AC_ENABLE_IF): Also replace '+' with '_'.
+	* tests/base.at (AC_ARG_ENABLE and AC_ARG_WITH): New test.
+	* NEWS: Update.
+
+2010-06-14  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Autotest: simplify logic to compute test group result.
+	* lib/autotest/general.m4 (AT_INIT): Compactify result
+	computation logic.
+
+	New Autotest testsuite option --recheck.
+	* lib/autotest/general.m4 (AT_INIT): New variable $at_recheck.
+	Escape hyphen in $at_dir early.  Accept command line switch
+	--recheck.  Set $at_suite_log early, based on --directory
+	switch; with --recheck, include the list of FAILed and XPASSed
+	tests from old testsuite.log file in $at_groups.  Document
+	--recheck in --help output.
+	* tests/autotest.at (recheck): New test.
+	* doc/autoconf.texi (testsuite Invocation): Document --recheck.
+	* NEWS: Update.
+
+2010-06-14  Karl Berry  <karl@freefriends.org>  (tiny change)
+
+	Clarify comment about old system.
+	* lib/autoconf/general.m4 (_AC_INIT_DEFAULTS): Prefer GNU/Linux,
+	and note that bug has long since been fixed.
+
+2010-06-08  Eric Blake  <eblake@redhat.com>
+
+	Run libtool test with modern libtool.
+	* tests/foreign.at (Libtool): Request that libtoolize install
+	auxiliary files.  Assume libtool 2.x is modern.
+
+2010-06-08  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Coverage and doc fixes for AC_LANG_SOURCE and AC_LANG_PROGRAM.
+	* tests/compile.at (AC_LANG_SOURCE, AC_LANG_SOURCE(C++))
+	(AC_LANG_SOURCE example, AC_LANG_PROGRAM example): New tests.
+	* doc/autoconf.texi (Generating Sources): Add markers for tested
+	examples; update quoting, and update AC_INIT usage to also set
+	optional URL arguments.  Mention that the examples require gcc.
+	Prompted by report from Brian J. Murrell.
+
+	Make AS_SET_CATFILE polymorphic, and add testsuite coverage.
+	* lib/m4sugar/m4sh.m4 (AS_SET_CATFILE): Use AS_VAR_SET to set
+	the variable.
+	* tests/m4sh.at (AS@&t@_SET_CATFILE): New test.
+	* doc/autoconf.texi (Common Shell Constructs): Document that
+	AS_SET_CATFILE is polymorphic in its VAR argument now.
+	* NEWS: Update.
+
+	Testsuite coverage for AC_COPYRIGHT and AT_COPYRIGHT.
+	* tests/autotest.at (AT@&t@_COPYRIGHT): New test.
+	* tests/base.at (AC@&t@_COPYRIGHT): Likewise.
+
+	Testsuite coverage for __file__ and __line__.
+	* tests/m4sugar.at (__file__ and __line__): New test.
+
+	Testsuite coverage for AC_CACHE_VAL and caching semantics.
+	* tests/base.at (AC_CACHE_CHECK): Extend test.
+	(AC_CACHE_LOAD): New test.
+	* tests/torture.at (Configuring subdirectories): Also test
+	--config-cache with AC_CONFIG_SUBDIRS.
+	* doc/autoconf.texi (Caching Results): Annotate code snippets
+	which are tested in the test suite.
+	(Cache Files): Documented cache variables may be used on the
+	configure command line to override individual entries in the
+	cache file.
+
+	Clarify OpenBSD sh errexit issue with compound commands.
+	* doc/autoconf.texi (Limitations of Builtins): Only the last
+	command in a compound list is problematic.
+	Tested on OpenBSD 4.4.
+
+2010-06-07  Eric Blake  <eblake@redhat.com>
+
+	Properly quote AC_PREREQ during autoupdate.
+	* lib/autoconf/general.m4 (AC_PREREQ): Follow consistent quoting
+	style for AC_PREREQ.
+	* tests/tools.at (autoupdating AC_PREREQ): Update expected
+	results.
+	Reported by NightStrike.
+
+2010-06-01  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Documentation and tests for the AC_CHECK_DECL change.
+	* lib/autoconf/general.m4 (_AC_CHECK_DECL_BODY): Squash trailing
+	spaces in as_decl_name.
+	(_AC_CHECK_DECLS): Likewise for the define.
+	* tests/semantics.at (AC_CHECK_DECLS): Extend test.
+	* doc/autoconf.texi (Generic Declarations): Update.
+	* NEWS: Update.
+
+2010-06-01  Joern Rennecke  <joern.rennecke@embecosm.com>  (tiny change)
+
+	Generalize AC_CHECK_DECL for C++: allow optional arguments.
+	* general.m4 (_AC_CHECK_DECL_BODY): Process trailing function
+	argument types as arguments to use for C++.
+	(_AC_CHECK_DECLS): Filter out trailing function argument types
+	when generating the HAVE_DECL_* macro.
+
+2010-05-25  Stefano Lattarini  <stefano.lattarini@gmail.com>
+	    Eric Blake  <eblake@redhat.com>
+
+	Don't expose AC_{COMPILE,LINK}_IFELSE internals in documentation.
+	* doc/autoconf.texi (Runtime) <AC_LINK_IFELSE>: Suggest to use
+	`conftest$EXEEXT' rather than `conftest$ac_exeext' to acces the
+	just-linked program file.
+	(Runtime) <AC_COMPILE_IFELSE>: Suggest to use `conftest.$OBJEXT'
+	rather than `conftest.$ac_object' to access the just-compiled
+	object file.  Also, refer to the object file as "just-compiled"
+	rather than "just-linked".
+
+2010-05-20  Eric Blake  <eblake@redhat.com>
+
+	Mention another line-counting alternative.
+	* doc/autoconf.texi (Limitations of Usual Tools) <grep>: Mention
+	how to use sed to count lines.
+	Suggested by Paolo Bonzini.
+
+2010-05-12  Eric Blake  <eblake@redhat.com>
+
+	Document the grep workaround.
+	* doc/autoconf.texi (Limitations of Usual Tools) <grep>: Document
+	the bug.
+
+2010-05-12  Mark Hessling  <mark@rexx.org>  (tiny change)
+
+	Work around QNX4 grep bug.
+	* lib/autoconf/status.m4 (_AC_OUTPUT_FILES_PREPARE): Count ^
+	rather than $ to avoid QNX4 grep bug.
+	* THANKS: Update.
+
+2010-05-11  David Reiss  <dreiss@facebook.com>  (tiny change)
+
+	Improve Erlang documentation.
+	* doc/autoconf.texi (Erlang Libraries): Document actual default
+	values.
+	* THANKS: Update.
+
+2010-05-11  Eric Blake  <eblake@redhat.com>
+
+	Fix typo in previous patch.
+	* doc/autoconf.texi (File Descriptors): Add end '.
+	Reported by Ralf Wildenhues.
+
+	Mention how to silence program probes.
+	* doc/autoconf.texi (File Descriptors): Document how to silence a
+	program probe.
+
+2010-04-26  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Error and warning message formatting cleanups.
+	* doc/autoconf.texi (Autoconf Language, Generic Structures):
+	Do not capitalize the first word in error messages, do not end
+	them with a period.
+	* lib/autoconf/general.m4 (_AC_INIT_PARSE_ARGS, AC_MSG_FAILURE):
+	Likewise.
+	* lib/autoconf/status.m4 (_AC_OUTPUT_FILE): Likewise.
+	* lib/autotest/general.m4 (AT_INIT, at_fn_group_prepare):
+	Likewise.
+	* m4/m4.m4 (AC_PROG_GNU_M4): Likewise.
+	* tests/base.at (AC_TRY_COMMAND): Likewise.
+	* tests/torture.at (datarootdir workaround): Adjust expected
+	message.
+
+	Fix placing of ellipses in English text.
+	* lib/autoconf/general.m4 (_AC_INIT_HELP): Be sure to add a
+	space before `...' in natural language text.
+	* lib/autoconf/headers.m4 (_AC_CHECK_HEADER_MONGREL_BODY):
+	Likewise.
+	* lib/autoconf/libs.m4 (_AC_PATH_X_XMKMF): Likewise.
+	* lib/autoconf/programs.m4 (AC_PROG_MAKE_SET): Likewise.
+	* tests/suite.at: Likewise.
+	* tests/torture.at (@%:@define header templates): Likewise.
+
+	Ensure autotest tests have an atconfig file, for testsuite -v.
+	* tests/autotest.at (AT_CHECK_AT_PREP): Create a default
+	atconfig file in the directory of the testsuite.
+	(AT_CHECK_AT_TITLE): Also check that `./micro-suite -v' output
+	does not contain empty $at_srcdir expansion.
+	(srcdir propagation): Remove the atconfig file generated by
+	AT_CHECK_AT_PREP.  Check each suite invocation for $at_srcdir
+	expansion.
+
+	Fix autotest testsuite -v output to print test group title.
+	* lib/autotest/general.m4 (AT_CLEANUP): Actually print test
+	title in verbose output.  Fixes AUTOCONF-2.57-101-gc102ed8
+	regression.
+	* tests/autotest.at (AT_CHECK_AT_TITLE): Amend macro to check
+	for test title in -v output.
+
+2010-04-26  Eric Blake  <eblake@redhat.com>
+
+	Clarify octal escapes with tr.
+	* doc/autoconf.texi (Limitations of Usual Tools): Carriage return
+	is portable in octal, but not newline.
+
+2010-04-22  Joel James Adamson  <joel@chondestes.bio.unc.edu>  (tiny change)
+
+	Add a paragraph to FAQ on Debugging configure scripts.
+	* doc/autoconf.texi (Debugging): Mention inspecting config.log.
+	* THANKS: Update.
+
+2010-04-21  Mike Frysinger  <vapier@gentoo.org>  (tiny change)
+
+	Fix typo in doc example.
+	* doc/autoconf.texi (Subdirectories): Fix typo.
+
+2010-04-05  Eric Blake  <eblake@redhat.com>
+
+	Fix m4_cr_all for EBCDIC.
+	* lib/m4sugar/m4sugar.m4 (m4_cr_all): Swap * and $, so that we
+	don't end up with $* in EBCDIC.
+	* NEWS: Document the fix.
+	* THANKS: Update.
+	Reported by Steve Goetze.
+
+2010-03-28  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Do not use @acronym in the manual.
+	* doc/autoconf.texi: Remove all usage of @acronym.
+	Suggested by Karl Berry.
+
+	Do not use @sc in the manual.
+	* doc/autoconf.texi: Remove all usage of @sc in the manual.
+	Suggested by Karl Berry.
+
+2010-03-12  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Fix wrong comment in testsuite.
+	* tests/m4sugar.at (m4@&t@_warn): Remove copy&pasted comment.
+
+	Formatting cleanups in macro comments.
+	* lib/autoconf/c.m4, lib/autoconf/erlang.m4,
+	lib/autoconf/fortran.m4, lib/autoconf/functions.m4,
+	lib/autoconf/general.m4, lib/autoconf/lang.m4,
+	lib/autoconf/programs.m4, lib/autoconf/specific.m4,
+	lib/autoconf/status.m4, lib/autoconf/types.m4,
+	lib/autotest/general.m4, lib/autotest/specific.m4,
+	lib/m4sugar/m4sh.m4, lib/m4sugar/m4sugar.m4,
+	tests/autotest.at, tests/local.at, tests/m4sh.at,
+	tests/semantics.at, tests/tools.at, tests/torture.at: Fix macro
+	comment format.
+
+2010-03-05  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	manual: index strings containing colon in non-info outputs.
+	* doc/autoconf.texi (Quadrigraphs, Shell Substitutions): Produce
+	index entries for concepts containing a colon in output formats
+	other than info.
+
+	Update copyright years for files generated by mktests.sh.
+	* tests/mktests.sh: Update copyright years for generated files.
+
+2010-03-04  Eric Blake  <eblake@redhat.com>
+
+	Document AC_LANG_CONFTEST semantic change.
+	* doc/autoconf.texi (Generating Sources) <AC_LANG_CONFTEST>:
+	Enhance documentation, to show that semantic change in 2.63b was
+	intentional.
+	* THANKS: Update.
+	Reported by Brian J. Murrell, analyzed by Ralf Wildenhues.
+
+2010-03-04  Peter Johansson  <trojkan@gmail.com>  (tiny change)
+
+	Autoconf Macro Archive URL has changed.
+	* doc/autoconf.texi (Introduction, Coding Style, Defining
+	Directories): The Autoconf Macro Archive is officially `GNU'.
+	Update URL.
+
+2010-03-02  Eric Blake  <eblake@redhat.com>
+
+	Fix shell code in AS_TR_SH documentation.
+	* doc/autoconf.texi (Common Shell Constructs) <AS_TR_SH>: Fix
+	example to expand to valid shell code.
+	Reported by Ralf Wildenhues.
+
+	Improve documentation on AC_{COMPILE,LINK}_IFELSE.
+	* doc/autoconf.texi (Running the Compiler): Mention that the
+	object file is available after a successful compile.
+	(Running the Linker): Likewise for the linker output.
+	Suggested by Paolo Bonzini.
+
+	Fix typo in docs.
+	* doc/autoconf.texi (Conditional constructs) <m4_ifblank>: Fix
+	typo.
+
+2010-03-02  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Fix AS_ERROR for FreeBSD sh.
+	* lib/m4sugar/m4sh.m4 (_AS_ERROR_PREPARE): Rewrite as_fn_error
+	to take additional first argument STATUS instead of transporting
+	$? across shell function entry, which does not work with FreeBSD
+	sh.  Shift all other arguments by one, adjust.
+	(AS_ERROR): Pass EXIT-STATUS, defaulting to $?, to as_fn_error.
+	Report by Václav Haisman.
+
+	Fix `autom4te cache creation' testsuite failure on FreeBSD.
+	* tests/tools.at (autom4te cache creation): Normalize exit
+	status of failed redirection to 1, may be 2 with FreeBSD sh.
+	* THANKS: Update.
+	Report by Václav Haisman.
+
+	Fix Autotest tracing of shell pipelines for FreeBSD sh.
+	* lib/autotest/general.m4 (_AT_DECIDE_TRACEABLE): Do not trace
+	commands that contain [^|]|[^|], a likely shell pipeline.
+	* tests/local.at (_AT_CHECK_ENV): Turn off tracing for egrep |
+	grep pipeline.
+	* doc/autoconf.texi (File Descriptors): Document limitation.
+	* tests/autotest.at (Trace output): New test.
+
+2010-03-01  Eric Blake  <eblake@redhat.com>
+
+	Update file flow diagram to mention Automake.
+	* doc/autoconf.texi (Making configure Scripts): Avoid confusion
+	with listing Makefile.in twice on one line.  Add a diagram showing
+	how automake fits into the picture.
+	Reported by santilín.
+
+2010-02-26  Eric Blake  <eblake@redhat.com>
+
+	Optimize AC_REPLACE_FUNCS.
+	* lib/autoconf/functions.m4 (_AC_REPLACE_FUNC): New helper macro.
+	(AC_REPLACE_FUNCS): Use it to reduce forks when checking for
+	replacements, by using literal rather than shell variable.
+
+	Document how to safely override CFLAGS default.
+	* doc/autoconf.texi (C Compiler) <AC_PROG_CC>: Document a way to
+	change the default CFLAGS.
+	(C++ Compiler) <AC_PROG_CXX>: Likewise, for CXXFLAGS.
+	Reported by Monty Taylor; wording suggested by Paolo Bonzini.
+
+	Document that Autoconf relies on IFS.
+	* doc/autoconf.texi (Special Shell Variables) <IFS>: Add details
+	about use of IFS within configure script.
+	* THANKS: Update.
+	Reported by Arkadiusz Miskiewicz.
+
+	Recommend latest m4 release.
+	* README: Bump recommendation to m4 1.4.14 (minimum remains
+	1.4.6).
+	* doc/autoconf.texi (Introduction): Likewise.
+	* m4/m4.m4 (AC_PROG_GNU_M4): Likewise.
+
+2010-02-23  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Fix testsuite failures due to setting of $U.
+	* tests/local.at (_AT_CHECK_ENV): Ignore setting of $U.
+
+2010-02-10  Eric Blake  <ebb9@byu.net>
+
+	Avoid $U if it is not initialized.
+	* lib/autoconf/general.m4 (_AC_LIBOBJS_NORMALIZE): Ensure $U is
+	set if automake did not define it.
+	* THANKS: Update.
+	Reported by Heiko Schlichting, via Julien Élie.
+
+2010-01-24  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Fix substitution of carriage return on Darwin.
+	* lib/autoconf/status.m4 (_AC_OUTPUT_FILES_PREPARE): Set
+	ac_cs_awk_cr to '\\r', so that sed portably expands this to '\r'
+	rather than a literal carriage return, to fix substitution on
+	Darwin.  Regression introduced in 2.63b.
+	Report by Peter O'Gorman.
+
+2010-01-21  Dmitry V. Levin <ldv@altlinux.org>
+
+	Fix test failure when a shell uses $TMPDIR for here-documents.
+	* tests/tools.at (autotools and whitespace in file names): Create
+	$TMPDIR before potential use like in other whitespace tests.
+
+2010-01-20  Paolo Bonzini  <bonzini@gnu.org>
+
+	Add recommendation on (not) unsetting IFS.
+	* doc/autoconf.texi (Special shell variables): Explain why it's
+	better not to unset IFS.
+
+2010-01-19  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	config.status: consistent exit status with nonexistent config file input.
+	* lib/autoconf/status.m4 (_AC_OUTPUT_MAIN_LOOP): Ensure we
+	exit with status 1 rather than with that of 'false', for
+	reproducibility.
+	(AC_OUTPUT): Ensure to exit 1 in case of config.status failure.
+	* tests/torture.at (Missing templates): Also test code path
+	for $srcdir != '.'.
+	Report by Tim Rice.
+
+2010-01-13  Eric Blake  <ebb9@byu.net>
+
+	Fix previous example.
+	* doc/autoconf.texi (Here-Documents): Touch up the example to
+	match output to sample command line.
+
+	Document here-doc pitfall.
+	* doc/autoconf.texi (Here-Documents): Mention problem with <<-
+	operator.
+	Reported by Jim Meyering.
+
+2010-01-12  Eric Blake  <ebb9@byu.net>
+
+	Typo fix in earlier commit.
+	* doc/autoconf.texi (Autoconf Language): Fix typo.
+
+2010-01-12  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Allow AC_FUNC_MKTIME to work with C++.
+	* lib/autoconf/functions.m4 (AC_FUNC_MKTIME): ANSIfy KnR function
+	definitions.  Use `const char*' for character literals; cast them
+	to `char*' for putenv.
+
+2010-01-11  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Export AUTOM4TE in tests/atlocal.in, for aclocal.
+	* tests/atlocal.in: Set and export $AUTOM4TE, for aclocal.
+	Report by Tim Rice.
+
+2010-01-08  Eric Blake  <ebb9@byu.net>
+
+	Make autotest example act better with automake.
+	* doc/autoconf.texi (Making testsuite Scripts): Rely on automake
+	feature for recommended autotest snippet, following our own use.
+
+	Clarify language on handling of opening parenthesis.
+	* doc/autoconf.texi (Autoconf Language): Give an example of
+	improper argument passing.
+	* THANKS: Update.
+	Reported by Juan Carlos Hurtado.
+
+2010-01-06  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Don't fail autom4te preselection test due to different Automake.
+	* tests/tools.at (autom4te preselections): If the cache test
+	fails, extract the Automake version from the toplevel
+	Makefile.in file of the source tree; skip, rather than fail
+	the test group if the automake program has a different version.
+	* THANKS: Update.
+	Report by Dieter Jurzitza, fix suggested by Eric Blake.
+
+2010-01-06  Peter Breitenlohner  <peb@mppmu.mpg.de>
+	    Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Fix AC_CONFIG_LINKS to generated files when srcdir is absolute.
+	* lib/autoconf/status.m4 (_AC_OUTPUT_LINK): Check $ac_source,
+	not $srcdir, for being relative or absolute.
+	* tests/torture.at (AC_CONFIG_LINKS): New test.
+	(AC_CONFIG_LINKS and identical files): Extend test, avoid some
+	forks.
+	Report, patch and testcase example by Peter Breitenlohner.
+
+2010-01-05  Eric Blake  <ebb9@byu.net>
+
+	Improve release automation.
+	* maint.mk (gnulib_dir, gnulib-version, bootstrap-tools)
+	(announcement): Copy from latest gnulib maint.mk.
+	* cfg.mk (announce_gen, gpg_key_ID): Delete.
+	(bootstrap-tools): Override the default.
+
+	Update upstream files.
+	* GNUmakefile: Update via 'make fetch'.
+	* build-aux/announce-gen: Likewise.
+	* build-aux/config.guess: Likewise.
+	* build-aux/config.sub: Likewise.
+	* build-aux/gendocs.sh: Likewise.
+	* build-aux/gnupload: Likewise.
+	* build-aux/move-if-change: Likewise.
+	* build-aux/update-copyright: Likewise.
+	* build-aux/vc-list-files: Likewise.
+	* doc/standards.texi: Likewise.
+	* cfg.mk (update-copyright-env): Enforce wrap column.
+
+	Update copyright year.
+	All files changed to add 2010, via 'make update-copyright'.
+
+2009-12-31  Bruno Haible  <bruno@clisp.org>
+
+	Improve documentation on Solaris tr bugs.
+	* doc/autoconf.texi (Limitations of Usual Tools) <tr>: Refine
+	description of NUL handling by Solaris tr.
+
+2009-12-31  Eric Blake  <ebb9@byu.net>
+
+	Another tr tweak.
+	* doc/autoconf.texi (Limitations of Usual Tools) <tr>: Clarify
+	previous commit.
+	Reported by Ralf Wildenhues.
+
+2009-12-29  Eric Blake  <ebb9@byu.net>
+
+	Improve documentation on tr portability.
+	* doc/autoconf.texi (Limitations of Usual Tools) <tr>: Refine
+	description of NUL handling.  Document set size issue.
+	Reported by Bruno Haible.
+
+	Fix comment in AC_CHECK_DECLS.
+	* lib/autoconf/general.m4 (AC_CHECK_DECL): Document the includes
+	argument to the shell function.
+
+2009-12-15  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Add testsuite exposure for shtool usage.
+	* tests/foreign.at (shtool): New test.
+	Report by Dmitry Grebeniuk.
+
+2009-12-12  Eric Blake  <ebb9@byu.net>
+
+	Improve wording about m4 quote characters.
+	* doc/autoconf.texi (Autoconf Language): Autoconf quote characters
+	come from m4sugar, not raw m4.
+	(Active Characters): Mention that it is m4sugar which changes
+	quotes from `' to [].
+	* THANKS: Update.
+	Suggested by Josef Vukovic.
+
+2009-12-12  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Revert "Improve AC_CONFIG_AUX_DIRS a bit." to fix shtool usage.
+	* lib/autoconf/general.m4 (AC_CONFIG_AUX_DIRS): Revert test for
+	shtool as install script.  Regression introduced in 2.64.
+	* NEWS, THANKS: Update.
+	Report by Dmitry Grebeniuk.
+	This reverts commit 93d9386de9c1320afed43f1337ac5ddb2d2dcbb4.
+
+2009-12-09  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Fix NEWS description for AC_FUNC_MMAP entry.
+	* NEWS: Update.
+
+	Fix 2.65 AC_TYPE_INT*_T macro body text regression.
+	* lib/autoconf/types.m4 (_AC_TYPE_INT_BODY): Move helper enum
+	definition to prologue section, to avoid syntax error.
+	* NEWS, THANKS: Update.
+	Report by Pierre Ynard.
+
+2009-12-09  Paolo Bonzini  <bonzini@gnu.org>
+
+	Fix `recursion' test failure.
+	* tests/m4sugar.at (recursion): Use empty diversion, not 0.
+
+2009-12-05  Stefano Lattarini  <stefano.lattarini@gmail.com>
+	    Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Document Solaris/Heirloom sh set -e issue with command substitutions.
+	* doc/autoconf.texi (Limitations of Builtins): Fix typos `set -d'
+	in previous example.  Document failure to honor && lists with set -e
+	and a command substitution in the failing command.
+	Report and initial patch by Stefano Lattarini against Automake.
+
+2009-12-04  Eric Blake  <ebb9@byu.net>
+
+	Warn if using unnamed diversion.
+	* lib/m4sugar/m4sugar.m4 (_m4_divert, m4_divert_push): Add
+	optional parameter, which controls warning.
+	(m4_divert_pop, m4_cleardivert, m4_divert_require)
+	(_m4_require_call): Adjust callers.
+	* lib/m4sugar/m4sh.m4 (AS_REQUIRE): Likewise.
+	* tests/m4sh.at (AT_DATA_LINENO): Avoid triggering the warning.
+	* tests/m4sugar.at (AT_CHECK_M4SUGAR_TEXT, m4@&t@_append)
+	(m4@&t@_text_wrap, recursion): Likewise.
+	(m4@&t@_warn, m4@&t@_divert_stack): Adjust expected output.
+	* tests/tools.at (autom4te and whitespace in file names)
+	(autoconf: the empty token): Avoid triggering the warning.
+	(autoconf: AC_PRESERVE_HELP_ORDER): New test.
+	* tests/mktests.sh (ac_exclude_list): Retire prior test.
+	* NEWS: Document the warning.
+	* doc/autoconf.texi (Redefined M4 Macros) <m4_divert>,
+	<m4_undivert>: Make even more explicit that using these directly
+	is discouraged.
+	(Diversion support): Further warn against improper diversion
+	changes.
+	<m4_divert_text>: Give an example of proper use.
+	Reported by Mike Frysinger.
+
+2009-11-30  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	manual: AC_SEARCH_LIBS also prepends to LIBS.
+	* doc/autoconf.texi (Libraries): Document that AC_SEARCH_LIBS
+	prepends to LIBS, just like AC_CHECK_LIB.
+
+2009-11-27  Paolo Bonzini  <bonzini@gnu.org>
+
+	Bump m4.m4 serial number.
+	* m4/m4: Bump serial number to 10.
+
+2009-11-27  Harald van Dijk  <truedfx@gentoo.org>
+
+	Fix m4 detection test on dash.
+	* m4/m4 (AC_PROG_GNU_M4): Use AS_ECHO.
+
+2009-11-24  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	Fix AC_FUNC_MMAP regression with C++ compiler in 2.65.
+	* lib/autoconf/functions.m4 (AC_FUNC_MMAP): Use const char*
+	for the constant string.  Cast void* to char* for assignment.
+	* NEWS, THANKS: Update.
+	Report by Michal Čihař.
+
+	Add pgfortran to list of Fortran 95+ compilers.
+	* lib/autoconf/fortran.m4 (_AC_F95_FC): Add pgfortran before
+	pgf95.
+	Based on report by Jeff Squyres.
+
+2009-11-22  Bruno Haible  <bruno@clisp.org>
+
+	Fix failure of test 35 when the user has a .autom4te.cfg file.
+	* tests/tools.at (autom4te cache creation): Skip the test if the
+	user has a .autom4te.cfg file.
+
 2009-11-21  Eric Blake  <ebb9@byu.net>
 
 	Release Version 2.65.
@@ -20607,7 +21513,7 @@
 	End:
 
 	Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-	2009 Free Software Foundation, Inc.
+	2009, 2010 Free Software Foundation, Inc.
 
 	This program is free software: you can redistribute it and/or
 	modify it under the terms of the GNU General Public License as

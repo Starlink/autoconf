@@ -2,7 +2,7 @@
 # Checking for programs.
 
 # Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
-# 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software
+# 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software
 # Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
@@ -445,7 +445,7 @@ fi
 # AC_PATH_PROGS_FEATURE_CHECK(VARIABLE, PROGNAME-LIST,
 #                             FEATURE-TEST, [ACTION-IF-NOT-FOUND=:],
 #                             [PATH=$PATH])
-# ----------------------------------------------------------------
+# ------------------------------------------------------------------
 # Designed to be used inside AC_CACHE_VAL.  It is recommended,
 # but not required, that the user also use AC_ARG_VAR([VARIABLE]).
 # If VARIABLE is not empty, set the cache variable
@@ -825,7 +825,7 @@ SHELL = /bin/sh
 all:
 	@echo '@@@%%%=$(MAKE)=@@@%%%'
 _ACEOF
-# GNU make sometimes prints "make[1]: Entering...", which would confuse us.
+# GNU make sometimes prints "make[1]: Entering ...", which would confuse us.
 case `${MAKE-make} -f conftest.make 2>/dev/null` in
   *@@@%%%=?*=@@@%%%*)
     eval ac_cv_prog_make_${ac_make}_set=yes;;

@@ -1,7 +1,7 @@
 # This file is part of Autoconf.			-*- Autoconf -*-
 # Checking for functions.
 # Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-# 2009 Free Software Foundation, Inc.
+# 2009, 2010 Free Software Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the
@@ -116,12 +116,23 @@ m4_define([_AC_FUNCS_EXPANSION],
 ])
 
 
+# _AC_REPLACE_FUNC(FUNCTION)
+# --------------------------
+# If FUNCTION exists, define HAVE_FUNCTION; else add FUNCTION.c
+# to the list of library objects.  FUNCTION must be literal.
+m4_define([_AC_REPLACE_FUNC],
+[AC_CHECK_FUNC([$1],
+  [_AH_CHECK_FUNC([$1])AC_DEFINE(AS_TR_CPP([HAVE_$1]))],
+  [AC_LIBOBJ([$1])])])
+
 # AC_REPLACE_FUNCS(FUNCTION...)
 # -----------------------------
+# For each FUNCTION in the whitespace separated list, perform the
+# equivalent of AC_CHECK_FUNC, then call AC_LIBOBJ if the function
+# was not found.
 AC_DEFUN([AC_REPLACE_FUNCS],
-[m4_map_args_w([$1], [AC_LIBSOURCE(], [.c)])]dnl
-[AC_CHECK_FUNCS([$1], , [_AC_LIBOBJ($ac_func)])
-])
+[m4_map_args_w([$1], [_AC_REPLACE_FUNC(], [)
+])])
 
 
 # AC_TRY_LINK_FUNC(FUNC, ACTION-IF-FOUND, ACTION-IF-NOT-FOUND)
@@ -1004,8 +1015,8 @@ static time_t time_t_max;
 static time_t time_t_min;
 
 /* Values we'll use to set the TZ environment variable.  */
-static char *tz_strings[] = {
-  (char *) 0, "TZ=GMT0", "TZ=JST-9",
+static const char *tz_strings[] = {
+  (const char *) 0, "TZ=GMT0", "TZ=JST-9",
   "TZ=EST+3EDT+2,M10.1.0/00:00:00,M2.3.0/00:00:00"
 };
 #define N_STRINGS (sizeof (tz_strings) / sizeof (tz_strings[0]))
@@ -1022,7 +1033,7 @@ spring_forward_gap ()
      instead of "TZ=America/Vancouver" in order to detect the bug even
      on systems that don't support the Olson extension, or don't have the
      full zoneinfo tables installed.  */
-  putenv ("TZ=PST8PDT,M4.1.0,M10.5.0");
+  putenv ((char*) "TZ=PST8PDT,M4.1.0,M10.5.0");
 
   tm.tm_year = 98;
   tm.tm_mon = 3;
@@ -1035,16 +1046,14 @@ spring_forward_gap ()
 }
 
 static int
-mktime_test1 (now)
-     time_t now;
+mktime_test1 (time_t now)
 {
   struct tm *lt;
   return ! (lt = localtime (&now)) || mktime (lt) == now;
 }
 
 static int
-mktime_test (now)
-     time_t now;
+mktime_test (time_t now)
 {
   return (mktime_test1 (now)
 	  && mktime_test1 ((time_t) (time_t_max - now))
@@ -1068,8 +1077,7 @@ irix_6_4_bug ()
 }
 
 static int
-bigtime_test (j)
-     int j;
+bigtime_test (int j)
 {
   struct tm tm;
   time_t now;
@@ -1113,7 +1121,7 @@ year_2050_test ()
      instead of "TZ=America/Vancouver" in order to detect the bug even
      on systems that don't support the Olson extension, or don't have the
      full zoneinfo tables installed.  */
-  putenv ("TZ=PST8PDT,M4.1.0,M10.5.0");
+  putenv ((char*) "TZ=PST8PDT,M4.1.0,M10.5.0");
 
   t = mktime (&tm);
 
@@ -1148,7 +1156,7 @@ main ()
   for (i = 0; i < N_STRINGS; i++)
     {
       if (tz_strings[i])
-	putenv (tz_strings[i]);
+	putenv ((char*) tz_strings[i]);
 
       for (t = 0; t <= time_t_max - delta; t += delta)
 	if (! mktime_test (t))
@@ -1258,6 +1266,7 @@ int
 main ()
 {
   char *data, *data2, *data3;
+  const char *cdata2;
   int i, pagesize;
   int fd, fd2;
 
@@ -1282,10 +1291,10 @@ main ()
   fd2 = open ("conftest.txt", O_RDWR | O_CREAT | O_TRUNC, 0600);
   if (fd2 < 0)
     return 4;
-  data2 = "";
-  if (write (fd2, data2, 1) != 1)
+  cdata2 = "";
+  if (write (fd2, cdata2, 1) != 1)
     return 5;
-  data2 = mmap (0, pagesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd2, 0L);
+  data2 = (char *) mmap (0, pagesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd2, 0L);
   if (data2 == MAP_FAILED)
     return 6;
   for (i = 0; i < pagesize; ++i)
@@ -1761,7 +1770,7 @@ AU_ALIAS([AC_UTIME_NULL], [AC_FUNC_UTIME_NULL])
 
 
 # AC_FUNC_FORK
-# -------------
+# ------------
 AN_FUNCTION([fork],  [AC_FUNC_FORK])
 AN_FUNCTION([vfork], [AC_FUNC_FORK])
 AC_DEFUN([AC_FUNC_FORK],
@@ -1822,7 +1831,7 @@ AC_DEFUN([_AC_FUNC_FORK],
 
 
 # _AC_FUNC_VFORK
-# -------------
+# --------------
 AC_DEFUN([_AC_FUNC_VFORK],
 [AC_CACHE_CHECK(for working vfork, ac_cv_func_vfork_works,
 [AC_RUN_IFELSE([AC_LANG_SOURCE([[/* Thanks to Paul Eggert for this test.  */
@@ -1921,7 +1930,7 @@ main ()
 
 
 # AU::AC_FUNC_VFORK
-# ------------
+# -----------------
 AU_ALIAS([AC_FUNC_VFORK], [AC_FUNC_FORK])
 
 # AU::AC_VFORK

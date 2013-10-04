@@ -1,7 +1,7 @@
 # This file is part of Autoconf.                       -*- Autoconf -*-
 # Fortran languages support.
-# Copyright (C) 2001, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free
-# Software Foundation, Inc.
+# Copyright (C) 2001, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+# Free Software Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the
@@ -348,7 +348,7 @@ AC_DEFUN([AC_LANG_PREPROC(Fortran 77)],
 	 [$0: No preprocessor defined for ]_AC_LANG)])
 
 # AC_LANG_PREPROC(Fortran)
-# ---------------------------
+# ------------------------
 # Find the Fortran preprocessor.  Must be AC_DEFUN'd to be AC_REQUIRE'able.
 AC_DEFUN([AC_LANG_PREPROC(Fortran)],
 [m4_warn([syntax],
@@ -369,7 +369,7 @@ AC_DEFUN([AC_LANG_COMPILER(Fortran 77)],
 [AC_REQUIRE([AC_PROG_F77])])
 
 # AC_LANG_COMPILER(Fortran)
-# ----------------------------
+# -------------------------
 # Find the Fortran compiler.  Must be AC_DEFUN'd to be
 # AC_REQUIRE'able.
 AC_DEFUN([AC_LANG_COMPILER(Fortran)],
@@ -482,9 +482,9 @@ fi
 #  cf77: native F77 compiler under older Crays (prefer over fort77)
 #  fort77: native F77 compiler under HP-UX (and some older Crays)
 #  frt: Fujitsu F77 compiler
-#  pgf77/pgf90/pghpf/pgf95: Portland Group F77/F90/F95 compilers
+#  pgf77/pgf90/pghpf/pgf95/pgfortran: Portland Group F77/F90/F95 compilers
 #  xlf/xlf90/xlf95: IBM (AIX) F77/F90/F95 compilers
-#    Prefer xlf9x to the generic names because they do not reject file
+#    Prefer xlf9x to the generic names because they do not reject files
 #    with extension `.f'.
 #  lf95: Lahey-Fujitsu F95 compiler
 #  fl32: Microsoft Fortran 77 "PowerStation" compiler
@@ -502,7 +502,7 @@ fi
 #  autoconf. The same problem arises (with no easy solution) on some Digital
 #  compilers: f95 fails on .F files, f90 succeeds.)
 #
-m4_define([_AC_F95_FC], [gfortran g95 lf95 f95 fort xlf95 ifort ifc efc pgf95 ftn])
+m4_define([_AC_F95_FC], [gfortran g95 lf95 xlf95 f95 fort ifc ifort efc pgfortran pgf95 ftn])
 m4_define([_AC_F90_FC], [xlf90 f90 pgf90 pghpf epcf90])
 m4_define([_AC_F77_FC], [g77 f77 xlf frt pgf77 cf77 fort77 fl32 af77 'f77 -old_f77'])
 AC_DEFUN([_AC_PROG_FC],
@@ -655,7 +655,7 @@ AC_LANG_POP(Fortran 77)dnl
 
 
 # AC_PROG_FC_C_O
-# ---------------
+# --------------
 AC_DEFUN([AC_PROG_FC_C_O],
 [AC_REQUIRE([AC_PROG_FC])dnl
 AC_LANG_PUSH(Fortran)dnl
@@ -671,7 +671,7 @@ AC_LANG_POP(Fortran)dnl
 
 
 # _AC_PROG_FC_V_OUTPUT([FLAG = $ac_cv_prog_{f77/fc}_v])
-# -------------------------------------------------
+# -----------------------------------------------------
 # Link a trivial Fortran program, compiling with a verbose output FLAG
 # (whose default value, $ac_cv_prog_{f77/fc}_v, is computed by
 # _AC_PROG_FC_V), and return the output in $ac_{f77/fc}_v_output.  This
@@ -738,7 +738,7 @@ esac
 
 
 # _AC_PROG_FC_V
-# --------------
+# -------------
 #
 # Determine the flag that causes the Fortran compiler to print
 # information of library and object files (normally -v)
@@ -894,7 +894,7 @@ AC_LANG_POP(Fortran 77)dnl
 
 
 # AC_FC_LIBRARY_LDFLAGS
-# ----------------------
+# ---------------------
 AC_DEFUN([AC_FC_LIBRARY_LDFLAGS],
 [AC_REQUIRE([AC_PROG_FC])dnl
 AC_LANG_PUSH(Fortran)dnl
@@ -990,7 +990,7 @@ fi])],
 
 
 # AC_F77_DUMMY_MAIN
-# ----------------------
+# -----------------
 AC_DEFUN([AC_F77_DUMMY_MAIN],
 [AC_REQUIRE([AC_F77_LIBRARY_LDFLAGS])dnl
 AC_LANG_PUSH(Fortran 77)dnl
@@ -1000,7 +1000,7 @@ AC_LANG_POP(Fortran 77)dnl
 
 
 # AC_FC_DUMMY_MAIN
-# ----------------------
+# ----------------
 AC_DEFUN([AC_FC_DUMMY_MAIN],
 [AC_REQUIRE([AC_FC_LIBRARY_LDFLAGS])dnl
 AC_LANG_PUSH(Fortran)dnl
@@ -1164,7 +1164,7 @@ AU_DEFUN([AC_F77_NAME_MANGLING], [])
 
 
 # _AC_F77_NAME_MANGLING
-# ----------------------
+# ---------------------
 AC_DEFUN([_AC_F77_NAME_MANGLING],
 [AC_REQUIRE([AC_F77_LIBRARY_LDFLAGS])dnl
 AC_REQUIRE([AC_F77_DUMMY_MAIN])dnl
@@ -1175,7 +1175,7 @@ AC_LANG_POP(Fortran 77)dnl
 
 
 # _AC_FC_NAME_MANGLING
-# ----------------------
+# --------------------
 AC_DEFUN([_AC_FC_NAME_MANGLING],
 [AC_REQUIRE([AC_FC_LIBRARY_LDFLAGS])dnl
 AC_REQUIRE([AC_FC_DUMMY_MAIN])dnl
@@ -1443,59 +1443,6 @@ AC_SUBST(FPPFLAGS_[]$1)
 fi
 ])# AC_FPP_SRCEXT
 
-# -------------- #
-# Utility macros #
-# -------------- #
-
-# AC_FC_FIXEDFORM([ACTION-IF-SUCCESS], [ACTION-IF-FAILURE = FAILURE])
-# Look for a compiler flag to make the Fortran (FC) compiler accept
-# fixed-format source code, and adds it to FCFLAGS.  Call
-# ACTION-IF-SUCCESS (defaults to nothing) if successful (i.e. can
-# compile code using new extension) and ACTION-IF-FAILURE (defaults to
-# failing with an error message) if not.  (Defined via DEFUN_ONCE to
-# prevent flag from being added to FCFLAGS multiple times.)
-#
-# The known flags are:
-#                -FI: Intel compiler (icc, ecc)
-#            -qfixed: IBM compiler (xlf)
-#             -fixed: NAG compiler
-# We try to test the "more popular" flags first, by some prejudiced
-# notion of popularity.
-AC_DEFUN_ONCE([AC_FC_FIXEDFORM],
-[AC_LANG_ASSERT([Fortran])dnl
-AC_CACHE_CHECK([for Fortran flag needed to allow fixed-form source],
-                ac_cv_fc_fixedform,
-[ac_cv_fc_fixedform=unknown
-AC_FC_SRCEXT(f)
-ac_ext=f
-ac_fc_fixedform_FCFLAGS_save=$FCFLAGS
-for ac_flag in none -FI -qfixed -fixed --fix
-do
-  test "x$ac_flag" != xnone && FCFLAGS="$ac_fc_fixedform_FCFLAGS_save $ac_flag"
-  AC_COMPILE_IFELSE([
-      PROGRAM FIXEDFORM
-C THIS COMMENT SHOULD CONFUSE FREEFORM COMPILERS
-      PRI  NT*, 'HELLO '//
-     .      'WORLD.'
-      ENDP ROGRAM
-],
-                    [ac_cv_fc_fixedform=$ac_flag; break])
-done
-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
-FCFLAGS=$ac_fc_fixedform_FCFLAGS_save
-])
-if test "x$ac_cv_fc_fixedform" = xunknown; then
-  m4_default([$2],
-             [AC_MSG_ERROR([Fortran does not accept fixed-form source], 77)])
-else
-  if test "x$ac_cv_fc_fixedform" != xnone; then
-    FCFLAGS_fixed="$FCFLAGS_fixed $ac_cv_fc_fixedform"
-  fi
-  $1
-fi
-])# AC_FC_FIXEDFORM
-
-
 # AC_FC_FREEFORM([ACTION-IF-SUCCESS], [ACTION-IF-FAILURE = FAILURE])
 # ------------------------------------------------------------------
 # Look for a compiler flag to make the Fortran (FC) compiler accept
@@ -1506,9 +1453,9 @@ fi
 # prevent flag from being added to FCFLAGS multiple times.)
 #
 # The known flags are:
-#        -ffree-form: GNU g77
-#                -FR: Intel compiler (icc, ecc)
-#              -free: Compaq compiler (fort), NAG compiler
+#        -ffree-form: GNU g77, gfortran
+#         -FR, -free: Intel compiler (icc, ecc, ifort)
+#              -free: Compaq compiler (fort), Sun compiler (f95)
 #             -qfree: IBM compiler (xlf) (generates a warning with
 #                                         recent versions)
 #         -qfree=f90: Newer xlf versions
@@ -1516,16 +1463,18 @@ fi
 # -Mfree, -Mfreeform: Portland Group compiler
 #          -freeform: SGI compiler
 #            -f free: Absoft Fortran
+#       +source=free: HP Fortran
+#              -nfix: Lahey/Fujitsu Fortran
 # We try to test the "more popular" flags first, by some prejudiced
 # notion of popularity.
 AC_DEFUN_ONCE([AC_FC_FREEFORM],
 [AC_LANG_PUSH(Fortran)dnl
-AC_CACHE_CHECK([for Fortran flag needed to allow free-form source],
-                ac_cv_fc_freeform,
+AC_CACHE_CHECK([for Fortran flag needed to accept free-form source],
+	       [ac_cv_fc_freeform],
 [ac_cv_fc_freeform=unknown
 ac_fc_freeform_FCFLAGS_save=$FCFLAGS
 for ac_flag in none -ffree-form -FR -free -qfree "-qfree=f90" -Mfree -Mfreeform \
-               -freeform "-f free" --nfix
+	       -freeform "-f free" +source=free -nfix
 do
   test "x$ac_flag" != xnone && FCFLAGS="$ac_fc_freeform_FCFLAGS_save $ac_flag"
 dnl Use @&t@ below to ensure that editors don't turn 8+ spaces into tab.
@@ -1549,8 +1498,60 @@ else
   fi
   $1
 fi
-AC_LANG_POP(Fortran)dnl
+AC_LANG_POP([Fortran])dnl
 ])# AC_FC_FREEFORM
+
+# AC_FC_FIXEDFORM([ACTION-IF-SUCCESS], [ACTION-IF-FAILURE = FAILURE])
+# ------------------------------------------------------------------
+# Look for a compiler flag to make the Fortran (FC) compiler accept
+# fixed-format source code, and adds it to FCFLAGS.  Call
+# ACTION-IF-SUCCESS (defaults to nothing) if successful (i.e. can
+# compile code using new extension) and ACTION-IF-FAILURE (defaults to
+# failing with an error message) if not.  (Defined via DEFUN_ONCE to
+# prevent flag from being added to FCFLAGS multiple times.)
+#
+# The known flags are:
+#       -ffixed-form: GNU g77, gfortran
+#             -fixed: Intel compiler (ifort), Sun compiler (f95)
+#            -qfixed: IBM compiler (xlf*)
+#            -Mfixed: Portland Group compiler
+#         -fixedform: SGI compiler
+#           -f fixed: Absoft Fortran
+#      +source=fixed: HP Fortran
+#              -fix: Lahey/Fujitsu Fortran
+# Since compilers may accept fixed form based on file name extension,
+# but users may want to use it with others as well, call AC_FC_SRCEXT
+# with the respective source extension before calling this macro.
+AC_DEFUN_ONCE([AC_FC_FIXEDFORM],
+[AC_LANG_PUSH([Fortran])dnl
+AC_CACHE_CHECK([for Fortran flag needed to accept fixed-form source],
+	       [ac_cv_fc_fixedform],
+[ac_cv_fc_fixedform=unknown
+ac_fc_fixedform_FCFLAGS_save=$FCFLAGS
+for ac_flag in none -ffixed-form -fixed -qfixed -Mfixed -fixedform "-f fixed" \
+	       +source=fixed -fix
+do
+  test "x$ac_flag" != xnone && FCFLAGS="$ac_fc_fixedform_FCFLAGS_save $ac_flag"
+  AC_COMPILE_IFELSE([
+C     This comment should confuse free-form compilers.
+      program main
+      end],
+		    [ac_cv_fc_fixedform=$ac_flag; break])
+done
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+FCFLAGS=$ac_fc_fixedform_FCFLAGS_save
+])
+if test "x$ac_cv_fc_fixedform" = xunknown; then
+  m4_default([$2],
+	     [AC_MSG_ERROR([Fortran does not accept fixed-form source], 77)])
+else
+  if test "x$ac_cv_fc_fixedform" != xnone; then
+    FCFLAGS="$FCFLAGS $ac_cv_fc_fixedform"
+  fi
+  $1
+fi
+AC_LANG_POP([Fortran])dnl
+])# AC_FC_FIXEDFORM
 
 # AC_FC_OPEN_SPECIFIERS(specifier ...)
 # ------------------------------------
@@ -2995,3 +2996,4 @@ AC_SUBST(FPP_SRC_EXT)
 AC_LANG_POP(Preprocessed Fortran)
 
 ])# AC_PROG_FPP
+

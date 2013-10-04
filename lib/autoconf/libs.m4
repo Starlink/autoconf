@@ -1,8 +1,8 @@
 # This file is part of Autoconf.                       -*- Autoconf -*-
 # Checking for libraries.
 # Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
-# 2002, 2003, 2004, 2005, 2006, 2008, 2009 Free Software Foundation,
-# Inc.
+# 2002, 2003, 2004, 2005, 2006, 2008, 2009, 2010 Free Software
+# Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the
@@ -99,7 +99,7 @@ AS_VAR_POPDEF([ac_Search])dnl
 # freedom.
 AC_DEFUN([AC_CHECK_LIB],
 [m4_ifval([$3], , [AH_CHECK_LIB([$1])])dnl
-AS_LITERAL_IF([$1],
+AS_LITERAL_WORD_IF([$1],
 	      [AS_VAR_PUSHDEF([ac_Lib], [ac_cv_lib_$1_$2])],
 	      [AS_VAR_PUSHDEF([ac_Lib], [ac_cv_lib_$1''_$2])])dnl
 AC_CACHE_CHECK([for $2 in -l$1], [ac_Lib],
@@ -177,7 +177,7 @@ libdir:
 	@echo libdir='${LIBDIR}'
 _ACEOF
   if (export CC; ${XMKMF-xmkmf}) >/dev/null 2>/dev/null && test -f Makefile; then
-    # GNU make sometimes prints "make[1]: Entering...", which would confuse us.
+    # GNU make sometimes prints "make[1]: Entering ...", which would confuse us.
     for ac_var in incroot usrlibdir libdir; do
       eval "ac_im_$ac_var=\`\${MAKE-make} $ac_var 2>/dev/null | sed -n 's/^$ac_var=//p'\`"
     done

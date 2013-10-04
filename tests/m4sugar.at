@@ -2,8 +2,8 @@
 
 AT_BANNER([M4sugar.])
 
-# Copyright (C) 2000, 2001, 2002, 2005, 2006, 2007, 2008, 2009 Free
-# Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2002, 2005, 2006, 2007, 2008, 2009, 2010
+# Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,9 +26,9 @@ m4_define([AT_CHECK_M4SUGAR_TEXT],
 [
 AT_DATA_M4SUGAR([script.4s],
 [[m4_init
-m4_divert_push(0)[]dnl
+m4_divert_push([])[]dnl
 ]$1[[]dnl
-m4_divert_pop(0)
+m4_divert_pop([])
 ]])
 
 AT_CHECK_M4SUGAR([-o-],, [$2], [$3])
@@ -245,10 +245,6 @@ AT_CLEANUP
 
 AT_SETUP([m4@&t@_warn])
 
-# m4_text_wrap is used to display the help strings.  Also, check that
-# commas are not swallowed.  This can easily happen because of
-# m4-listification.
-
 # FIXME: For the time being we use -f to make sure we do issue the
 # warnings.  But maybe autom4te should handle that by itself?
 
@@ -263,11 +259,13 @@ m4_warn([syntax], [syntax])dnl
 ]])
 
 AT_CHECK_M4SUGAR([-o-], 0, [],
-[script.4s:7: warning: syntax
+[script.4s:4: warning: prefer named diversions
+script.4s:7: warning: syntax
 ])
 
 AT_CHECK_M4SUGAR([-o- -Wall -f], 0, [],
-[script.4s:5: warning: obsolete
+[script.4s:4: warning: prefer named diversions
+script.4s:5: warning: obsolete
 script.4s:6: warning: cross
 script.4s:2: cross_warning is expanded from...
 script.4s:6: the top level
@@ -297,25 +295,29 @@ AT_SETUP([m4@&t@_divert_stack])
 AT_KEYWORDS([m4@&t@_divert m4@&t@_divert_push m4@&t@_divert_pop
 m4@&t@_undivert m4@&t@_cleardivert m4@&t@_divert_text])
 
-AT_CHECK_M4SUGAR_TEXT([[1.m4_divert_stack
-m4_divert_push([10])2.m4_divert_stack
-m4_divert_text([20], [3.m4_divert_stack])dnl
-m4_divert([30])4.m4_divert_stack
-m4_divert_pop([30])dnl
-5.m4_undivert([20], [30])
+dnl This test names some diversions to avoid a warning.
+AT_CHECK_M4SUGAR_TEXT([[m4_define([_m4_divert(ten)], [10])dnl
+m4_define([_m4_divert(twenty)], [20])dnl
+m4_define([_m4_divert(thirty)], [30])dnl
+1.m4_divert_stack
+m4_divert_push([ten])2.m4_divert_stack
+m4_divert_text([twenty], [3.m4_divert_stack])dnl
+m4_divert([thirty])4.m4_divert_stack
+m4_divert_pop([thirty])dnl
+5.m4_undivert([twenty], [thirty])
 m4_pattern_allow([^m4_divert])dnl
-]], [[1.script.4s:2: m4@&t@_divert_push: 0
+]], [[1.script.4s:2: m4@&t@_divert_push:
 script.4s:1: m4@&t@_divert: KILL
-5.3.script.4s:5: m4@&t@_divert_push: 20
-script.4s:4: m4@&t@_divert_push: 10
-script.4s:2: m4@&t@_divert_push: 0
+5.3.script.4s:8: m4@&t@_divert_push: twenty
+script.4s:7: m4@&t@_divert_push: ten
+script.4s:2: m4@&t@_divert_push:
 script.4s:1: m4@&t@_divert: KILL
-4.script.4s:6: m4@&t@_divert: 30
-script.4s:2: m4@&t@_divert_push: 0
+4.script.4s:9: m4@&t@_divert: thirty
+script.4s:2: m4@&t@_divert_push:
 script.4s:1: m4@&t@_divert: KILL
 
-2.script.4s:4: m4@&t@_divert_push: 10
-script.4s:2: m4@&t@_divert_push: 0
+2.script.4s:7: m4@&t@_divert_push: ten
+script.4s:2: m4@&t@_divert_push:
 script.4s:1: m4@&t@_divert: KILL
 ]])
 
@@ -328,6 +330,12 @@ m4_cleardivert([2], [3])dnl
 ]],
 [[one
 four
+]],
+[[script.4s:4: warning: prefer named diversions
+script.4s:5: warning: prefer named diversions
+script.4s:6: warning: prefer named diversions
+script.4s:7: warning: prefer named diversions
+script.4s:8: warning: prefer named diversions
 ]])
 
 AT_DATA_M4SUGAR([script.4s],
@@ -1004,7 +1012,7 @@ AT_DATA_M4SUGAR([script.4s],
 [[m4_init[]dnl
 m4_append_uniq([str], [a], [ ])
 m4_append_uniq([str], [a b], [ ])
-m4_divert([0])dnl
+m4_divert([])dnl
 str
 ]])
 
@@ -1122,6 +1130,30 @@ a
 AT_CLEANUP
 
 
+## ------------- ##
+## m4_text_box.  ##
+## ------------- ##
+
+AT_SETUP([m4@&t@_text_box])
+
+AT_CHECK_M4SUGAR_TEXT([[
+m4_text_box([a $1 @&t@b])
+m4_text_box([a $1 @&t@b], [$])
+m4_text_box([a $1 @&t@b], [,])
+]], [[
+## ------ ##
+## a $1 b ##
+## ------ ##
+## $$$$$$ ##
+## a $1 b ##
+## $$$$$$ ##
+## ,,,,,, ##
+## a $1 b ##
+## ,,,,,, ##
+]])
+
+AT_CLEANUP
+
 ## -------------- ##
 ## m4_text_wrap.  ##
 ## -------------- ##
@@ -1134,7 +1166,7 @@ AT_KEYWORDS([m4@&t@_escape])
 # m4-listification.
 
 AT_DATA_M4SUGAR([script.4s],
-[[m4_init[]m4_divert([0])dnl
+[[m4_init[]m4_divert([])dnl
 m4_define([a], [OOPS])dnl
 m4_escape([a[b $c#]d])
 m4_if(m4_escape([a[b $c#]d]), [a[b $c#]d], [oops],
@@ -1820,7 +1852,7 @@ dnl are testing with m4 1.6, we can rerun the test with __m4_version__
 dnl undefined to exercise the alternate code path.
 AT_DATA_M4SUGAR([script.4s],
 [[m4_init
-m4_divert_push(0)[]dnl
+m4_divert_push([])[]dnl
 m4_len(m4_foreach_w([j], m4_do(m4_for([i], [1], [10000], [], [,i ])), [j ]))
 m4_shiftn(9998m4_for([i], [1], [10000], [], [,i]))
 m4_len(m4_join([--],, m4_dquote_elt(m4_for([i], [1], [10000], [], [,i])),))
@@ -1841,7 +1873,7 @@ m4_define([up], [m4_define([$1], m4_incr($1))$1])m4_define([j], 0)dnl
 m4_cond(m4_for([i], [1], [10000], [], [[up([j])], [9990], i,]) [oops]) j
 m4_count(m4_map_args_pair([,m4_quote], []m4_map_args([,m4_echo]m4_for([i],
   [1], [10000], [], [,i]))))
-m4_divert_pop(0)
+m4_divert_pop([])
 ]])
 
 AT_CHECK_M4SUGAR([-o-], [0], [[48894
@@ -1862,7 +1894,7 @@ A
 AT_DATA_M4SUGAR([script.4s],
 [[m4_ifdef([__m4_version__],
 [m4_undefine([__m4_version__])],
-[m4_divert_push(0)48894
+[m4_divert_push([])48894
 9999,10000
 78896
 58894
@@ -1877,7 +1909,7 @@ A
 5001
 m4_exit([0])])
 m4_init
-m4_divert_push(0)[]dnl
+m4_divert_push([])[]dnl
 m4_len(m4_foreach_w([j], m4_do(m4_for([i], [1], [10000], [], [,i ])), [j ]))
 m4_shiftn(9998m4_for([i], [1], [10000], [], [,i]))
 m4_len(m4_join([--],, m4_dquote_elt(m4_for([i], [1], [10000], [], [,i])),))
@@ -1898,7 +1930,7 @@ m4_define([up], [m4_define([$1], m4_incr($1))$1])m4_define([j], 0)dnl
 m4_cond(m4_for([i], [1], [10000], [], [[up([j])], [9990], i,]) [oops]) j
 m4_count(m4_map_args_pair([,m4_quote], []m4_map_args([,m4_echo]m4_for([i],
   [1], [10000], [], [,i]))))
-m4_divert_pop(0)
+m4_divert_pop([])
 ]])
 
 AT_CHECK_M4SUGAR([-o-], [0], [[48894
@@ -2064,6 +2096,33 @@ m4_count(m4_shift(m4_set_intersection([a], [b])))
 5000
 3333
 3334
+]])
+
+AT_CLEANUP
+
+
+## ---------------------- ##
+## __file__ and __line__. ##
+## ---------------------- ##
+
+AT_SETUP([[__file__ and __line__]])
+
+# Check that __file__ and __line__ work.
+# Check that m4__file__ and m4__line__ are not defined
+# (and get them to pass by the undefined-macro check).
+# Try to not assume too much about AT_CHECK_M4SUGAR_TEXT.
+AT_CHECK_M4SUGAR_TEXT([[dnl
+m4_pattern_allow([m4__file__])dnl
+m4_pattern_allow([m4__line__])dnl
+m4__file__
+m4__line__
+__file__
+m4_define([first], __line__)dnl
+m4_define([second], __line__)dnl
+m4_assert(first + 1 == second)dnl
+]], [[m4@&t@__@&t@file__
+m4@&t@__@&t@line__
+script.4s
 ]])
 
 AT_CLEANUP

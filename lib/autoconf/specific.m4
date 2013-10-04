@@ -2,7 +2,7 @@
 # Macros that test for specific, unclassified, features.
 #
 # Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
-# 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software
+# 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software
 # Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
@@ -105,7 +105,7 @@ m4_define([_AC_SYS_LARGEFILE_TEST_INCLUDES],
 #				CACHE-VAR,
 #				DESCRIPTION,
 #				PROLOGUE, [FUNCTION-BODY])
-# ----------------------------------------------------------
+# --------------------------------------------------------
 m4_define([_AC_SYS_LARGEFILE_MACRO_VALUE],
 [AC_CACHE_CHECK([for $1 value needed for large files], [$3],
 [while :; do
@@ -306,7 +306,7 @@ AC_DEFUN([AC_SYS_POSIX_TERMIOS],
 
 
 # AC_GNU_SOURCE
-# --------------
+# -------------
 AU_DEFUN([AC_GNU_SOURCE], [AC_USE_SYSTEM_EXTENSIONS])
 
 

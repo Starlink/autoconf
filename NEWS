@@ -1,5 +1,56 @@
 GNU Autoconf NEWS - User visible changes.
 
+* Major changes in Autoconf 2.66 (2010-07-02) [stable]
+  Released by Eric Blake, based on git versions 2.65.*.
+
+** AC_FUNC_MMAP works in C++ mode again.  Regression introduced in 2.65.
+
+** Use of m4_divert without a named diversion now issues a syntax warning,
+   since it is seldom right to change diversions behind autoconf's back.
+
+** The macros AC_TYPE_INT8_T, AC_TYPE_INT16_T, AC_TYPE_INT32_T, and
+   AC_TYPE_INT64_T work again.  Regression introduced in 2.65.
+
+** AC_PROG_INSTALL correctly uses `shtool' again.  Regression introduced
+   in 2.64.
+
+** Autoconf should work on EBCDIC hosts.
+
+** AC_CHECK_DECL and AC_CHECK_DECLS accept optional function argument types
+   for overloaded C++ functions.
+
+** AS_SET_CATFILE accepts nonliterals in its variable name argument now.
+
+** Autotest testsuites accept an option --recheck to rerun tests that
+   failed or passed unexpectedly during the last non-debug testsuite run.
+
+** AC_ARG_ENABLE and AC_ARG_WITH now also accept `+' signs in `--enable-*'
+   and `--with-*' arguments, converting them to underscores for the variable
+   names.
+
+** In configure scripts, loading CONFIG_SITE no longer searches PATH,
+   and problems in loading the configuration site files are diagnosed.
+
+** Autotest testsuites may optionally provide colored test results.
+
+** The previously undocumented Autotest macros AT_ARG_OPTION and
+   AT_ARG_OPTION_ARG have seen bug fixes and are documented now.
+   AT_ARG_OPTION has been changed in that the negative of a long option
+   --OPTION is now --no-OPTION rather than --noOPTION.
+
+** The macro AS_LITERAL_IF is slightly more conservative; text
+   containing shell quotes are no longer treated as literals.
+   Furthermore, a new macro, AS_LITERAL_WORD_IF, adds an additional
+   level of checking that no whitespace occurs in literals.
+
+** The macros AS_TR_SH and AS_TR_CPP no longer expand their results.
+
+** The following macros are now documented:
+   AS_BOX
+
+** New macro AC_FC_FIXEDFORM to accept fixed-form Fortran.
+
+
 * Major changes in Autoconf 2.65 (2009-11-21) [stable]
   Released by Eric Blake, based on git versions 2.64.*.
 
@@ -1937,7 +1988,8 @@ Various bug fixes.
 -----
 
 Copyright (C) 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001, 2002,
-2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation,
+Inc.
 
 Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
