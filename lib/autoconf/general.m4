@@ -1,9 +1,7 @@
 # This file is part of Autoconf.                       -*- Autoconf -*-
 # Parameterized macros.
 m4_define([_AC_COPYRIGHT_YEARS], [
-Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
-2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software
-Foundation, Inc.
+Copyright (C) 1992-1996, 1998-2012 Free Software Foundation, Inc.
 ])
 
 # This file is part of Autoconf.  This program is free
@@ -951,8 +949,6 @@ target=$target_alias
 if test "x$host_alias" != x; then
   if test "x$build_alias" = x; then
     cross_compiling=maybe
-    AC_MSG_WARN([if you wanted to set the --build type, don't use --host.
-    If a cross compiler is detected then cross compile mode will be used])
   elif test "x$build_alias" != "x$host_alias"; then
     cross_compiling=yes
   fi
@@ -1388,6 +1384,9 @@ m4_pattern_forbid([^LIBOBJS$],
 		  [do not use LIBOBJS directly, use AC_LIBOBJ (see section `AC_LIBOBJ vs LIBOBJS'])
 # Actually reserved by M4sh.
 m4_pattern_allow([^AS_FLAGS$])
+# So that the autoconf-generated scripts will always re-execute
+# themselves with $CONFIG_SHELL, if that's set in the environment.
+m4_define([_AS_FORCE_REEXEC_WITH_CONFIG_SHELL], [yes])
 AS_INIT[]dnl
 AS_PREPARE[]dnl
 m4_divert_push([KILL])

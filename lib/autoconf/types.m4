@@ -1,8 +1,7 @@
 # This file is part of Autoconf.			-*- Autoconf -*-
 # Type related macros: existence, sizeof, and structure members.
 #
-# Copyright (C) 2000, 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2009,
-# 2010 Free Software Foundation, Inc.
+# Copyright (C) 2000-2002, 2004-2012 Free Software Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the
@@ -81,15 +80,15 @@
 #	  int foo (TYPE param);
 #
 # but of course you soon realize this does not make it with K&R
-# compilers.  And by no ways you want to
+# compilers.  And by no means do you want to use this:
 #
 #	  int foo (param)
 #	    TYPE param
 #	  { ; }
 #
-# since this time it's C++ who is not happy.
+# since C++ would complain loudly.
 #
-# Don't even think of the return type of a function, since K&R cries
+# Don't even think of using a function return type, since K&R cries
 # there too.  So you start thinking of declaring a *pointer* to this TYPE:
 #
 #	  TYPE *p;
@@ -102,14 +101,16 @@
 #
 #	  sizeof (TYPE);
 #
-# But this succeeds if TYPE is a variable: you get the size of the
-# variable's type!!!
+# That is great, but has one drawback: it succeeds when TYPE happens
+# to be a variable: you'd get the size of the variable's type.
+# Obviously, we must not accept a variable in place of a type name.
 #
-# So, to filter out the last possibility, you try this too:
+# So, to filter out the last possibility, we will require that this fail:
 #
 #	  sizeof ((TYPE));
 #
-# This fails if TYPE is a type, but succeeds if TYPE is actually a variable.
+# This evokes a syntax error when TYPE is a type, but succeeds if TYPE
+# is actually a variable.
 #
 # Also note that we use
 #
@@ -198,7 +199,7 @@ m4_define([_AC_CHECK_TYPE_OLD],
 # `long', `short', `signed', or `unsigned' followed by characters
 # that are defining types.
 # Because many people have used `off_t' and `size_t' too, they are added
-# for better common-useward backward compatibility.
+# for better common-use backward compatibility.
 m4_define([_AC_CHECK_TYPE_REPLACEMENT_TYPE_P],
 [m4_bmatch([$1],
 	  [^\(_Bool\|bool\|char\|double\|float\|int\|long\|short\|\(un\)?signed\|[_a-zA-Z][_a-zA-Z0-9]*_t\)[][_a-zA-Z0-9() *]*$],
@@ -501,37 +502,41 @@ AC_DEFUN([_AC_TYPE_LONG_LONG_SNIPPET],
 # ---------------------
 AC_DEFUN([AC_TYPE_LONG_LONG_INT],
 [
+  AC_REQUIRE([AC_TYPE_UNSIGNED_LONG_LONG_INT])
   AC_CACHE_CHECK([for long long int], [ac_cv_type_long_long_int],
-    [AC_LINK_IFELSE(
-       [_AC_TYPE_LONG_LONG_SNIPPET],
-       [dnl This catches a bug in Tandem NonStop Kernel (OSS) cc -O circa 2004.
-	dnl If cross compiling, assume the bug isn't important, since
-	dnl nobody cross compiles for this platform as far as we know.
-	AC_RUN_IFELSE(
-	  [AC_LANG_PROGRAM(
-	     [[@%:@include <limits.h>
-	       @%:@ifndef LLONG_MAX
-	       @%:@ define HALF \
-			(1LL << (sizeof (long long int) * CHAR_BIT - 2))
-	       @%:@ define LLONG_MAX (HALF - 1 + HALF)
-	       @%:@endif]],
-	     [[long long int n = 1;
-	       int i;
-	       for (i = 0; ; i++)
-		 {
-		   long long int m = n << i;
-		   if (m >> i != n)
-		     return 1;
-		   if (LLONG_MAX / 2 < m)
-		     break;
-		 }
-	       return 0;]])],
-	  [ac_cv_type_long_long_int=yes],
-	  [ac_cv_type_long_long_int=no],
-	  [ac_cv_type_long_long_int=yes])],
-       [ac_cv_type_long_long_int=no])])
+     [ac_cv_type_long_long_int=yes
+      if test "x${ac_cv_prog_cc_c99-no}" = xno; then
+	ac_cv_type_long_long_int=$ac_cv_type_unsigned_long_long_int
+	if test $ac_cv_type_long_long_int = yes; then
+	  dnl Catch a bug in Tandem NonStop Kernel (OSS) cc -O circa 2004.
+	  dnl If cross compiling, assume the bug is not important, since
+	  dnl nobody cross compiles for this platform as far as we know.
+	  AC_RUN_IFELSE(
+	    [AC_LANG_PROGRAM(
+	       [[@%:@include <limits.h>
+		 @%:@ifndef LLONG_MAX
+		 @%:@ define HALF \
+			  (1LL << (sizeof (long long int) * CHAR_BIT - 2))
+		 @%:@ define LLONG_MAX (HALF - 1 + HALF)
+		 @%:@endif]],
+	       [[long long int n = 1;
+		 int i;
+		 for (i = 0; ; i++)
+		   {
+		     long long int m = n << i;
+		     if (m >> i != n)
+		       return 1;
+		     if (LLONG_MAX / 2 < m)
+		       break;
+		   }
+		 return 0;]])],
+	    [],
+	    [ac_cv_type_long_long_int=no],
+	    [:])
+	fi
+      fi])
   if test $ac_cv_type_long_long_int = yes; then
-    AC_DEFINE([HAVE_LONG_LONG_INT], 1,
+    AC_DEFINE([HAVE_LONG_LONG_INT], [1],
       [Define to 1 if the system has the type `long long int'.])
   fi
 ])
@@ -543,12 +548,15 @@ AC_DEFUN([AC_TYPE_UNSIGNED_LONG_LONG_INT],
 [
   AC_CACHE_CHECK([for unsigned long long int],
     [ac_cv_type_unsigned_long_long_int],
-    [AC_LINK_IFELSE(
-       [_AC_TYPE_LONG_LONG_SNIPPET],
-       [ac_cv_type_unsigned_long_long_int=yes],
-       [ac_cv_type_unsigned_long_long_int=no])])
+    [ac_cv_type_unsigned_long_long_int=yes
+     if test "x${ac_cv_prog_cc_c99-no}" = xno; then
+       AC_LINK_IFELSE(
+	 [_AC_TYPE_LONG_LONG_SNIPPET],
+	 [],
+	 [ac_cv_type_unsigned_long_long_int=no])
+     fi])
   if test $ac_cv_type_unsigned_long_long_int = yes; then
-    AC_DEFINE([HAVE_UNSIGNED_LONG_LONG_INT], 1,
+    AC_DEFINE([HAVE_UNSIGNED_LONG_LONG_INT], [1],
       [Define to 1 if the system has the type `unsigned long long int'.])
   fi
 ])

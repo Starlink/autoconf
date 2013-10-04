@@ -1,9 +1,7 @@
 #                                                       -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-# Copyright (C) 1992, 1993, 1994, 1995, 1999, 2000, 2001, 2002, 2003,
-# 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation,
-# Inc.
+# Copyright (C) 1992-1995, 1999-2012 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,11 +28,11 @@ dnl  Include the TARNAME field, not because we want to distribute
 dnl  this package, but so that autoconf uses this when building some
 dnl  installation locations rather than the "starlink-autoconf" it
 dnl  would otherwise construct.
-AC_INIT([Starlink Autoconf], [2.62-starlink], [starlink@jiscmail.ac.uk], autoconf)
+AC_INIT([Starlink Autoconf], [2.69-starlink], [starlink@jiscmail.ac.uk], autoconf)
 dnl AC_INIT([GNU Autoconf],
-dnl	 m4_esyscmd([build-aux/git-version-gen .tarball-version]),
-dnl	 [bug-autoconf@gnu.org])
-AC_CONFIG_SRCDIR([ChangeLog])
+dnl 	m4_esyscmd([build-aux/git-version-gen .tarball-version]),
+dnl 	[bug-autoconf@gnu.org])
+AC_CONFIG_SRCDIR([lib/autoconf/autoconf.m4])
 
 # Set the STAR_MANIFEST_DIR variable, defaulting it from the environment.
 # This causes the `install-manifest' target to be included in Makefile.in
@@ -43,8 +41,7 @@ AC_SUBST(STAR_MANIFEST_DIR)
 
 AC_CONFIG_AUX_DIR([build-aux])
 
-AM_INIT_AUTOMAKE([1.11 dist-bzip2 dist-xz
-readme-alpha no-texinfo.tex std-options])
+AM_INIT_AUTOMAKE([1.11 dist-xz readme-alpha no-texinfo.tex std-options])
 
 AB_INIT
 
@@ -152,8 +149,8 @@ AC_SUBST([PERL])dnl
 if test "$PERL" = no; then
   AC_MSG_ERROR([perl is not found])
 fi
-$PERL -e 'require 5.005_03;' || {
-   AC_MSG_ERROR([Perl 5.005_03 or better is required])
+$PERL -e 'require 5.006;' || {
+   AC_MSG_ERROR([Perl 5.006 or better is required])
 }
 
 # Find out whether the system supports flock

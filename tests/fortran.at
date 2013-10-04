@@ -2,8 +2,8 @@
 
 AT_BANNER([Fortran low level compiling/preprocessing macros.])
 
-# Copyright (C) 2000, 2001, 2003, 2008, 2009, 2010 Free Software
-# Foundation, Inc.
+# Copyright (C) 2000-2001, 2003, 2008-2012 Free Software Foundation,
+# Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,17 +32,19 @@ AT_CHECK_MACRO([GNU Fortran 77],
 [[AC_LANG(Fortran 77)
 AC_LANG_COMPILER
 
-if AC_TRY_COMMAND([$F77 --version | grep GNU >&2]); then
+: > conftest.f
+if AC_TRY_COMMAND([$F77 --version | grep GNU >&2]) \
+   || AC_TRY_COMMAND([$F77 -v -c conftest.f 2>&1 | grep "f2c " >&2]); then
   # Be sure to remove files which might be created by compilers that
-  # don't support --version.
-  rm -f a.exe a.out
+  # don't support --version, or by the second compile.
+  rm -f a.exe a.out conftest.f conftest.$ac_objext
   # Has GNU in --version.
   test "$G77" != yes &&
     AC_MSG_ERROR([failed to recognize GNU Fortran 77 compiler])
 else
   # Be sure to remove files which might be created by compilers that
-  # don't support --version.
-  rm -f a.exe a.out
+  # don't support --version, or by the second compile.
+  rm -f a.exe a.out conftest.f conftest.$ac_objext
   # Has not.
   test "$G77" = yes &&
     AC_MSG_ERROR([incorrectly recognized a GNU Fortran 77 compiler])
@@ -224,15 +226,12 @@ AT_CLEANUP
 
 AT_SETUP([AC_F77_DUMMY_MAIN usage])
 
-AT_DATA([configure.ac],
-[[AC_INIT
-AC_CONFIG_HEADERS([config.h:config.hin])
+AT_CONFIGURE_AC([[
 AC_PROG_F77
 AC_F77_DUMMY_MAIN([], [AC_MSG_FAILURE([failed to determine F77 dummy main], [77])])
 AC_F77_WRAPPERS
 AC_PROG_CC
 AC_CONFIG_FILES([Makefile])
-AC_OUTPUT
 ]])
 
 AT_DATA([Makefile.in],
@@ -304,16 +303,13 @@ AT_CLEANUP
 
 AT_SETUP([AC_FC_DUMMY_MAIN usage])
 
-AT_DATA([configure.ac],
-[[AC_INIT
-AC_CONFIG_HEADERS([config.h:config.hin])
+AT_CONFIGURE_AC([[
 AC_PROG_FC
 AC_FC_FIXEDFORM
 AC_FC_DUMMY_MAIN([], [AC_MSG_FAILURE([failed to determine FC dummy main], [77])])
 AC_FC_WRAPPERS
 AC_PROG_CC
 AC_CONFIG_FILES([Makefile])
-AC_OUTPUT
 ]])
 
 AT_DATA([Makefile.in],
@@ -385,15 +381,12 @@ AT_CLEANUP
 
 AT_SETUP([AC_F77_MAIN usage])
 
-AT_DATA([configure.ac],
-[[AC_INIT
-AC_CONFIG_HEADERS([config.h:config.hin])
+AT_CONFIGURE_AC([[
 AC_PROG_F77
 AC_F77_MAIN
 AC_F77_WRAPPERS
 AC_PROG_CC
 AC_CONFIG_FILES([Makefile])
-AC_OUTPUT
 ]])
 
 AT_DATA([Makefile.in],
@@ -467,16 +460,13 @@ AT_CLEANUP
 
 AT_SETUP([AC_FC_MAIN usage])
 
-AT_DATA([configure.ac],
-[[AC_INIT
-AC_CONFIG_HEADERS([config.h:config.hin])
+AT_CONFIGURE_AC([[
 AC_PROG_FC
 AC_FC_FIXEDFORM
 AC_FC_MAIN
 AC_FC_WRAPPERS
 AC_PROG_CC
 AC_CONFIG_FILES([Makefile])
-AC_OUTPUT
 ]])
 
 AT_DATA([Makefile.in],
@@ -549,15 +539,13 @@ AT_CLEANUP
 
 AT_SETUP([AC_F77_FUNC usage])
 
-AT_DATA([configure.ac],
-[[AC_INIT
+AT_CONFIGURE_AC([[
 AC_PROG_F77
 AC_F77_FUNC([foobar])
 AC_SUBST([foobar])
 AC_PROG_CC
 AC_CONFIG_FILES([cprogram.c:cprogram.in])
 AC_CONFIG_FILES([Makefile])
-AC_OUTPUT
 ]])
 
 AT_DATA([Makefile.in],
@@ -571,7 +559,7 @@ cprogram@EXEEXT@: cprogram.@OBJEXT@ foobar.@OBJEXT@
 .f.@OBJEXT@:
 	@F77@ @FFLAGS@ -c $<
 .c.@OBJEXT@:
-	@CC@ @DEFS@ @CPPFLAGS@ @CFLAGS@ -c $<
+	@CC@ @DEFS@ -I. @CPPFLAGS@ @CFLAGS@ -c $<
 ]])
 
 AT_DATA([foobar.f],
@@ -583,7 +571,8 @@ AT_DATA([foobar.f],
 ]])
 
 AT_DATA([cprogram.in],
-[[#include <math.h>
+[[#include <config.h>
+#include <math.h>
 
 #ifdef __cplusplus
 extern "C"  /* prevent C++ name mangling */
@@ -609,6 +598,7 @@ int main(int argc, char *argv[])
 ]])
 
 AT_CHECK_AUTOCONF
+AT_CHECK_AUTOHEADER
 AT_CHECK_CONFIGURE
 : "${MAKE=make}"
 AT_CHECK([$MAKE], [], [ignore], [ignore])
@@ -623,15 +613,13 @@ AT_CLEANUP
 
 AT_SETUP([AC_FC_FUNC usage])
 
-AT_DATA([configure.ac],
-[[AC_INIT
+AT_CONFIGURE_AC([[
 AC_PROG_FC
 AC_FC_FUNC([foobar])
 AC_SUBST([foobar])
 AC_PROG_CC
 AC_CONFIG_FILES([cprogram.c:cprogram.in])
 AC_CONFIG_FILES([Makefile])
-AC_OUTPUT
 ]])
 
 AT_DATA([Makefile.in],
@@ -645,7 +633,7 @@ cprogram@EXEEXT@: cprogram.@OBJEXT@ foobar.@OBJEXT@
 .f.@OBJEXT@:
 	@FC@ @FCFLAGS@ -c $<
 .c.@OBJEXT@:
-	@CC@ @DEFS@ @CPPFLAGS@ @CFLAGS@ -c $<
+	@CC@ @DEFS@ -I. @CPPFLAGS@ @CFLAGS@ -c $<
 ]])
 
 AT_DATA([foobar.f],
@@ -657,7 +645,8 @@ AT_DATA([foobar.f],
 ]])
 
 AT_DATA([cprogram.in],
-[[#include <math.h>
+[[#include <config.h>
+#include <math.h>
 
 #ifdef __cplusplus
 extern "C"  /* prevent C++ name mangling */
@@ -683,6 +672,7 @@ int main(int argc, char *argv[])
 ]])
 
 AT_CHECK_AUTOCONF
+AT_CHECK_AUTOHEADER
 AT_CHECK_CONFIGURE
 : "${MAKE=make}"
 AT_CHECK([$MAKE], [], [ignore], [ignore])
@@ -765,6 +755,106 @@ end
 AT_DATA([foof08.f08],
 [[subroutine foof08
 end
+]])
+
+AT_CHECK_AUTOCONF
+AT_CHECK_CONFIGURE
+: "${MAKE=make}"
+AT_CHECK([$MAKE], [], [ignore], [ignore])
+
+AT_CLEANUP
+
+
+## ---------------------- ##
+## AC_FC_PP_SRCEXT usage. ##
+## ---------------------- ##
+
+AT_SETUP([AC_FC_PP_SRCEXT usage])
+
+AT_DATA([configure.ac],
+[[AC_INIT
+AC_PROG_FC
+# Unconditionally require .f and .F to work.
+AC_FC_PP_SRCEXT([f])
+AC_FC_PP_SRCEXT([F])
+# For each other extension, fail gracefully if it does not work:
+# Not all compilers support all extensions/language versions.
+m4@&t@_foreach([ext], [f77, f90, f95, f03, f08],
+  [AC_FC_PP_SRCEXT(ext, ext[_object='foo]ext[.$(OBJEXT)'], ext[_object=])
+   AC_SUBST(ext[_object])])
+m4@&t@_foreach([ext], [F77, F90, F95, F03, F08],
+  [AC_FC_PP_SRCEXT(ext, ext[_object='bar]ext[.$(OBJEXT)'], ext[_object=])
+   AC_SUBST(ext[_object])])
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+]])
+
+AT_DATA([Makefile.in],
+[[OBJEXT = @OBJEXT@
+
+all: prog@EXEEXT@
+prog@EXEEXT@: foof.@OBJEXT@ @f77_object@ @f90_object@ \
+	      @f95_object@ @f03_object@ @f08_object@ \
+	      barF.@OBJEXT@ @F77_object@ @F90_object@ \
+	      @F95_object@ @F03_object@ @F08_object@
+	@FC@ @FCFLAGS@ -o $@ foof.@OBJEXT@ @f77_object@ @f90_object@ \
+			     @f95_object@ @f03_object@ @f08_object@ \
+			     barF.@OBJEXT@ @F77_object@ @F90_object@ \
+			     @F95_object@ @F03_object@ @F08_object@
+
+.SUFFIXES: .f .f77 .f90 .f95 .f03 .f08 .F .F77 .F90 .F95 .F03 .F08 .@OBJEXT@
+.f.@OBJEXT@:
+	@FC@ -c @FCFLAGS@ @FCFLAGS_f@ $<
+.f77.@OBJEXT@:
+	@FC@ -c @FCFLAGS@ @FCFLAGS_f77@ $<
+.f90.@OBJEXT@:
+	@FC@ -c @FCFLAGS@ @FCFLAGS_f90@ $<
+.f95.@OBJEXT@:
+	@FC@ -c @FCFLAGS@ @FCFLAGS_f95@ $<
+.f03.@OBJEXT@:
+	@FC@ -c @FCFLAGS@ @FCFLAGS_f03@ $<
+.f08.@OBJEXT@:
+	@FC@ -c @FCFLAGS@ @FCFLAGS_f08@ $<
+.F.@OBJEXT@:
+	@FC@ -c @FCFLAGS@ @FCFLAGS_F@ $<
+.F77.@OBJEXT@:
+	@FC@ -c @FCFLAGS@ @FCFLAGS_F77@ $<
+.F90.@OBJEXT@:
+	@FC@ -c @FCFLAGS@ @FCFLAGS_F90@ $<
+.F95.@OBJEXT@:
+	@FC@ -c @FCFLAGS@ @FCFLAGS_F95@ $<
+.F03.@OBJEXT@:
+	@FC@ -c @FCFLAGS@ @FCFLAGS_F03@ $<
+.F08.@OBJEXT@:
+	@FC@ -c @FCFLAGS@ @FCFLAGS_F08@ $<
+]])
+
+for ext in f77 f90 f95 f03 f08; do
+  cat > foo$ext.$ext <<EOF
+      subroutine foo$ext
+#if 0
+this is not correct fortran
+#endif
+      end
+EOF
+done
+
+for ext in F F77 F90 F95 F03 F08; do
+  cat > bar$ext.$ext <<EOF
+      subroutine bar$ext
+#if 0
+this is not correct fortran
+#endif
+      end
+EOF
+done
+
+AT_DATA([foof.f],
+[[      program main
+#if 0
+this is not correct fortran
+#endif
+      end
 ]])
 
 AT_CHECK_AUTOCONF
@@ -991,5 +1081,135 @@ EOF
 
   done
 done
+
+AT_CLEANUP
+
+
+## ------------------- ##
+## AC_FC_CHECK_BOUNDS. ##
+## ------------------- ##
+
+AT_SETUP([AC_FC_CHECK_BOUNDS])
+
+AT_DATA([Makefile.in],
+[[prog@EXEEXT@: prog.@OBJEXT@
+	@FC@ @FCFLAGS@ -o $@ prog.@OBJEXT@ @LIBS@
+
+.SUFFIXES: .f .@OBJEXT@
+.f.@OBJEXT@:
+	@FC@ @FCFLAGS@ -c @FCFLAGS_f@ $<
+
+clean:
+	rm -f *.@OBJEXT@ prog@EEXEXT@
+]])
+
+cat >configure.ac <<EOF
+AC_INIT
+AC_PROG_FC
+AC_FC_SRCEXT([f])
+AC_FC_CHECK_BOUNDS
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+EOF
+
+AT_DATA([prog.f],
+[[
+      subroutine copy(a,b,n)
+      integer a(:), b(:), n, i
+      do i = 1, n
+         a(i) = b(i)
+      end do
+      end subroutine
+
+      program main
+      integer, parameter :: n = 20
+      integer a(1:n), b(1:n-1), i
+      interface
+         subroutine copy(a,b,n)
+         integer a(:), b(:), i
+         end subroutine
+      end interface
+
+      call copy(a,b,n)
+      end program
+]])
+
+AT_CHECK_AUTOCONF
+AT_CHECK_CONFIGURE
+: "${MAKE=make}"
+AT_CHECK([$MAKE], [], [ignore], [ignore])
+AT_CHECK([./prog || exit 1], [1], [ignore], [ignore])
+AT_CHECK([$MAKE clean], [], [ignore], [ignore])
+
+AT_CLEANUP
+
+
+## ------------------ ##
+## AC_FC_MODULE_FLAG. ##
+## ------------------ ##
+
+AT_SETUP([AC_FC_MODULE_FLAG])
+
+AT_DATA([Makefile.in],
+[[OBJEXT = @OBJEXT@
+EXEEXT = @EXEEXT@
+LIBS = @LIBS@
+ac_empty = @ac_empty@
+FC = @FC@
+FC_MODEXT = @FC_MODEXT@
+FC_MODINC = @FC_MODINC@
+FCFLAGS = @FCFLAGS@
+FCFLAGS_f = @FCFLAGS_f@
+
+prog$(EXEEXT): sub/mod.$(OBJEXT) prog.$(OBJEXT)
+	$(FC) $(FCFLAGS) -o $@ prog.$(OBJEXT) sub/mod.$(OBJEXT) $(LIBS)
+
+sub/mod.$(OBJEXT): sub/mod.f
+	cd sub && $(FC) $(FCFLAGS) -c $(FCFLAGS_f) mod.f
+
+# Depend on the object, for the module dependency.
+prog.$(OBJEXT): prog.f sub/mod.$(OBJEXT)
+	$(FC) $(FCFLAGS) $(FC_MODINC). $(FC_MODINC)sub -c $(FCFLAGS_f) $<
+
+clean:
+	-test -z "$(FC_MODEXT)" || rm -f *.$(FC_MODEXT) sub/*.$(FC_MODEXT)
+	-rm -f *.$(OBJEXT) sub/*.$(OBJEXT) prog$(EXEEXT)
+]])
+
+AT_DATA([configure.ac],
+[[AC_INIT
+AC_PROG_FC
+AC_FC_SRCEXT([f])
+AC_FC_MODULE_FLAG
+if test -n "$FC_MODINC"; then
+  FCFLAGS="$FCFLAGS $FC_MODINC. ${FC_MODINC}sub"
+fi
+AC_FC_MODULE_EXTENSION
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+]])
+
+mkdir sub
+
+AT_DATA([sub/mod.f],
+[[      module foobar
+      end module foobar
+]])
+
+AT_DATA([prog.f],
+[[      program main
+      use foobar
+      end program
+]])
+
+AT_CHECK_AUTOCONF
+AT_CHECK_CONFIGURE
+: "${MAKE=make}"
+AT_CHECK([$MAKE], [], [stdout], [stderr])
+# Both the FCFLAGS setting from configure.ac, and the Makefile rule
+# should add to the module search path.
+AT_CHECK([grep 'sub .*sub ' stdout stderr], [], [ignore])
+AT_CHECK([./prog], [], [ignore], [ignore])
+AT_CHECK([$MAKE clean], [], [ignore], [ignore])
 
 AT_CLEANUP

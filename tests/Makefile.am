@@ -1,7 +1,6 @@
 ## Make Autoconf tests.
 
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-# 2009, 2010 Free Software Foundation, Inc.
+# Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -85,6 +84,7 @@ TESTSUITE_GENERATED_AT = \
 	$(srcdir)/aclang.at \
 	$(srcdir)/acc.at \
 	$(srcdir)/acfortran.at \
+	$(srcdir)/acgo.at \
 	$(srcdir)/acgeneral.at \
 	$(srcdir)/acstatus.at \
 	$(srcdir)/acautoheader.at \
@@ -100,7 +100,7 @@ TESTSUITE_HAND_AT = \
 	suite.at \
 	m4sugar.at m4sh.at autotest.at \
 	base.at tools.at torture.at \
-	compile.at c.at erlang.at fortran.at \
+	compile.at c.at erlang.at fortran.at go.at \
 	semantics.at \
 	autoscan.at \
 	foreign.at
@@ -130,7 +130,7 @@ atconfig: $(top_builddir)/config.status
 # includes $(TESTSUITE).  This is the Automake rule, plus our
 # dependency, and we silence the warning from 'automake -Wall' by
 # hiding the dependency behind a variable.
-# TODO - fix this if newer automake accomodates the dependency.
+# TODO - fix this if newer automake accommodates the dependency.
 distclean_generic = distclean-generic
 $(distclean_generic): clean-local
 
@@ -170,6 +170,7 @@ AUTOCONF_FILES = $(autoconfdir)/general.m4 \
 		 $(autoconfdir)/c.m4 \
 		 $(autoconfdir)/erlang.m4 \
 		 $(autoconfdir)/fortran.m4 \
+		 $(autoconfdir)/go.m4 \
 		 $(autoconfdir)/headers.m4 \
 		 $(autoconfdir)/libs.m4 \
 		 $(autoconfdir)/types.m4 \

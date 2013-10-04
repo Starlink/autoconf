@@ -6,11 +6,11 @@ START-INFO-DIR-ENTRY
 * Standards: (standards).       GNU coding standards.
 END-INFO-DIR-ENTRY
 
-   The GNU coding standards, last updated September 9, 2010.
+   The GNU coding standards, last updated April 7, 2012.
 
    Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software
-Foundation, Inc.
+2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
+Free Software Foundation, Inc.
 
    Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.3 or
@@ -20,16 +20,16 @@ Texts.  A copy of the license is included in the section entitled "GNU
 Free Documentation License".
 
 
-File: standards.info,  Node: Top,  Next: Preface,  Prev: (dir),  Up: (dir)
+File: standards.info,  Node: Top,  Next: Preface,  Up: (dir)
 
-Version
-*******
+GNU Coding Standards
+********************
 
-The GNU coding standards, last updated September 9, 2010.
+The GNU coding standards, last updated April 7, 2012.
 
    Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software
-Foundation, Inc.
+2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
+Free Software Foundation, Inc.
 
    Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.3 or
@@ -106,8 +106,8 @@ more maintainable by others.
 coding standards for a trivial program.
 `http://www.gnu.org/software/hello/hello.html'.
 
-   This release of the GNU Coding Standards was last updated September
-9, 2010.
+   This release of the GNU Coding Standards was last updated April 7,
+2012.
 
 
 File: standards.info,  Node: Legal Issues,  Next: Design Advice,  Prev: Preface,  Up: Top
@@ -204,10 +204,10 @@ get papers.
 contributor.  We could be very embarrassed in court some day as a
 result.
 
-   We have more detailed advice for maintainers of programs; if you have
-reached the stage of actually maintaining a program for GNU (whether
-released or not), please ask us for a copy.  It is also available
-online for your perusal: `http://www.gnu.org/prep/maintain/'.
+   We have more detailed advice for maintainers of GNU packages.  If you
+have reached the stage of maintaining a GNU program (whether released
+or not), please take a look: *note Legal Matters: (maintain)Legal
+Matters.
 
 
 File: standards.info,  Node: Trademarks,  Prev: Contributions,  Up: Legal Issues
@@ -541,7 +541,7 @@ prohibited.  How silly!  GCC implements many extensions, some of which
 were later adopted as part of the standard.  If you want these
 constructs to give an error message as "required" by the standard, you
 must specify `--pedantic', which was implemented only so that we can
-say "GCC is a 100% implementation of the standard," not because there
+say "GCC is a 100% implementation of the standard", not because there
 is any reason to actually use it.
 
    POSIX.2 specifies that `df' and `du' must output sizes by default in
@@ -557,7 +557,7 @@ incompatibility with POSIX is never a problem in practice, and it is
 very useful.
 
    In particular, don't reject a new feature, or remove an old one,
-merely because a standard says it is "forbidden" or "deprecated."
+merely because a standard says it is "forbidden" or "deprecated".
 
 
 File: standards.info,  Node: Semantics,  Next: Libraries,  Prev: Non-GNU Standards,  Up: Program Behavior
@@ -575,14 +575,15 @@ nonprinting characters _including those with codes above 0177_.  The
 only sensible exceptions would be utilities specifically intended for
 interface to certain types of terminals or printers that can't handle
 those characters.  Whenever possible, try to make programs work
-properly with sequences of bytes that represent multibyte characters,
-using encodings such as UTF-8 and others.
+properly with sequences of bytes that represent multibyte characters;
+UTF-8 is the most important.
 
-   Check every system call for an error return, unless you know you
-wish to ignore errors.  Include the system error text (from `perror' or
-equivalent) in _every_ error message resulting from a failing system
-call, as well as the name of the file if any and the name of the
-utility.  Just "cannot open foo.c" or "stat failed" is not sufficient.
+   Check every system call for an error return, unless you know you wish
+to ignore errors.  Include the system error text (from `perror',
+`strerror', or equivalent) in _every_ error message resulting from a
+failing system call, as well as the name of the file if any and the
+name of the utility.  Just "cannot open foo.c" or "stat failed" is not
+sufficient.
 
    Check every call to `malloc' or `realloc' to see if it returned
 zero.  Check `realloc' even if you are making the block smaller; in a
@@ -653,9 +654,13 @@ avoid this problem by creating temporary files in this manner:
 
      fd = open (filename, O_WRONLY | O_CREAT | O_EXCL, 0600);
 
-or by using the `mkstemps' function from libiberty.
+or by using the `mkstemps' function from Gnulib (*note mkstemps:
+(gnulib)mkstemps.).
 
-   In bash, use `set -C' to avoid this problem.
+   In bash, use `set -C' (long name `noclobber') to avoid this problem.
+In addition, the `mktemp' utility is a more general solution for
+creating temporary files from shell scripts (*note mktemp invocation:
+(coreutils)mktemp invocation.).
 
 
 File: standards.info,  Node: Libraries,  Next: Errors,  Prev: Semantics,  Up: Program Behavior
@@ -696,36 +701,38 @@ File: standards.info,  Node: Errors,  Next: User Interfaces,  Prev: Libraries,  
 
 Error messages from compilers should look like this:
 
-     SOURCE-FILE-NAME:LINENO: MESSAGE
+     SOURCEFILE:LINENO: MESSAGE
 
 If you want to mention the column number, use one of these formats:
 
-     SOURCE-FILE-NAME:LINENO:COLUMN: MESSAGE
-     SOURCE-FILE-NAME:LINENO.COLUMN: MESSAGE
+     SOURCEFILE:LINENO:COLUMN: MESSAGE
+     SOURCEFILE:LINENO.COLUMN: MESSAGE
 
 Line numbers should start from 1 at the beginning of the file, and
 column numbers should start from 1 at the beginning of the line.  (Both
 of these conventions are chosen for compatibility.)  Calculate column
 numbers assuming that space and all ASCII printing characters have
-equal width, and assuming tab stops every 8 columns.
+equal width, and assuming tab stops every 8 columns.  For non-ASCII
+characters, Unicode character widths should be used when in a UTF-8
+locale; GNU libc and GNU gnulib provide suitable `wcwidth' functions.
 
    The error message can also give both the starting and ending
 positions of the erroneous text.  There are several formats so that you
 can avoid redundant information such as a duplicate line number.  Here
 are the possible formats:
 
-     SOURCE-FILE-NAME:LINENO-1.COLUMN-1-LINENO-2.COLUMN-2: MESSAGE
-     SOURCE-FILE-NAME:LINENO-1.COLUMN-1-COLUMN-2: MESSAGE
-     SOURCE-FILE-NAME:LINENO-1-LINENO-2: MESSAGE
+     SOURCEFILE:LINE1.COLUMN1-LINE2.COLUMN2: MESSAGE
+     SOURCEFILE:LINE1.COLUMN1-COLUMN2: MESSAGE
+     SOURCEFILE:LINE1-LINE2: MESSAGE
 
 When an error is spread over several files, you can use this format:
 
-     FILE-1:LINENO-1.COLUMN-1-FILE-2:LINENO-2.COLUMN-2: MESSAGE
+     FILE1:LINE1.COLUMN1-FILE2:LINE2.COLUMN2: MESSAGE
 
    Error messages from other noninteractive programs should look like
 this:
 
-     PROGRAM:SOURCE-FILE-NAME:LINENO: MESSAGE
+     PROGRAM:SOURCEFILE:LINENO: MESSAGE
 
 when there is an appropriate source file, or like this:
 
@@ -735,7 +742,7 @@ when there is no relevant source file.
 
    If you want to mention the column number, use this format:
 
-     PROGRAM:SOURCE-FILE-NAME:LINENO:COLUMN: MESSAGE
+     PROGRAM:SOURCEFILE:LINENO:COLUMN: MESSAGE
 
    In an interactive program (one that is reading commands from a
 terminal), it is better not to include the program name in an error
@@ -901,7 +908,7 @@ be a copyright notice.  If more than one copyright notice is called
 for, put each on a separate line.
 
    Next should follow a line stating the license, preferably using one
-of abbrevations below, and a brief statement that the program is free
+of abbreviations below, and a brief statement that the program is free
 software, and that users are free to copy and change it.  Also mention
 that there is no warranty, to the extent permitted by law.  See
 recommended wording below.
@@ -2227,10 +2234,10 @@ are bigger than will fit in memory all at once.
    If your program creates complicated data structures, just make them
 in memory and give a fatal error if `malloc' returns zero.
 
-   Memory leak detectors such as `valgrind' can be useful, but don't
+   Memory analysis tools such as `valgrind' can be useful, but don't
 complicate a program merely to avoid their false alarms.  For example,
 if memory is used until just before a process exits, don't free it
-simply to silence a leak detector.
+simply to silence such a tool.
 
 
 File: standards.info,  Node: File Usage,  Prev: Memory Usage,  Up: Program Behavior
@@ -2271,7 +2278,7 @@ writing GNU software.
 * System Functions::            Portability and ``standard'' library functions.
 * Internationalization::        Techniques for internationalization.
 * Character Set::               Use ASCII by default.
-* Quote Characters::            Use `...' in the C locale.
+* Quote Characters::            Use "..." or '...' in the C locale.
 * Mmap::                        How you can safely use `mmap'.
 
 
@@ -2318,6 +2325,16 @@ it like this:
      lots_of_args (int an_integer, long a_long, short a_short,
                    double a_double, float a_float)
      ...
+
+   For `struct' and `enum' types, likewise put the braces in column
+one, unless the whole contents fits on one line:
+
+     struct foo
+     {
+       int a, b;
+     }
+or
+     struct foo { int a, b; }
 
    The rest of this section gives our recommendations for other aspects
 of C formatting style, which is also the default style of the `indent'
@@ -2447,7 +2464,7 @@ about the value rather than the variable itself.  Thus, "the inode
 number NODE_NUM" rather than "an inode".
 
    There is usually no purpose in restating the name of the function in
-the comment before it, because the reader can see that for himself.
+the comment before it, because readers can see that for themselves.
 There might be an exception when the comment is so long that the
 function itself would be off the bottom of the screen.
 
@@ -2503,10 +2520,10 @@ your master.
    Don't make the program ugly just to placate static analysis tools
 such as `lint', `clang', and GCC with extra warnings options such as
 `-Wconversion' and `-Wundef'.  These tools can help find bugs and
-unclear code, but they can also generate so many false alarms that that
-it hurts readability to silence them with unnecessary casts, wrappers,
-and other complications.  For example, please don't insert casts to
-`void' or calls to do-nothing functions merely to pacify a lint checker.
+unclear code, but they can also generate so many false alarms that it
+hurts readability to silence them with unnecessary casts, wrappers, and
+other complications.  For example, please don't insert casts to `void'
+or calls to do-nothing functions merely to pacify a lint checker.
 
    Declarations of external functions and functions to appear later in
 the source file should all go in one place near the beginning of the
@@ -2762,45 +2779,6 @@ is integer overflow checking.)
          write (file_descriptor, &u, 1);
        }
 
-   It used to be ok to not worry about the difference between pointers
-and integers when passing arguments to functions.  However, on most
-modern 64-bit machines pointers are wider than `int'.  Conversely,
-integer types like `long long int' and `off_t' are wider than pointers
-on most modern 32-bit machines.  Hence it's often better nowadays to
-use prototypes to define functions whose argument types are not trivial.
-
-   In particular, if functions accept varying argument counts or types
-they should be declared using prototypes containing `...' and defined
-using `stdarg.h'.  For an example of this, please see the Gnulib
-(http://www.gnu.org/software/gnulib/) error module, which declares and
-defines the following function:
-
-     /* Print a message with `fprintf (stderr, FORMAT, ...)';
-        if ERRNUM is nonzero, follow it with ": " and strerror (ERRNUM).
-        If STATUS is nonzero, terminate the program with `exit (STATUS)'.  */
-
-     void error (int status, int errnum, const char *format, ...);
-
-   A simple way to use the Gnulib error module is to obtain the two
-source files `error.c' and `error.h' from the Gnulib library source
-code repository at `http://git.savannah.gnu.org/gitweb/?p=gnulib.git'.
-Here's a sample use:
-
-     #include "error.h"
-     #include <errno.h>
-     #include <stdio.h>
-
-     char *program_name = "myprogram";
-
-     FILE *
-     xfopen (char const *name)
-     {
-       FILE *fp = fopen (name, "r");
-       if (! fp)
-         error (1, errno, "cannot read %s", name);
-       return fp;
-     }
-
    Avoid casting pointers to integers if you can.  Such casts greatly
 reduce portability, and in most programs they are easy to avoid.  In the
 cases where casting pointers to integers is essential--such as, a Lisp
@@ -2816,114 +2794,58 @@ File: standards.info,  Node: System Functions,  Next: Internationalization,  Pre
 5.7 Calling System Functions
 ============================
 
-C implementations differ substantially.  Standard C reduces but does
-not eliminate the incompatibilities; meanwhile, many GNU packages still
-support pre-standard compilers because this is not hard to do.  This
-chapter gives recommendations for how to use the more-or-less standard C
-library functions to avoid unnecessary loss of portability.
+Historically, C implementations differed substantially, and many
+systems lacked a full implementation of ANSI/ISO C89.  Nowadays,
+however, very few systems lack a C89 compiler and GNU C supports almost
+all of C99.  Similarly, most systems implement POSIX.1-1993 libraries
+and tools, and many have POSIX.1-2001.
 
-   * Don't use the return value of `sprintf'.  It returns the number of
-     characters written on some systems, but not on all systems.
+   Hence, there is little reason to support old C or non-POSIX systems,
+and you may want to take advantage of C99 and POSIX-1.2001 to write
+clearer, more portable, or faster code.  You should use standard
+interfaces where possible; but if GNU extensions make your program more
+maintainable, powerful, or otherwise better, don't hesitate to use
+them.  In any case, don't make your own declaration of system
+functions; that's a recipe for conflict.
 
-   * Be aware that `vfprintf' is not always available.
+   Despite the standards, nearly every library function has some sort of
+portability issue on some system or another.  Here are some examples:
 
-   * `main' should be declared to return type `int'.  It should
-     terminate either by calling `exit' or by returning the integer
-     status code; make sure it cannot ever return an undefined value.
+`open'
+     Names with trailing `/''s are mishandled on many platforms.
 
-   * Don't declare system functions explicitly.
+`printf'
+     `long double' may be unimplemented; floating values Infinity and
+     NaN are often mishandled; output for large precisions may be
+     incorrect.
 
-     Almost any declaration for a system function is wrong on some
-     system.  To minimize conflicts, leave it to the system header
-     files to declare system functions.  If the headers don't declare a
-     function, let it remain undeclared.
+`readlink'
+     May return `int' instead of `ssize_t'.
 
-     While it may seem unclean to use a function without declaring it,
-     in practice this works fine for most system library functions on
-     the systems where this really happens; thus, the disadvantage is
-     only theoretical.  By contrast, actual declarations have
-     frequently caused actual conflicts.
+`scanf'
+     On Windows, `errno' is not set on failure.
 
-   * If you must declare a system function, don't specify the argument
-     types.  Use an old-style declaration, not a Standard C prototype.
-     The more you specify about the function, the more likely a
-     conflict.
+   Gnulib (http://www.gnu.org/software/gnulib/) is a big help in this
+regard.  Gnulib provides implementations of standard interfaces on many
+of the systems that lack them, including portable implementations of
+enhanced GNU interfaces, thereby making their use portable, and of
+POSIX-1.2008 interfaces, some of which are missing even on up-to-date
+GNU systems.
 
-   * In particular, don't unconditionally declare `malloc' or `realloc'.
+   Gnulib also provides many useful non-standard interfaces; for
+example, C implementations of standard data structures (hash tables,
+binary trees), error-checking type-safe wrappers for memory allocation
+functions (`xmalloc', `xrealloc'), and output of error messages.
 
-     Most GNU programs use those functions just once, in functions
-     conventionally named `xmalloc' and `xrealloc'.  These functions
-     call `malloc' and `realloc', respectively, and check the results.
+   Gnulib integrates with GNU Autoconf and Automake to remove much of
+the burden of writing portable code from the programmer: Gnulib makes
+your configure script automatically determine what features are missing
+and use the Gnulib code to supply the missing pieces.
 
-     Because `xmalloc' and `xrealloc' are defined in your program, you
-     can declare them in other files without any risk of type conflict.
-
-     On most systems, `int' is the same length as a pointer; thus, the
-     calls to `malloc' and `realloc' work fine.  For the few
-     exceptional systems (mostly 64-bit machines), you can use
-     *conditionalized* declarations of `malloc' and `realloc'--or put
-     these declarations in configuration files specific to those
-     systems.
-
-   * The string functions require special treatment.  Some Unix systems
-     have a header file `string.h'; others have `strings.h'.  Neither
-     file name is portable.  There are two things you can do: use
-     Autoconf to figure out which file to include, or don't include
-     either file.
-
-   * If you don't include either strings file, you can't get
-     declarations for the string functions from the header file in the
-     usual way.
-
-     That causes less of a problem than you might think.  The newer
-     standard string functions should be avoided anyway because many
-     systems still don't support them.  The string functions you can
-     use are these:
-
-          strcpy   strncpy   strcat   strncat
-          strlen   strcmp    strncmp
-          strchr   strrchr
-
-     The copy and concatenate functions work fine without a declaration
-     as long as you don't use their values.  Using their values without
-     a declaration fails on systems where the width of a pointer
-     differs from the width of `int', and perhaps in other cases.  It
-     is trivial to avoid using their values, so do that.
-
-     The compare functions and `strlen' work fine without a declaration
-     on most systems, possibly all the ones that GNU software runs on.
-     You may find it necessary to declare them *conditionally* on a few
-     systems.
-
-     The search functions must be declared to return `char *'.  Luckily,
-     there is no variation in the data type they return.  But there is
-     variation in their names.  Some systems give these functions the
-     names `index' and `rindex'; other systems use the names `strchr'
-     and `strrchr'.  Some systems support both pairs of names, but
-     neither pair works on all systems.
-
-     You should pick a single pair of names and use it throughout your
-     program.  (Nowadays, it is better to choose `strchr' and `strrchr'
-     for new programs, since those are the standard names.)  Declare
-     both of those names as functions returning `char *'.  On systems
-     which don't support those names, define them as macros in terms of
-     the other pair.  For example, here is what to put at the beginning
-     of your file (or in a header) if you want to use the names
-     `strchr' and `strrchr' throughout:
-
-          #ifndef HAVE_STRCHR
-          #define strchr index
-          #endif
-          #ifndef HAVE_STRRCHR
-          #define strrchr rindex
-          #endif
-
-          char *strchr ();
-          char *strrchr ();
-
-   Here we assume that `HAVE_STRCHR' and `HAVE_STRRCHR' are macros
-defined in systems where the corresponding functions exist.  One way to
-get them properly defined is to use Autoconf.
+   The Gnulib and Autoconf manuals have extensive sections on
+portability: *note Introduction: (gnulib)Top. and *note Portable C and
+C++: (autoconf)Portable C and C++.  Please consult them for many more
+details.
 
 
 File: standards.info,  Node: Internationalization,  Next: Character Set,  Prev: System Functions,  Up: Writing C
@@ -2940,10 +2862,10 @@ other languages.
    Using GNU gettext involves putting a call to the `gettext' macro
 around each string that might need translation--like this:
 
-     printf (gettext ("Processing file `%s'..."));
+     printf (gettext ("Processing file '%s'..."), file);
 
 This permits GNU gettext to replace the string `"Processing file
-`%s'..."' with a translated version.
+'%s'..."' with a translated version.
 
    Once a program uses gettext, please make a point of writing calls to
 `gettext' when you add new strings that call for translation.
@@ -3034,12 +2956,13 @@ preferred in GNU source code comments, text documents, and other
 contexts, unless there is good reason to do something else because of
 the application domain.  For example, if source code deals with the
 French Revolutionary calendar, it is OK if its literal strings contain
-accented characters in month names like "Flore'al".  Also, it is OK to
-use non-ASCII characters to represent proper names of contributors in
-change logs (*note Change Logs::).
+accented characters in month names like "Flore'al".  Also, it is OK
+(but not required) to use non-ASCII characters to represent proper
+names of contributors in change logs (*note Change Logs::).
 
    If you need to use non-ASCII characters, you should normally stick
-with one encoding, as one cannot in general mix encodings reliably.
+with one encoding, certainly within a single file.  UTF-8 is likely to
+be the best choice.
 
 
 File: standards.info,  Node: Quote Characters,  Next: Mmap,  Prev: Character Set,  Up: Writing C
@@ -3047,33 +2970,34 @@ File: standards.info,  Node: Quote Characters,  Next: Mmap,  Prev: Character Set
 5.10 Quote Characters
 =====================
 
-In the C locale, GNU programs should stick to plain ASCII for quotation
-characters in messages to users: preferably 0x60 (``') for left quotes
-and 0x27 (`'') for right quotes.  It is ok, but not required, to use
-locale-specific quotes in other locales.
+In the C locale, the output of GNU programs should stick to plain ASCII
+for quotation characters in messages to users: preferably 0x22 (`"') or
+0x27 (`'') for both opening and closing quotes.  Although GNU programs
+traditionally used 0x60 (``') for opening and 0x27 (`'') for closing
+quotes, nowadays quotes ``like this'' are typically rendered
+asymmetrically, so quoting `"like this"' or `'like this'' typically
+looks better.
 
-   The Gnulib (http://www.gnu.org/software/gnulib/) `quote' and
-`quotearg' modules provide a reasonably straightforward way to support
-locale-specific quote characters, as well as taking care of other
-issues, such as quoting a filename that itself contains a quote
-character.  See the Gnulib documentation for usage details.
+   It is ok, but not required, for GNU programs to generate
+locale-specific quotes in non-C locales.  For example:
 
-   In any case, the documentation for your program should clearly
-specify how it does quoting, if different than the preferred method of
-``' and `''.  This is especially important if the output of your
-program is ever likely to be parsed by another program.
+     printf (gettext ("Processing file '%s'..."), file);
 
-   Quotation characters are a difficult area in the computing world at
-this time: there are no true left or right quote characters in Latin1;
-the ``' character we use was standardized there as a grave accent.
-Moreover, Latin1 is still not universally usable.
+Here, a French translation might cause `gettext' to return the string
+`"Traitement de fichier < %s >..."', yielding quotes more appropriate
+for a French locale.
 
-   Unicode contains the unambiguous quote characters required, and its
-common encoding UTF-8 is upward compatible with Latin1.  However,
-Unicode and UTF-8 are not universally well-supported, either.
+   Sometimes a program may need to use opening and closing quotes
+directly.  By convention, `gettext' translates the string `"`"' to the
+opening quote and the string `"'"' to the closing quote, and a program
+can use these translations.  Generally, though, it is better to
+translate quote characters in the context of longer strings.
 
-   This may change over the next few years, and then we will revisit
-this.
+   If the output of your program is ever likely to be parsed by another
+program, it is good to provide an option that makes this parsing
+reliable.  For example, you could escape special characters using
+conventions from the C language or the Bourne shell.  See for example
+the option `--quoting-style' of GNU `ls'.
 
 
 File: standards.info,  Node: Mmap,  Prev: Quote Characters,  Up: Writing C
@@ -3090,7 +3014,7 @@ doing the job in another way using `read' and `write'.
 
    The reason this precaution is needed is that the GNU kernel (the
 HURD) provides a user-extensible file system, in which there can be many
-different kinds of "ordinary files."  Many of them support `mmap', but
+different kinds of "ordinary files".  Many of them support `mmap', but
 some do not.  It is important to make programs handle all these kinds
 of files.
 
@@ -3468,7 +3392,7 @@ name and the asterisk when successive entries are in the same file.
 example:
 
      * keyboard.c (menu_bar_items, tool_bar_items)
-     (Fexecute_extended_command): Deal with `keymap' property.
+     (Fexecute_extended_command): Deal with 'keymap' property.
 
    When you install someone else's changes, put the contributor's name
 in the change log entry rather than in the text of the entry.  In other
@@ -3526,33 +3450,51 @@ File: standards.info,  Node: Conditional Changes,  Next: Indicating the Part Cha
 6.8.4 Conditional Changes
 -------------------------
 
-C programs often contain compile-time `#if' conditionals.  Many changes
-are conditional; sometimes you add a new definition which is entirely
-contained in a conditional.  It is very useful to indicate in the
-change log the conditions for which the change applies.
+Source files can often contain code that is conditional to build-time
+or static conditions.  For example, C programs can contain compile-time
+`#if' conditionals; programs implemented in interpreted languages can
+contain module imports of function definitions that are only performed
+for certain versions of the interpreter; and Automake `Makefile.am'
+files can contain variable definitions or target declarations that are
+only to be considered if a configure-time Automake conditional is true.
 
-   Our convention for indicating conditional changes is to use square
-brackets around the name of the condition.
+   Many changes are conditional as well: sometimes you add a new
+variable, or function, or even a new program or library, which is
+entirely dependent on a build-time condition.  It is useful to indicate
+in the change log the conditions for which a change applies.
 
-   Here is a simple example, describing a change which is conditional
-but does not have a function or entity name associated with it:
+   Our convention for indicating conditional changes is to use _square
+brackets around the name of the condition_.
 
-     * xterm.c [SOLARIS2]: Include string.h.
+   Conditional changes can happen in numerous scenarios and with many
+variations, so here are some examples to help clarify.  This first
+example describes changes in C, Perl, and Python files which are
+conditional but do not have an associated function or entity name:
 
-   Here is an entry describing a new definition which is entirely
-conditional.  This new definition for the macro `FRAME_WINDOW_P' is
-used only when `HAVE_X_WINDOWS' is defined:
+     * xterm.c [SOLARIS2]: Include <string.h>.
+     * FilePath.pm [$^O eq 'VMS']: Import the VMS::Feature module.
+     * framework.py [sys.version_info < (2, 6)]: Make "with" statement
+       available by importing it from __future__,
+       to support also python 2.5.
+
+   Our other examples will for simplicity be limited to C, as the minor
+changes necessary to adapt them to other languages should be
+self-evident.
+
+   Next, here is an entry describing a new definition which is entirely
+conditional: the C macro `FRAME_WINDOW_P' is defined (and used) only
+when the macro `HAVE_X_WINDOWS' is defined:
 
      * frame.h [HAVE_X_WINDOWS] (FRAME_WINDOW_P): Macro defined.
 
-   Here is an entry for a change within the function `init_display',
-whose definition as a whole is unconditional, but the changes themselves
-are contained in a `#ifdef HAVE_LIBNCURSES' conditional:
+   Next, an entry for a change within the function `init_display',
+whose definition as a whole is unconditional, but the changes
+themselves are contained in a `#ifdef HAVE_LIBNCURSES' conditional:
 
      * dispnew.c (init_display) [HAVE_LIBNCURSES]: If X, call tgetent.
 
-   Here is an entry for a change that takes affect only when a certain
-macro is _not_ defined:
+   Finally, here is an entry for a change that takes effect only when a
+certain macro is _not_ defined:
 
      (gethostname) [!HAVE_SOCKETS]: Replace with winsock version.
 
@@ -4467,8 +4409,9 @@ All GNU programs should have the following targets in their Makefiles:
      asked for.
 
      By default, the Make rules should compile and link with `-g', so
-     that executable programs have debugging symbols.  Users who don't
-     mind being helpless can strip the executables later if they wish.
+     that executable programs have debugging symbols.  Otherwise, you
+     are essentially helpless in the face of a crash, and it is often
+     far from easy to reproduce with a fresh build.
 
 `install'
      Compile the program and copy the executables, libraries, and so on
@@ -4476,8 +4419,11 @@ All GNU programs should have the following targets in their Makefiles:
      there is a simple test to verify that a program is properly
      installed, this target should run that test.
 
-     Do not strip executables when installing them.  Devil-may-care
-     users can use the `install-strip' target to do that.
+     Do not strip executables when installing them.  This helps eventual
+     debugging that may be needed later, and nowadays disk space is
+     cheap and dynamic loaders typically ensure debug sections are not
+     loaded during normal execution.  Users that need stripped binaries
+     may invoke the `install-strip' target to do that.
 
      If possible, write the `install' target rule so that it does not
      modify anything in the directory where the program was built,
@@ -4902,12 +4848,14 @@ copying conditions.  The GNU GPL, if used, should be in a file called
 `COPYING.LESSER'.
 
    Naturally, all the source files must be in the distribution.  It is
-okay to include non-source files in the distribution, provided they are
-up-to-date and machine-independent, so that building the distribution
-normally will never modify them.  We commonly include non-source files
-produced by Bison, `lex', TeX, and `makeinfo'; this helps avoid
-unnecessary dependencies between our distributions, so that users can
-install whichever packages they want to install.
+okay to include non-source files in the distribution along with the
+source files they are generated from, provided they are up-to-date with
+the source they are made from, and machine-independent, so that normal
+building of the distribution will never modify them.  We commonly
+include non-source files produced by Autoconf, Automake, Bison, `lex',
+TeX, and `makeinfo'; this helps avoid unnecessary dependencies between
+our distributions, so that users can install whichever packages they
+want to install.
 
    Non-source files that might actually be modified by building and
 installing the program should *never* be included in the distribution.
@@ -5034,7 +4982,7 @@ in the GNU system even if they are free--they are outside the scope of
 what a software distribution needs to include.
 
    Referring to a web site that describes or recommends a non-free
-program is promoting that program, so please do not make links (or
+program is promoting that program, so please do not make links to (or
 mention by name) web sites that contain such material.  This policy is
 relevant particularly for the web pages for a GNU package.
 
@@ -5568,8 +5516,9 @@ Index
 * braces, in C source:                   Formatting.          (line   6)
 * bug reports:                           --help.              (line  11)
 * bug-standards@gnu.org email address:   Preface.             (line  30)
+* C library functions, and portability:  System Functions.    (line   6)
 * canonical name of a program:           --version.           (line  12)
-* casting pointers to integers:          CPU Portability.     (line  89)
+* casting pointers to integers:          CPU Portability.     (line  50)
 * CGI programs, standard options for:    Command-Line Interfaces.
                                                               (line  31)
 * change logs:                           Change Logs.         (line   6)
@@ -5579,7 +5528,7 @@ Index
 * character set:                         Character Set.       (line   6)
 * clang:                                 Syntactic Conventions.
                                                               (line  17)
-* command-line arguments, decoding:      Semantics.           (line  46)
+* command-line arguments, decoding:      Semantics.           (line  47)
 * command-line interface:                Command-Line Interfaces.
                                                               (line   6)
 * commenting:                            Comments.            (line   6)
@@ -5589,7 +5538,7 @@ Index
 * conditional changes, and change logs:  Conditional Changes. (line   6)
 * conditionals, comments for:            Comments.            (line  60)
 * configure:                             Configuration.       (line   6)
-* control-L:                             Formatting.          (line 118)
+* control-L:                             Formatting.          (line 128)
 * conventions for makefiles:             Makefile Conventions.
                                                               (line   6)
 * CORBA:                                 Graphical Interfaces.
@@ -5597,29 +5546,33 @@ Index
 * credits for manuals:                   Manual Credits.      (line   6)
 * D-bus:                                 Graphical Interfaces.
                                                               (line  16)
+* data structures, in Gnulib:            System Functions.    (line  44)
 * data types, and portability:           CPU Portability.     (line   6)
-* declaration for system functions:      System Functions.    (line  21)
 * DESTDIR:                               DESTDIR.             (line   6)
 * directories, creating installation:    Directory Variables. (line  20)
 * documentation:                         Documentation.       (line   6)
 * doschk:                                Names.               (line  38)
+* double quote:                          Quote Characters.    (line   6)
 * downloading this manual:               Preface.             (line  14)
 * dynamic plug-ins:                      Dynamic Plug-In Interfaces.
                                                               (line   6)
 * encodings:                             Character Set.       (line   6)
+* enum types, formatting:                Formatting.          (line  45)
 * error messages:                        Semantics.           (line  19)
 * error messages, formatting:            Errors.              (line   6)
+* error messages, in Gnulib:             System Functions.    (line  44)
 * exec_prefix:                           Directory Variables. (line  39)
-* expressions, splitting:                Formatting.          (line  81)
+* expressions, splitting:                Formatting.          (line  91)
 * FDL, GNU Free Documentation License:   GNU Free Documentation License.
                                                               (line   6)
 * file usage:                            File Usage.          (line   6)
 * file-name limitations:                 Names.               (line  38)
 * formatting error messages:             Errors.              (line   6)
 * formatting source code:                Formatting.          (line   6)
-* formfeed:                              Formatting.          (line 118)
+* formfeed:                              Formatting.          (line 128)
 * function argument, declaring:          Syntactic Conventions.
                                                               (line   6)
+* function definitions, formatting:      Formatting.          (line   6)
 * function prototypes:                   Standard C.          (line  17)
 * getopt:                                Command-Line Interfaces.
                                                               (line   6)
@@ -5628,6 +5581,7 @@ Index
 * GNOME:                                 Graphical Interfaces.
                                                               (line  16)
 * GNOME and Guile:                       Source Language.     (line  38)
+* Gnulib:                                System Functions.    (line  37)
 * gnustandards project repository:       Preface.             (line  30)
 * gnustandards-commit@gnu.org mailing list: Preface.          (line  24)
 * graphical user interface:              Graphical Interfaces.
@@ -5638,7 +5592,7 @@ Index
 * Guile:                                 Source Language.     (line  38)
 * implicit int:                          Syntactic Conventions.
                                                               (line   6)
-* impossible conditions:                 Semantics.           (line  70)
+* impossible conditions:                 Semantics.           (line  71)
 * installation directories, creating:    Directory Variables. (line  20)
 * installations, staged:                 DESTDIR.             (line   6)
 * interface styles:                      Graphical Interfaces.
@@ -5652,6 +5606,7 @@ Index
 * legal aspects:                         Legal Issues.        (line   6)
 * legal papers:                          Contributions.       (line   6)
 * libexecdir:                            Directory Variables. (line  70)
+* libiconv:                              Semantics.           (line  11)
 * libraries:                             Libraries.           (line   6)
 * library functions, and portability:    System Functions.    (line   6)
 * library interface:                     Graphical Interfaces.
@@ -5665,11 +5620,11 @@ Index
                                                               (line  12)
 * makefile, conventions for:             Makefile Conventions.
                                                               (line   6)
-* malloc return value:                   Semantics.           (line  25)
+* malloc return value:                   Semantics.           (line  26)
 * man pages:                             Man Pages.           (line   6)
 * manual structure:                      Manual Structure Details.
                                                               (line   6)
-* memory allocation failure:             Semantics.           (line  25)
+* memory allocation failure:             Semantics.           (line  26)
 * memory leak:                           Memory Usage.        (line  23)
 * memory usage:                          Memory Usage.        (line   6)
 * message text, and internationalization: Internationalization.
@@ -5685,6 +5640,7 @@ Index
 * NUL characters:                        Semantics.           (line  11)
 * OID allocations for GNU:               OID Allocations.     (line   6)
 * open brace:                            Formatting.          (line   6)
+* opening quote:                         Quote Characters.    (line   6)
 * optional features, configure-time:     Configuration.       (line 100)
 * options for compatibility:             Compatibility.       (line  14)
 * options, standard command-line:        Command-Line Interfaces.
@@ -5701,6 +5657,7 @@ Index
 * portability, and library functions:    System Functions.    (line   6)
 * portability, between system types:     System Portability.  (line   6)
 * POSIX compatibility:                   Compatibility.       (line   6)
+* POSIX functions, and portability:      System Functions.    (line   6)
 * POSIXLY_CORRECT, environment variable: Compatibility.       (line  21)
 * post-installation commands:            Install Command Categories.
                                                               (line   6)
@@ -5718,103 +5675,106 @@ Index
 * README file:                           Releases.            (line  21)
 * references to non-free material:       References.          (line   6)
 * releasing:                             Managing Releases.   (line   6)
+* right quote:                           Quote Characters.    (line   6)
 * Savannah repository for gnustandards:  Preface.             (line  30)
 * sbindir:                               Directory Variables. (line  63)
-* signal handling:                       Semantics.           (line  59)
+* signal handling:                       Semantics.           (line  60)
+* single quote:                          Quote Characters.    (line   6)
 * SNMP:                                  OID Allocations.     (line   6)
-* spaces before open-paren:              Formatting.          (line  75)
+* spaces before open-paren:              Formatting.          (line  85)
 * staged installs:                       DESTDIR.             (line   6)
 * standard command-line options:         Command-Line Interfaces.
                                                               (line  31)
 * standards for makefiles:               Makefile Conventions.
                                                               (line   6)
-* string library functions:              System Functions.    (line  55)
+* struct types, formatting:              Formatting.          (line  45)
 * syntactic conventions:                 Syntactic Conventions.
                                                               (line   6)
 * table of long options:                 Option Table.        (line   6)
-* temporary files:                       Semantics.           (line  84)
+* temporary files:                       Semantics.           (line  85)
 * temporary variables:                   Syntactic Conventions.
                                                               (line  31)
-* texinfo.tex, in a distribution:        Releases.            (line  70)
-* TMPDIR environment variable:           Semantics.           (line  84)
+* texinfo.tex, in a distribution:        Releases.            (line  72)
+* TMPDIR environment variable:           Semantics.           (line  85)
 * trademarks:                            Trademarks.          (line   6)
 * user interface styles:                 Graphical Interfaces.
                                                               (line   6)
 * valgrind:                              Memory Usage.        (line  23)
 * where to obtain standards.texi:        Preface.             (line  14)
 * X.509:                                 OID Allocations.     (line   6)
+* xmalloc, in Gnulib:                    System Functions.    (line  44)
 
 
 
 Tag Table:
-Node: Top816
-Node: Preface2094
-Node: Legal Issues4810
-Node: Reading Non-Free Code5280
-Node: Contributions7010
-Node: Trademarks9248
-Node: Design Advice10883
-Node: Source Language11475
-Node: Compatibility13601
-Node: Using Extensions15229
-Node: Standard C16805
-Node: Conditional Compilation19208
-Node: Program Behavior20606
-Node: Non-GNU Standards21796
-Node: Semantics24077
-Node: Libraries28797
-Node: Errors30042
-Node: User Interfaces32535
-Node: Graphical Interfaces34140
-Node: Command-Line Interfaces35324
-Node: --version37370
-Node: --help43107
-Node: Dynamic Plug-In Interfaces43980
-Node: Option Table45879
-Node: OID Allocations60837
-Node: Memory Usage62671
-Node: File Usage63950
-Node: Writing C64700
-Node: Formatting65672
-Node: Comments69961
-Node: Syntactic Conventions73513
-Node: Names77493
-Node: System Portability79705
-Node: CPU Portability82596
-Node: System Functions86497
-Node: Internationalization91694
-Node: Character Set95688
-Node: Quote Characters96501
-Node: Mmap98021
-Node: Documentation98729
-Node: GNU Manuals99835
-Node: Doc Strings and Manuals105573
-Node: Manual Structure Details107126
-Node: License for Manuals108544
-Node: Manual Credits109518
-Node: Printed Manuals109911
-Node: NEWS File110597
-Node: Change Logs111275
-Node: Change Log Concepts112029
-Node: Style of Change Logs114132
-Node: Simple Changes116632
-Node: Conditional Changes118074
-Node: Indicating the Part Changed119496
-Node: Man Pages120023
-Node: Reading other Manuals122229
-Node: Managing Releases123020
-Node: Configuration123801
-Node: Makefile Conventions132466
-Node: Makefile Basics133465
-Node: Utilities in Makefiles136639
-Node: Command Variables139144
-Node: DESTDIR142390
-Node: Directory Variables144564
-Node: Standard Targets159186
-Node: Install Command Categories173024
-Node: Releases177557
-Node: References181562
-Node: GNU Free Documentation License187412
-Node: Index212579
+Node: Top824
+Node: Preface2122
+Node: Legal Issues4834
+Node: Reading Non-Free Code5304
+Node: Contributions7034
+Node: Trademarks9220
+Node: Design Advice10855
+Node: Source Language11447
+Node: Compatibility13573
+Node: Using Extensions15201
+Node: Standard C16777
+Node: Conditional Compilation19180
+Node: Program Behavior20578
+Node: Non-GNU Standards21768
+Node: Semantics24049
+Node: Libraries28993
+Node: Errors30238
+Node: User Interfaces32807
+Node: Graphical Interfaces34412
+Node: Command-Line Interfaces35596
+Node: --version37642
+Node: --help43380
+Node: Dynamic Plug-In Interfaces44253
+Node: Option Table46152
+Node: OID Allocations61110
+Node: Memory Usage62944
+Node: File Usage64219
+Node: Writing C64969
+Node: Formatting65950
+Node: Comments70438
+Node: Syntactic Conventions73990
+Node: Names77965
+Node: System Portability80177
+Node: CPU Portability83068
+Node: System Functions85434
+Node: Internationalization87976
+Node: Character Set91976
+Node: Quote Characters92831
+Node: Mmap94390
+Node: Documentation95098
+Node: GNU Manuals96204
+Node: Doc Strings and Manuals101942
+Node: Manual Structure Details103495
+Node: License for Manuals104913
+Node: Manual Credits105887
+Node: Printed Manuals106280
+Node: NEWS File106966
+Node: Change Logs107644
+Node: Change Log Concepts108398
+Node: Style of Change Logs110501
+Node: Simple Changes113001
+Node: Conditional Changes114443
+Node: Indicating the Part Changed116884
+Node: Man Pages117411
+Node: Reading other Manuals119617
+Node: Managing Releases120408
+Node: Configuration121189
+Node: Makefile Conventions129854
+Node: Makefile Basics130853
+Node: Utilities in Makefiles134027
+Node: Command Variables136532
+Node: DESTDIR139778
+Node: Directory Variables141952
+Node: Standard Targets156574
+Node: Install Command Categories170675
+Node: Releases175208
+Node: References179322
+Node: GNU Free Documentation License185175
+Node: Index210342
 
 End Tag Table

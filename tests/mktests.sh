@@ -2,8 +2,7 @@
 
 # Build some of the Autoconf test files.
 
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-# 2009, 2010 Free Software Foundation, Inc.
+# Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -101,7 +100,7 @@ ac_exclude_list='
 	# Produce "= val" because $1, the variable used to store the result,
 	# is empty.
 	/^AC_(F77|FC)_FUNC$/ {next}
-	/^AC_FC_SRCEXT$/ {next}
+	/^AC_FC_(PP_)?SRCEXT$/ {next}
 	/^AC_PATH_((TARGET_)?TOOL|PROG)S?$/ {next}
 
 	# Is a number.

@@ -202,23 +202,16 @@ This manual (@value{UPDATED}) is for GNU Autoconf
 a package for creating scripts to configure source code packages using
 templates and an M4 macro package.
 
-Copyright @copyright{} 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000,
-2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software
-Foundation, Inc.
+Copyright @copyright{} 1992-1996, 1998-2012 Free Software Foundation,
+Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License,
 Version 1.3 or any later version published by the Free Software
-Foundation; with no Invariant Sections, with the Front-Cover texts
-being ``A GNU Manual,'' and with the Back-Cover Texts as in
-(a) below.  A copy of the license is included in the section entitled
-``GNU Free Documentation License.''
-
-(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF
-supports it in developing GNU and promoting software
-freedom.''
+Foundation; with no Invariant Sections, no Front-Cover texts, and
+no Back-Cover Texts.  A copy of the license is included in the section
+entitled ``GNU Free Documentation License.''
 @end quotation
 @end copying
 
@@ -341,7 +334,7 @@ Substitutions in Makefiles
 
 * Preset Output Variables::     Output variables that are always set
 * Installation Directory Variables::  Other preset output variables
-* Changed Directory Variables:: Warnings about @file{datarootdir}
+* Changed Directory Variables::  Warnings about @file{datarootdir}
 * Build Directories::           Supporting multiple concurrent compiles
 * Automatic Remaking::          Makefile rules for configuring
 
@@ -415,6 +408,7 @@ Compilers and Preprocessors
 * Erlang Compiler and Interpreter::  Likewise
 * Fortran Compiler::            Likewise
 * Preprocessing Fortran::       How to preprocess Fortran
+* Go Compiler::                 Likewise
 
 Writing Tests
 
@@ -454,13 +448,6 @@ Programming in M4
 * Programming in M4sugar::      Convenient pure M4 macros
 * Debugging via autom4te::      Figuring out what M4 was doing
 
-Programming in M4sh
-
-* Common Shell Constructs::     Portability layer for common shell constructs
-* Polymorphic Variables::       Support for indirect variable names
-* Initialization Macros::       Macros to establish a sane shell environment
-* File Descriptor Macros::      File descriptor macros for input and output
-
 M4 Quotation
 
 * Active Characters::           Characters that change the behavior of M4
@@ -490,6 +477,13 @@ Programming in M4sugar
 * Set manipulation Macros::     Set manipulation in M4
 * Forbidden Patterns::          Catching unexpanded macros
 
+Programming in M4sh
+
+* Common Shell Constructs::     Portability layer for common shell constructs
+* Polymorphic Variables::       Support for indirect variable names
+* Initialization Macros::       Macros to establish a sane shell environment
+* File Descriptor Macros::      File descriptor macros for input and output
+
 Writing Autoconf Macros
 
 * Macro Definitions::           Basic format of an Autoconf macro
@@ -508,8 +502,10 @@ Dependencies Between Macros
 Portable Shell Programming
 
 * Shellology::                  A zoology of shells
+* Invoking the Shell::          Invoking the shell as a command
 * Here-Documents::              Quirks and tricks
 * File Descriptors::            FDs and redirections
+* Signal Handling::             Shells, signals, and headaches
 * File System Conventions::     File names
 * Shell Pattern Matching::      Pattern matching
 * Shell Substitutions::         Variable and command expansions
@@ -526,7 +522,7 @@ Portable Make Programming
 * $< in Ordinary Make Rules::   $< in ordinary rules
 * Failure in Make Rules::       Failing portably in rules
 * Special Chars in Names::      Special Characters in Macro Names
-* Backslash-Newline-Newline::   Empty last lines in macro definitions
+* Backslash-Newline-Empty::     Empty lines after backslash-newline
 * Backslash-Newline Comments::  Spanning comments across line boundaries
 * Long Lines in Makefiles::     Line length limitations
 * Macros and Submakes::         @code{make macro=value} and submakes
@@ -535,6 +531,9 @@ Portable Make Programming
 * Parallel Make::               Parallel @command{make} quirks
 * Comments in Make Rules::      Other problems with Make comments
 * Newlines in Make Rules::      Using literal newlines in rules
+* Comments in Make Macros::     Other problems with Make comments in macros
+* Trailing whitespace in Make Macros::  Macro substitution problems
+* Command-line Macros and whitespace::  Whitespace trimming of values
 * obj/ and Make::               Don't name a subdirectory @file{obj}
 * make -k Status::              Exit status of @samp{make -k}
 * VPATH and Make::              @code{VPATH} woes
@@ -560,6 +559,14 @@ Portable C and C++ Programming
 * Volatile Objects::            @code{volatile} and signals
 * Floating Point Portability::  Portable floating-point arithmetic
 * Exiting Portably::            Exiting and the exit status
+
+Integer Overflow
+
+* Integer Overflow Basics::     Why integer overflow is a problem
+* Signed Overflow Examples::    Examples of code assuming wraparound
+* Optimization and Wraparound::  Optimizations that break uses of wraparound
+* Signed Overflow Advice::      Practical advice for signed overflow issues
+* Signed Integer Division::     @code{INT_MIN / -1} and @code{INT_MIN % -1}
 
 Manual Configuration
 
@@ -733,7 +740,7 @@ about difficulties in writing Autoconf input, and not in the behavior of
 the resulting @file{configure}.  Even packages that don't use Autoconf
 will generally provide a @file{configure} script, and the most common
 complaint about these alternative home-grown scripts is that they fail
-to meet one or more of the GNU Coding Standars (@pxref{Configuration, , ,
+to meet one or more of the GNU Coding Standards (@pxref{Configuration, , ,
 standards, The GNU Coding Standards}) that users
 have come to expect from Autoconf-generated @file{configure} scripts.
 
@@ -1278,19 +1285,26 @@ has been continually misunderstood@enddots{}  The rule of thumb is that
 i.e., expect one level of quotes to be lost.  For instance:
 
 @example
-AC_COMPILE_IFELSE([char b[10];], [], [AC_MSG_ERROR([you lose])])
+AC_COMPILE_IFELSE(AC_LANG_SOURCE([char b[10];]), [],
+ [AC_MSG_ERROR([you lose])])
 @end example
 
 @noindent
-is incorrect: here, the first argument of @code{AC_COMPILE_IFELSE} is
+is incorrect: here, the first argument of @code{AC_LANG_SOURCE} is
 @samp{char b[10];} and is expanded once, which results in
-@samp{char b10;}.  (There was an idiom common in Autoconf's past to
+@samp{char b10;}; and the @code{AC_LANG_SOURCE} is also expanded prior
+to being passed to @code{AC_COMPILE_IFELSE}.  (There was an idiom common
+in Autoconf's past to
 address this issue via the M4 @code{changequote} primitive, but do not
 use it!)  Let's take a closer look: the author meant the first argument
-to be understood as a literal, and therefore it must be quoted twice:
+to be understood as a literal, and therefore it must be quoted twice;
+likewise, the intermediate @code{AC_LANG_SOURCE} macro should be quoted
+once so that it is only expanded after the rest of the body of
+@code{AC_COMPILE_IFELSE} is in place:
 
 @example
-AC_COMPILE_IFELSE([[char b[10];]], [], [AC_MSG_ERROR([you lose])])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([[char b[10];]])], [],
+  [AC_MSG_ERROR([you lose])])
 @end example
 
 @noindent
@@ -1699,7 +1713,7 @@ Print a summary of the command line options and exit.
 Print the version number of Autoconf and exit.
 
 @item --verbose
-@itemx -V
+@itemx -v
 Print the name of each directory @command{autoreconf} examines and the
 commands it runs.  If given two or more times, pass @option{--verbose}
 to subordinate tools that support it.
@@ -1836,8 +1850,8 @@ required macro is @code{AC_OUTPUT} (@pxref{Output}).
 @defmac AC_INIT (@var{package}, @var{version}, @ovar{bug-report}, @
   @ovar{tarname}, @ovar{url})
 @acindex{INIT}
-Process any command-line arguments and perform various initializations
-and verifications.
+Process any command-line arguments and perform initialization
+and verification.
 
 Set the name of the @var{package} and its @var{version}.  These are
 typically used in @option{--version} support, including that of
@@ -2224,7 +2238,7 @@ special @var{tag} values: they may have the form @samp{@var{output}} or
 @samp{@var{output}:@var{inputs}}.  The file @var{output} is instantiated
 from its templates, @var{inputs} (defaulting to @samp{@var{output}.in}).
 
-@samp{AC_CONFIG_FILES([Makefile:boiler/top.mk:boiler/bot.mk)]},
+@samp{AC_CONFIG_FILES([Makefile:boiler/top.mk:boiler/bot.mk])},
 for example, asks for
 the creation of the file @file{Makefile} that contains the expansion of the
 output variables in the concatenation of @file{boiler/top.mk} and
@@ -2409,7 +2423,7 @@ makefiles.
 @menu
 * Preset Output Variables::     Output variables that are always set
 * Installation Directory Variables::  Other preset output variables
-* Changed Directory Variables:: Warnings about @file{datarootdir}
+* Changed Directory Variables::  Warnings about @file{datarootdir}
 * Build Directories::           Supporting multiple concurrent compiles
 * Automatic Remaking::          Makefile rules for configuring
 @end menu
@@ -2596,7 +2610,7 @@ programs to test for Fortran 77 features.
 Options for the linker.  If it is not set
 in the environment when @command{configure} runs, the default value is empty.
 @command{configure} uses this variable when linking programs to test for
-C, C++, Objective C, Objective C++, and Fortran features.
+C, C++, Objective C, Objective C++, Fortran, and Go features.
 
 This variable's contents should contain options like @option{-s} and
 @option{-L} that affect only the behavior of the linker.  Please see the
@@ -2614,7 +2628,7 @@ Don't use this variable to pass library names
 but some Autoconf macros may prepend extra libraries to this variable if
 those libraries are found and provide necessary functions, see
 @ref{Libraries}.  @command{configure} uses this variable when linking
-programs to test for C, C++, Objective C, Objective C++, and Fortran
+programs to test for C, C++, Objective C, Objective C++, Fortran, and Go
 features.
 @end defvar
 
@@ -2630,6 +2644,13 @@ acts like @code{CFLAGS}, but for Objective C instead of C.
 @ovindex OBJCXXFLAGS
 Debugging and optimization options for the Objective C++ compiler.  It
 acts like @code{CXXFLAGS}, but for Objective C++ instead of C++.
+@end defvar
+
+@defvar GOFLAGS
+@evindex GOFLAGS
+@ovindex GOFLAGS
+Debugging and optimization options for the Go compiler.  It acts like
+@code{CFLAGS}, but for Go instead of C.
 @end defvar
 
 @defvar builddir
@@ -2651,7 +2672,7 @@ top-level directory, this is the same as @code{builddir}.
 @defvar top_build_prefix
 @ovindex top_build_prefix
 The relative name of the top level of the current build tree with final
-slash if nonemtpy.  This is the same as @code{top_builddir}, except that
+slash if nonempty.  This is the same as @code{top_builddir}, except that
 it contains zero or more runs of @code{../}, so it should not be
 appended with a slash for concatenation.  This helps for @command{make}
 implementations that otherwise do not treat @file{./file} and @file{file}
@@ -4064,7 +4085,7 @@ place.  Otherwise set @code{LEX} to @samp{lex} and @code{LEXLIB} to
 to @samp{:}; for packages that ship the generated @file{file.yy.c}
 alongside the source @file{file.l}, this default allows users without a
 lexer generator to still build the package even if the timestamp for
-@file{file.l} is inadvertantly changed.
+@file{file.l} is inadvertently changed.
 
 Define @code{YYTEXT_POINTER} if @code{yytext} defaults to @samp{char *} instead
 of to @samp{char []}.  Also set output variable @code{LEX_OUTPUT_ROOT} to
@@ -4118,7 +4139,7 @@ The result of this test can be influenced by setting the variable
 If @samp{ln -s} works on the current file system (the operating system
 and file system support symbolic links), set the output variable
 @code{LN_S} to @samp{ln -s}; otherwise, if @samp{ln} works, set
-@code{LN_S} to @samp{ln}, and otherwise set it to @samp{cp -p}.
+@code{LN_S} to @samp{ln}, and otherwise set it to @samp{cp -pR}.
 
 If you make a link in a directory other than the current directory, its
 meaning depends on whether @samp{ln} or @samp{ln -s} is used.  To safely
@@ -4191,7 +4212,7 @@ AC_PATH_PROG([INETD], [inetd], [/usr/libexec/inetd],
 @end example
 
 You are strongly encouraged to declare the @var{variable} passed to
-@code{AC_CHECK_PROG} etc.@: as precious, @xref{Setting Output Variables},
+@code{AC_CHECK_PROG} etc.@: as precious.  @xref{Setting Output Variables},
 @code{AC_ARG_VAR}, for more details.
 
 @anchor{AC_CHECK_PROG}
@@ -4343,7 +4364,7 @@ set to the absolute name of the candidate program.  If no invocation of
 executed.  @var{feature-test} will be run even when
 @code{ac_cv_path_@var{variable}} is set, to provide the ability to
 choose a better candidate found later in @var{path}; to accept the
-current setting and bypass all futher checks, @var{feature-test} can
+current setting and bypass all further checks, @var{feature-test} can
 execute @code{ac_path_@var{variable}_found=:}.
 
 Note that this macro has some subtle differences from
@@ -4426,8 +4447,8 @@ a variable name mapped to underscores.
 @section Library Files
 @cindex Library, checking
 
-The following macros check for the presence of certain C, C++, or Fortran
-library archive files.
+The following macros check for the presence of certain C, C++, Fortran,
+or Go library archive files.
 
 @anchor{AC_CHECK_LIB}
 @defmac AC_CHECK_LIB (@var{library}, @var{function}, @
@@ -4843,15 +4864,15 @@ like the following, to declare it properly.
 #endif
 #ifdef HAVE_ALLOCA_H
 # include <alloca.h>
-#elif defined __GNUC__
-# define alloca __builtin_alloca
-#elif defined _AIX
-# define alloca __alloca
-#elif defined _MSC_VER
-# include <malloc.h>
-# define alloca _alloca
-#else
-# ifndef HAVE_ALLOCA
+#elif !defined alloca
+# ifdef __GNUC__
+#  define alloca __builtin_alloca
+# elif defined _AIX
+#  define alloca __alloca
+# elif defined _MSC_VER
+#  include <malloc.h>
+#  define alloca _alloca
+# elif !defined HAVE_ALLOCA
 #  ifdef  __cplusplus
 extern "C"
 #  endif
@@ -4987,6 +5008,11 @@ yourself in new code:
 #endif
 @end group
 @end example
+
+The results of this macro are cached in the @code{ac_cv_func_fork_works}
+and @code{ac_cv_func_vfork_works} variables.  In order to override the
+test, you also need to set the @code{ac_cv_func_fork} and
+@code{ac_cv_func_vfork} variables.
 @end defmac
 
 @defmac AC_FUNC_FSEEKO
@@ -5810,6 +5836,21 @@ AC_CHECK_HEADERS([X11/extensions/scrnsaver.h], [], [],
 These macros check for particular system header files---whether they
 exist, and in some cases whether they declare certain symbols.
 
+@defmac AC_CHECK_HEADER_STDBOOL
+@acindex{CHECK_HEADER_STDBOOL}
+@cvindex HAVE__BOOL
+@hdrindex{stdbool.h}
+@caindex header_stdbool_h
+Check whether @file{stdbool.h} exists and conforms to C99, and cache the
+result in the @code{ac_cv_header_stdbool_h} variable.  If the type
+@code{_Bool} is defined, define @code{HAVE__BOOL} to 1.
+
+This macro is intended for use by Gnulib (@pxref{Gnulib}) and other
+packages that supply a substitute @file{stdbool.h} on platforms lacking
+a conforming one.  The @code{AC_HEADER_STDBOOL} macro is better for code
+that explicitly checks for @file{stdbool.h}.
+@end defmac
+
 @defmac AC_HEADER_ASSERT
 @acindex{HEADER_ASSERT}
 @cvindex NDEBUG
@@ -5936,14 +5977,14 @@ New programs need not use this macro.
 @cvindex HAVE_STDBOOL_H
 @cvindex HAVE__BOOL
 @hdrindex{stdbool.h}
-@hdrindex{system.h}
 @caindex header_stdbool_h
 If @file{stdbool.h} exists and conforms to C99, define
 @code{HAVE_STDBOOL_H} to 1; if the type @code{_Bool} is defined, define
 @code{HAVE__BOOL} to 1.  To fulfill the C99 requirements, your
-@file{system.h} could contain the following code:
+program could contain the following code:
 
-@verbatim
+@example
+@group
 #ifdef HAVE_STDBOOL_H
 # include <stdbool.h>
 #else
@@ -5959,14 +6000,20 @@ typedef bool _Bool;
 # define true 1
 # define __bool_true_false_are_defined 1
 #endif
-@end verbatim
+@end group
+@end example
 
 Alternatively you can use the @samp{stdbool} package of Gnulib
-(@pxref{Gnulib}); it packages the above code into a replacement header
-and contains a few other bells and whistles.
+(@pxref{Gnulib}).  It simplifies your code so that it can say just
+@code{#include <stdbool.h>}, and it adds support for less-common
+platforms.
 
 This macro caches its result in the @code{ac_cv_header_stdbool_h}
 variable.
+
+This macro differs from @code{AC_CHECK_HEADER_STDBOOL} only in that it
+defines @code{HAVE_STDBOOL_H} whereas @code{AC_CHECK_HEADER_STDBOOL}
+does not.
 @end defmac
 
 @anchor{AC_HEADER_STDC}
@@ -6542,7 +6589,7 @@ AC_CHECK_MEMBER(struct top.middle.bot)
 @end example
 
 This macro caches its result in the
-@code{av_cv_member_@var{aggregate}_@var{member}} variable, with
+@code{ac_cv_member_@var{aggregate}_@var{member}} variable, with
 characters not suitable for a variable name mapped to underscores.
 @end defmac
 
@@ -6960,6 +7007,7 @@ compiling.
 * Erlang Compiler and Interpreter::  Likewise
 * Fortran Compiler::            Likewise
 * Preprocessing Fortran::       How to preprocess Fortran
+* Go Compiler::                 Likewise
 @end menu
 
 @node Specific Compiler Characteristics
@@ -7074,6 +7122,10 @@ etc.).
 @ovindex OPENMP_CXXFLAGS
 @ovindex OPENMP_FFLAGS
 @ovindex OPENMP_FCFLAGS
+@caindex prog_c_openmp
+@caindex prog_cxx_openmp
+@caindex prog_f77_openmp
+@caindex prog_fc_openmp
 @uref{http://@/www.openmp.org/, OpenMP} specifies extensions of C, C++,
 and Fortran that simplify optimization of shared memory parallelism,
 which is a common problem on multicore CPUs.
@@ -7111,6 +7163,10 @@ For portability, it is best to avoid spaces between @samp{#} and
 @samp{pragma omp}.  That is, write @samp{#pragma omp}, not
 @samp{# pragma omp}.  The Sun WorkShop 6.2 C compiler chokes on the
 latter.
+
+This macro caches its result in the @code{ac_cv_prog_c_openmp},
+@code{ac_cv_prog_cxx_openmp}, @code{ac_cv_prog_f77_openmp}, or
+@code{ac_cv_prog_fc_openmp} variable, depending on the current language.
 @end defmac
 
 @node C Compiler
@@ -7752,7 +7808,7 @@ complete path of the compiler command found.  In addition, if @code{ERLCFLAGS}
 is not set in the environment, set it to an empty value.
 
 The two optional arguments have the same meaning as the two last arguments of
-macro @code{AC_PROG_PATH} for looking for the @command{erlc} program.  For
+macro @code{AC_PATH_PROG} for looking for the @command{erlc} program.  For
 example, to look for @command{erlc} only in the @file{/usr/lib/erlang/bin}
 directory:
 
@@ -7778,7 +7834,7 @@ environment, check for @command{erl}.  Set output variable @code{ERL} to the
 complete path of the interpreter command found.
 
 The two optional arguments have the same meaning as the two last arguments of
-macro @code{AC_PROG_PATH} for looking for the @command{erl} program.  For
+macro @code{AC_PATH_PROG} for looking for the @command{erl} program.  For
 example, to look for @command{erl} only in the @file{/usr/lib/erlang/bin}
 directory:
 
@@ -7820,6 +7876,8 @@ are documented together in this section.
 @evindex FFLAGS
 @ovindex F77
 @ovindex FFLAGS
+@caindex f77_compiler_gnu
+@caindex prog_f77_g
 Determine a Fortran 77 compiler to use.  If @code{F77} is not already
 set in the environment, then check for @code{g77} and @code{f77}, and
 then some other names.  Set the output variable @code{F77} to the name
@@ -7842,6 +7900,10 @@ If the output variable @code{FFLAGS} was not already set in the
 environment, then set it to @option{-g -02} for @code{g77} (or @option{-O2}
 where @code{g77} does not accept @option{-g}).  Otherwise, set
 @code{FFLAGS} to @option{-g} for all other Fortran 77 compilers.
+
+The result of the GNU test is cached in the
+@code{ac_cv_f77_compiler_gnu} variable, acceptance of @option{-g} in the
+@code{ac_cv_prog_f77_g} variable.
 @end defmac
 
 @defmac AC_PROG_FC (@ovar{compiler-search-list}, @ovar{dialect})
@@ -7850,6 +7912,8 @@ where @code{g77} does not accept @option{-g}).  Otherwise, set
 @evindex FCFLAGS
 @ovindex FC
 @ovindex FCFLAGS
+@caindex fc_compiler_gnu
+@caindex prog_fc_g
 Determine a Fortran compiler to use.  If @code{FC} is not already set in
 the environment, then @code{dialect} is a hint to indicate what Fortran
 dialect to search for; the default is to search for the newest available
@@ -7870,10 +7934,16 @@ This macro may, alternatively, be invoked with an optional first argument
 which, if specified, must be a blank-separated list of Fortran
 compilers to search for, just as in @code{AC_PROG_F77}.
 
+If using @code{gfortran} or @code{g77} (the GNU Fortran compilers), then
+set the shell variable @code{GFC} to @samp{yes}.
 If the output variable @code{FCFLAGS} was not already set in the
 environment, then set it to @option{-g -02} for GNU @code{g77} (or
 @option{-O2} where @code{g77} does not accept @option{-g}).  Otherwise,
 set @code{FCFLAGS} to @option{-g} for all other Fortran compilers.
+
+The result of the GNU test is cached in the @code{ac_cv_fc_compiler_gnu}
+variable, acceptance of @option{-g} in the @code{ac_cv_prog_fc_g}
+variable.
 @end defmac
 
 @defmac AC_PROG_F77_C_O
@@ -7882,9 +7952,14 @@ set @code{FCFLAGS} to @option{-g} for all other Fortran compilers.
 @acindex{PROG_FC_C_O}
 @cvindex F77_NO_MINUS_C_MINUS_O
 @cvindex FC_NO_MINUS_C_MINUS_O
+@caindex prog_f77_c_o
+@caindex prog_fc_c_o
 Test whether the Fortran compiler accepts the options @option{-c} and
 @option{-o} simultaneously, and define @code{F77_NO_MINUS_C_MINUS_O} or
 @code{FC_NO_MINUS_C_MINUS_O}, respectively, if it does not.
+
+The result of the test is cached in the @code{ac_cv_prog_f77_c_o} or
+@code{ac_cv_prog_fc_c_o} variable, respectively.
 @end defmac
 
 The following macros check for Fortran compiler characteristics.
@@ -7901,6 +7976,10 @@ or @code{AC_LANG(Fortran)} (@pxref{Language Choice}).
 @ovindex FLIBS
 @acindex{FC_LIBRARY_LDFLAGS}
 @ovindex FCLIBS
+@caindex prog_f77_v
+@caindex prog_fc_v
+@caindex f77_libs
+@caindex fc_libs
 Determine the linker flags (e.g., @option{-L} and @option{-l}) for the
 @dfn{Fortran intrinsic and runtime libraries} that are required to
 successfully link a Fortran program or shared library.  The output
@@ -7929,14 +8008,23 @@ link C/C++ with Fortran; see below.  Further, it is highly recommended
 that you use @code{AC_CONFIG_HEADERS} (@pxref{Configuration Headers})
 because the complex defines that the function wrapper macros create
 may not work with C/C++ compiler drivers.
+
+These macros internally compute the flag needed to verbose linking
+output and cache it in @code{ac_cv_prog_f77_v} or @code{ac_cv_prog_fc_v}
+variables, respectively.  The computed linker flags are cached in
+@code{ac_cv_f77_libs} or @code{ac_cv_fc_libs}, respectively.
 @end defmac
 
-@defmac AC_F77_DUMMY_MAIN (@ovar{action-if-found}, @ovar{action-if-not-found})
-@defmacx AC_FC_DUMMY_MAIN (@ovar{action-if-found}, @ovar{action-if-not-found})
+@defmac AC_F77_DUMMY_MAIN (@ovar{action-if-found}, @dvar{action-if-not-found, @
+  AC_MSG_FAILURE})
+@defmacx AC_FC_DUMMY_MAIN (@ovar{action-if-found}, @dvar{action-if-not-found, @
+  AC_MSG_FAILURE})
 @acindex{F77_DUMMY_MAIN}
 @cvindex F77_DUMMY_MAIN
 @acindex{FC_DUMMY_MAIN}
 @cvindex FC_DUMMY_MAIN
+@caindex f77_dummy_main
+@caindex fc_dummy_main
 With many compilers, the Fortran libraries detected by
 @code{AC_F77_LIBRARY_LDFLAGS} or @code{AC_FC_LIBRARY_LDFLAGS} provide
 their own @code{main} entry function that initializes things like
@@ -7980,6 +8068,9 @@ needed:
 Note that this macro is called automatically from @code{AC_F77_WRAPPERS}
 or @code{AC_FC_WRAPPERS}; there is generally no need to call it
 explicitly unless one wants to change the default actions.
+
+The result of this macro is cached in the @code{ac_cv_f77_dummy_main} or
+@code{ac_cv_fc_dummy_main} variable, respectively.
 @end defmac
 
 @defmac AC_F77_MAIN
@@ -7988,6 +8079,8 @@ explicitly unless one wants to change the default actions.
 @cvindex F77_MAIN
 @acindex{FC_MAIN}
 @cvindex FC_MAIN
+@caindex f77_main
+@caindex fc_main
 As discussed above, many Fortran libraries allow you to provide an entry
 point called (say) @code{MAIN__} instead of the usual @code{main}, which
 is then called by a @code{main} function in the Fortran libraries that
@@ -8010,6 +8103,9 @@ int F77_MAIN (int argc, char *argv[]);
 @end example
 
 (Again, replace @code{F77} with @code{FC} for Fortran instead of Fortran 77.)
+
+The result of this macro is cached in the @code{ac_cv_f77_main} or
+@code{ac_cv_fc_main} variable, respectively.
 @end defmac
 
 @defmac AC_F77_WRAPPERS
@@ -8020,6 +8116,8 @@ int F77_MAIN (int argc, char *argv[]);
 @acindex{FC_WRAPPERS}
 @cvindex FC_FUNC
 @cvindex FC_FUNC_
+@caindex f77_mangling
+@caindex fc_mangling
 Defines C macros @code{F77_FUNC (name, NAME)}, @code{FC_FUNC (name, NAME)},
 @code{F77_FUNC_(name, NAME)}, and @code{FC_FUNC_(name, NAME)} to properly
 mangle the names of C/C++ identifiers, and identifiers with underscores,
@@ -8085,6 +8183,10 @@ you should use @code{F77_FUNC_} or @code{FC_FUNC_} instead of
 @code{F77_FUNC} or @code{FC_FUNC} (with the same arguments).  This is
 because some Fortran compilers mangle names differently if they contain
 an underscore.
+
+The name mangling scheme is encoded in the @code{ac_cv_f77_mangling} or
+@code{ac_cv_fc_mangling} cache variable, respectively, and also used for
+the @code{AC_F77_FUNC} and @code{AC_FC_FUNC} macros described below.
 @end defmac
 
 @defmac AC_F77_FUNC (@var{name}, @ovar{shellvar})
@@ -8102,57 +8204,98 @@ to call Fortran routines from some language other than C/C++.
 @end defmac
 
 @defmac AC_FC_SRCEXT (@var{ext}, @ovar{action-if-success}, @
-  @ovar{action-if-failure})
+  @dvar{action-if-failure, AC_MSG_FAILURE})
+@defmacx AC_FC_PP_SRCEXT (@var{ext}, @ovar{action-if-success}, @
+  @dvar{action-if-failure, AC_MSG_FAILURE})
 @acindex{FC_SRCEXT}
+@acindex{FC_PP_SRCEXT}
+@caindex fc_srcext_@var{ext}
+@caindex fc_pp_srcext_@var{ext}
 By default, the @code{FC} macros perform their tests using a @file{.f}
 extension for source-code files.  Some compilers, however, only enable
 newer language features for appropriately named files, e.g., Fortran 90
-features only for @file{.f90} files.  On the other hand, some other
-compilers expect all source files to end in @file{.f} and require
-special flags to support other file name extensions.  The
-@code{AC_FC_SRCEXT} macro deals with both of these issues.
+features only for @file{.f90} files, or preprocessing only with
+@file{.F} files or maybe other upper-case extensions.  On the other
+hand, some other compilers expect all source files to end in @file{.f}
+and require special flags to support other file name extensions.  The
+@code{AC_FC_SRCEXT} and @code{AC_FC_PP_SRCEXT} macros deal with these
+issues.
 
-The @code{AC_FC_SRCEXT} tries to get the @code{FC} compiler to accept files
-ending with the extension .@var{ext} (i.e., @var{ext} does @emph{not}
-contain the dot).  If any special compiler flags are needed for this, it
-stores them in the output variable @code{FCFLAGS_}@var{ext}.  This
-extension and these flags are then used for all subsequent @code{FC} tests
-(until @code{AC_FC_SRCEXT} is called again).
+The @code{AC_FC_SRCEXT} macro tries to get the @code{FC} compiler to
+accept files ending with the extension @file{.@var{ext}} (i.e.,
+@var{ext} does @emph{not} contain the dot).  If any special compiler
+flags are needed for this, it stores them in the output variable
+@code{FCFLAGS_@var{ext}}.  This extension and these flags are then used
+for all subsequent @code{FC} tests (until @code{AC_FC_SRCEXT} or
+@code{AC_FC_PP_SRCEXT} is called another time).
 
 For example, you would use @code{AC_FC_SRCEXT(f90)} to employ the
 @file{.f90} extension in future tests, and it would set the
 @code{FCFLAGS_f90} output variable with any extra flags that are needed
 to compile such files.
 
-The @code{FCFLAGS_}@var{ext} can @emph{not} be simply absorbed into
-@code{FCFLAGS}, for two reasons based on the limitations of some
-compilers.  First, only one @code{FCFLAGS_}@var{ext} can be used at a
+Similarly, the @code{AC_FC_PP_SRCEXT} macro tries to get the @code{FC}
+compiler to preprocess and compile files with the extension
+@file{.@var{ext}}.  When both @command{fpp} and @command{cpp} style
+preprocessing are provided, the former is preferred, as the latter may
+treat continuation lines, @code{//} tokens, and white space differently
+from what some Fortran dialects expect.  Conversely, if you do not want
+files to be preprocessed, use only lower-case characters in the file
+name extension.  Like with @code{AC_FC_SRCEXT(f90)}, any needed flags
+are stored in the @code{FCFLAGS_@var{ext}} variable.
+
+The @code{FCFLAGS_@var{ext}} flags can @emph{not} be simply absorbed
+into @code{FCFLAGS}, for two reasons based on the limitations of some
+compilers.  First, only one @code{FCFLAGS_@var{ext}} can be used at a
 time, so files with different extensions must be compiled separately.
-Second, @code{FCFLAGS_}@var{ext} must appear @emph{immediately} before
+Second, @code{FCFLAGS_@var{ext}} must appear @emph{immediately} before
 the source-code file name when compiling.  So, continuing the example
 above, you might compile a @file{foo.f90} file in your makefile with the
 command:
 
 @example
 foo.o: foo.f90
-     $(FC) -c $(FCFLAGS) $(FCFLAGS_f90) '$(srcdir)/foo.f90'
+       $(FC) -c $(FCFLAGS) $(FCFLAGS_f90) '$(srcdir)/foo.f90'
 @end example
 
-If @code{AC_FC_SRCEXT} succeeds in compiling files with the @var{ext}
-extension, it calls @var{action-if-success} (defaults to nothing).  If
-it fails, and cannot find a way to make the @code{FC} compiler accept such
-files, it calls @var{action-if-failure} (defaults to exiting with an
-error message).
+If @code{AC_FC_SRCEXT} or @code{AC_FC_PP_SRCEXT} succeeds in compiling
+files with the @var{ext} extension, it calls @var{action-if-success}
+(defaults to nothing).  If it fails, and cannot find a way to make the
+@code{FC} compiler accept such files, it calls @var{action-if-failure}
+(defaults to exiting with an error message).
 
+The @code{AC_FC_SRCEXT} and @code{AC_FC_PP_SRCEXT} macros cache their
+results in @code{ac_cv_fc_srcext_@var{ext}} and
+@code{ac_cv_fc_pp_srcext_@var{ext}} variables, respectively.
 @end defmac
 
-@defmac AC_FC_FREEFORM (@ovar{action-if-success}, @ovar{action-if-failure})
-@acindex{FC_FREEFORM}
+@defmac AC_FC_PP_DEFINE (@ovar{action-if-success}, @dvar{action-if-failure, @
+  AC_MSG_FAILURE})
+@acindex{FC_PP_DEFINE}
+@caindex fc_pp_define
 
-The @code{AC_FC_FREEFORM} tries to ensure that the Fortran compiler
-(@code{$FC}) allows free-format source code (as opposed to the older
-fixed-format style from Fortran 77).  If necessary, it may add some
-additional flags to @code{FCFLAGS}.
+Find a flag to specify defines for preprocessed Fortran.  Not all
+Fortran compilers use @option{-D}.  Substitute @code{FC_DEFINE} with
+the result and call @var{action-if-success} (defaults to nothing) if
+successful, and @var{action-if-failure} (defaults to failing with an
+error message) if not.
+
+This macro calls @code{AC_FC_PP_SRCEXT([F])} in order to learn how to
+preprocess a @file{conftest.F} file, but restores a previously used
+Fortran source file extension afterwards again.
+
+The result of this test is cached in the @code{ac_cv_fc_pp_define}
+variable.
+@end defmac
+
+@defmac AC_FC_FREEFORM (@ovar{action-if-success}, @dvar{action-if-failure, @
+  AC_MSG_FAILURE})
+@acindex{FC_FREEFORM}
+@caindex fc_freeform
+
+Try to ensure that the Fortran compiler (@code{$FC}) allows free-format
+source code (as opposed to the older fixed-format style from Fortran
+77).  If necessary, it may add some additional flags to @code{FCFLAGS}.
 
 This macro is most important if you are using the default @file{.f}
 extension, since many compilers interpret this extension as indicating
@@ -8167,15 +8310,19 @@ If @code{AC_FC_FREEFORM} succeeds in compiling free-form source, it
 calls @var{action-if-success} (defaults to nothing).  If it fails, it
 calls @var{action-if-failure} (defaults to exiting with an error
 message).
+
+The result of this test, or @samp{none} or @samp{unknown}, is cached in
+the @code{ac_cv_fc_freeform} variable.
 @end defmac
 
-@defmac AC_FC_FIXEDFORM (@ovar{action-if-success}, @ovar{action-if-failure})
+@defmac AC_FC_FIXEDFORM (@ovar{action-if-success}, @dvar{action-if-failure, @
+  AC_MSG_FAILURE})
 @acindex{FC_FIXEDFORM}
+@caindex fc_fixedform
 
-The @code{AC_FC_FIXEDFORM} tries to ensure that the Fortran compiler
-(@code{$FC}) allows the old fixed-format source code (as opposed to
-free-format style).  If necessary, it may add some additional flags to
-@code{FCFLAGS}.
+Try to ensure that the Fortran compiler (@code{$FC}) allows the old
+fixed-format source code (as opposed to free-format style).  If
+necessary, it may add some additional flags to @code{FCFLAGS}.
 
 This macro is needed for some compilers alias names like @command{xlf95}
 which assume free-form source code by default, and in case you want to
@@ -8189,23 +8336,199 @@ If @code{AC_FC_FIXEDFORM} succeeds in compiling fixed-form source, it
 calls @var{action-if-success} (defaults to nothing).  If it fails, it
 calls @var{action-if-failure} (defaults to exiting with an error
 message).
+
+The result of this test, or @samp{none} or @samp{unknown}, is cached in
+the @code{ac_cv_fc_fixedform} variable.
 @end defmac
 
 @defmac AC_FC_LINE_LENGTH (@ovar{length}, @ovar{action-if-success}, @
-  @ovar{action-if-failure})
+  @dvar{action-if-failure, AC_MSG_FAILURE})
 @acindex{FC_LINE_LENGTH}
+@caindex fc_line_length
 
-The @code{AC_FC_LINE_LENGTH} macro tries to ensure that the Fortran compiler
-(@code{$FC}) accepts long source code lines.  The @var{length} argument
-may be given as 80, 132, or unlimited, and defaults to 132.  Note that
-line lengths above 254 columns are not portable, and some compilers
-do not accept more than 132 columns at least for fixed format source.
-If necessary, it may add some additional flags to @code{FCFLAGS}.
+Try to ensure that the Fortran compiler (@code{$FC}) accepts long source
+code lines.  The @var{length} argument may be given as 80, 132, or
+unlimited, and defaults to 132.  Note that line lengths above 254
+columns are not portable, and some compilers do not accept more than 132
+columns at least for fixed format source.  If necessary, it may add some
+additional flags to @code{FCFLAGS}.
 
 If @code{AC_FC_LINE_LENGTH} succeeds in compiling fixed-form source, it
 calls @var{action-if-success} (defaults to nothing).  If it fails, it
 calls @var{action-if-failure} (defaults to exiting with an error
 message).
+
+The result of this test, or @samp{none} or @samp{unknown}, is cached in
+the @code{ac_cv_fc_line_length} variable.
+@end defmac
+
+@defmac AC_FC_CHECK_BOUNDS (@ovar{action-if-success}, @
+  @dvar{action-if-failure, AC_MSG_FAILURE})
+@acindex{FC_CHECK_BOUNDS}
+@caindex fc_check_bounds
+
+The @code{AC_FC_CHECK_BOUNDS} macro tries to enable array bounds checking
+in the Fortran compiler.  If successful, the @var{action-if-success}
+is called and any needed flags are added to @code{FCFLAGS}.  Otherwise,
+@var{action-if-failure} is called, which defaults to failing with an error
+message.  The macro currently requires Fortran 90 or a newer dialect.
+
+The result of the macro is cached in the @code{ac_cv_fc_check_bounds}
+variable.
+@end defmac
+
+@defmac AC_F77_IMPLICIT_NONE (@ovar{action-if-success}, @
+  @dvar{action-if-failure, AC_MSG_FAILURE})
+@defmacx AC_FC_IMPLICIT_NONE (@ovar{action-if-success}, @
+  @dvar{action-if-failure, AC_MSG_FAILURE})
+@acindex{F77_IMPLICIT_NONE}
+@acindex{FC_IMPLICIT_NONE}
+@caindex f77_implicit_none
+@caindex fc_implicit_none
+
+Try to disallow implicit declarations in the Fortran compiler.  If
+successful, @var{action-if-success} is called and any needed flags
+are added to @code{FFLAGS} or @code{FCFLAGS}, respectively.  Otherwise,
+@var{action-if-failure} is called, which defaults to failing with an error
+message.
+
+The result of these macros are cached in the
+@code{ac_cv_f77_implicit_none} and @code{ac_cv_fc_implicit_none}
+variables, respectively.
+@end defmac
+
+@defmac AC_FC_MODULE_EXTENSION
+@acindex{FC_MODULE_EXTENSION}
+@caindex fc_module_ext
+@ovindex FC_MODEXT
+
+Find the Fortran 90 module file name extension.  Most Fortran 90
+compilers store module information in files separate from the object
+files.  The module files are usually named after the name of the module
+rather than the source file name, with characters possibly turned to
+upper case, plus an extension, often @file{.mod}.
+
+Not all compilers use module files at all, or by default.  The Cray
+Fortran compiler requires @option{-e m} in order to store and search
+module information in @file{.mod} files rather than in object files.
+Likewise, the Fujitsu Fortran compilers uses the @option{-Am} option to
+indicate how module information is stored.
+
+The @code{AC_FC_MODULE_EXTENSION} macro computes the module extension
+without the leading dot, and stores that in the @code{FC_MODEXT}
+variable.  If the compiler does not produce module files, or the
+extension cannot be determined, @code{FC_MODEXT} is empty.  Typically,
+the result of this macro may be used in cleanup @command{make} rules as
+follows:
+
+@example
+clean-modules:
+        -test -z "$(FC_MODEXT)" || rm -f *.$(FC_MODEXT)
+@end example
+
+The extension, or @samp{unknown}, is cached in the
+@code{ac_cv_fc_module_ext} variable.
+@end defmac
+
+@defmac AC_FC_MODULE_FLAG (@ovar{action-if-success}, @
+  @dvar{action-if-failure, AC_MSG_FAILURE})
+@acindex{FC_MODULE_FLAG}
+@caindex fc_module_flag
+@ovindex FC_MODINC
+@ovindex ac_empty
+
+Find the compiler flag to include Fortran 90 module information from
+another directory, and store that in the @code{FC_MODINC} variable.
+Call @var{action-if-success} (defaults to nothing) if successful, and
+set @code{FC_MODINC} to empty and call @var{action-if-failure} (defaults
+to exiting with an error message) if not.
+
+Most Fortran 90 compilers provide a way to specify module directories.
+Some have separate flags for the directory to write module files to,
+and directories to search them in, whereas others only allow writing to
+the current directory or to the first directory specified in the include
+path.  Further, with some compilers, the module search path and the
+preprocessor search path can only be modified with the same flag.  Thus,
+for portability, write module files to the current directory only and
+list that as first directory in the search path.
+
+There may be no whitespace between @code{FC_MODINC} and the following
+directory name, but @code{FC_MODINC} may contain trailing white space.
+For example, if you use Automake and would like to search @file{../lib}
+for module files, you can use the following:
+
+@example
+AM_FCFLAGS = $(FC_MODINC). $(FC_MODINC)../lib
+@end example
+
+Inside @command{configure} tests, you can use:
+
+@example
+if test -n "$FC_MODINC"; then
+  FCFLAGS="$FCFLAGS $FC_MODINC. $FC_MODINC../lib"
+fi
+@end example
+
+The flag is cached in the @code{ac_cv_fc_module_flag} variable.
+The substituted value of @code{FC_MODINC} may refer to the
+@code{ac_empty} dummy placeholder empty variable, to avoid losing
+the significant trailing whitespace in a @file{Makefile}.
+@end defmac
+
+@defmac AC_FC_MODULE_OUTPUT_FLAG (@ovar{action-if-success}, @
+  @dvar{action-if-failure, AC_MSG_FAILURE})
+@acindex{FC_MODULE_OUTPUT_FLAG}
+@caindex fc_module_output_flag
+@ovindex FC_MODOUT
+
+Find the compiler flag to write Fortran 90 module information to
+another directory, and store that in the @code{FC_MODOUT} variable.
+Call @var{action-if-success} (defaults to nothing) if successful, and
+set @code{FC_MODOUT} to empty and call @var{action-if-failure} (defaults
+to exiting with an error message) if not.
+
+Not all Fortran 90 compilers write module files, and of those that do,
+not all allow writing to a directory other than the current one, nor
+do all have separate flags for writing and reading; see the description
+of @code{AC_FC_MODULE_FLAG} above.  If you need to be able to write to
+another directory, for maximum portability use @code{FC_MODOUT} before
+any @code{FC_MODINC} and include both the current directory and the one
+you write to in the search path:
+
+@example
+AM_FCFLAGS = $(FC_MODOUT)../mod $(FC_MODINC)../mod $(FC_MODINC). @dots{}
+@end example
+
+The flag is cached in the @code{ac_cv_fc_module_output_flag} variable.
+The substituted value of @code{FC_MODOUT} may refer to the
+@code{ac_empty} dummy placeholder empty variable, to avoid losing
+the significant trailing whitespace in a @file{Makefile}.
+@end defmac
+
+
+@node Go Compiler
+@subsection Go Compiler Characteristics
+@cindex Go
+
+Autoconf provides basic support for the Go programming language when
+using the @code{gccgo} compiler (there is currently no support for the
+@code{6g} and @code{8g} compilers).
+
+@defmac AC_PROG_GO (@ovar{compiler-search-list})
+Find the Go compiler to use.  Check whether the environment variable
+@code{GOC} is set; if so, then set output variable @code{GOC} to its
+value.
+
+Otherwise, if the macro is invoked without an argument, then search for
+a Go compiler named @code{gccgo}.  If it is not found, then as a last
+resort set @code{GOC} to @code{gccgo}.
+
+This macro may be invoked with an optional first argument which, if
+specified, must be a blank-separated list of Go compilers to search for.
+
+If output variable @code{GOFLAGS} was not already set, set it to
+@option{-g -O2}.  If your package does not like this default,
+@code{GOFLAGS} may be set before @code{AC_PROG_GO}.
 @end defmac
 
 
@@ -8599,6 +8922,10 @@ Do compilation tests using @code{OBJCXX} and @code{OBJCXXCPP} and use
 extension @file{.mm} for test programs.  Use compilation flags:
 @code{CPPFLAGS} with @code{OBJCXXCPP}, and both @code{CPPFLAGS} and
 @code{OBJCXXFLAGS} with @code{OBJCXX}.
+
+@item Go
+Do compilation tests using @code{GOC} and use extension @file{.go} for
+test programs.  Use compilation flags @code{GOFLAGS}.
 @end table
 @end defmac
 
@@ -8842,9 +9169,9 @@ on a system with @command{gcc} installed, results in:
 const char hw[] = "Hello, World\n";
 @end example
 
-When the test language is Fortran or Erlang, the @code{AC_DEFINE} definitions
-are not automatically translated into constants in the source code by this
-macro.
+When the test language is Fortran, Erlang, or Go, the @code{AC_DEFINE}
+definitions are not automatically translated into constants in the
+source code by this macro.
 
 @defmac AC_LANG_PROGRAM (@var{prologue}, @var{body})
 @acindex{LANG_PROGRAM}
@@ -8966,8 +9293,8 @@ temptation of following the easiest path.
 Nevertheless, if you need to run the preprocessor, then use
 @code{AC_PREPROC_IFELSE}.
 
-The macros described in this section cannot be used for tests in Erlang or
-Fortran, since those languages require no preprocessor.
+The macros described in this section cannot be used for tests in Erlang,
+Fortran, or Go, since those languages require no preprocessor.
 
 @anchor{AC_PREPROC_IFELSE}
 @defmac AC_PREPROC_IFELSE (@var{input}, @ovar{action-if-true}, @
@@ -9074,7 +9401,7 @@ just-compiled object file @file{conftest.$OBJEXT}.
 This macro uses @code{AC_REQUIRE} for the compiler associated with the
 current language, which means that if the compiler has not yet been
 determined, the compiler determination will be made prior to the body of
-the outermust @code{AC_DEFUN} macro that triggered this macro to
+the outermost @code{AC_DEFUN} macro that triggered this macro to
 expand (@pxref{Expanded Before Required}).
 @end defmac
 
@@ -9147,9 +9474,11 @@ cross-compiling.
 
 @anchor{AC_RUN_IFELSE}
 @defmac AC_RUN_IFELSE (@var{input}, @ovar{action-if-true}, @
-  @ovar{action-if-false}, @ovar{action-if-cross-compiling})
+  @ovar{action-if-false}, @dvar{action-if-cross-compiling, AC_MSG_FAILURE})
 @acindex{RUN_IFELSE}
-If @var{program} compiles and links successfully and returns an exit
+Run the compiler (and compilation flags) and the linker of the current
+language (@pxref{Language Choice}) on the @var{input}, then execute the
+resulting program.  If the program returns an exit
 status of 0 when executed, run shell commands @var{action-if-true}.
 Otherwise, run shell commands @var{action-if-false}.
 
@@ -9159,30 +9488,40 @@ compilation flags of the current language (@pxref{Language Choice}).
 Additionally, @var{action-if-true} can run @command{./conftest$EXEEXT}
 for further testing.
 
-If the compiler being used does not produce executables that run on the
-system where @command{configure} is being run, then the test program is
-not run.  If the optional shell commands @var{action-if-cross-compiling}
-are given, they are run instead.  Otherwise, @command{configure} prints
-an error message and exits.
-
 In the @var{action-if-false} section, the failing exit status is
 available in the shell variable @samp{$?}.  This exit status might be
 that of a failed compilation, or it might be that of a failed program
 execution.
 
+If cross-compilation mode is enabled (this is the case if either the
+compiler being used does not produce executables that run on the system
+where @command{configure} is being run, or if the options @code{--build}
+and @code{--host} were both specified and their values are different),
+then the test program is
+not run.  If the optional shell commands @var{action-if-cross-compiling}
+are given, those commands are run instead; typically these commands
+provide pessimistic defaults that allow cross-compilation to work even
+if the guess was wrong.  If the fourth argument is empty or omitted, but
+cross-compilation is detected, then @command{configure} prints an error
+message and exits.  If you want your package to be useful in a
+cross-compilation scenario, you @emph{should} provide a non-empty
+@var{action-if-cross-compiling} clause, as well as wrap the
+@code{AC_RUN_IFELSE} compilation inside an @code{AC_CACHE_CHECK}
+(@pxref{Caching Results}) which allows the user to override the
+pessimistic default if needed.
+
 It is customary to report unexpected failures with
 @code{AC_MSG_FAILURE}.
 @end defmac
 
-Try to provide a pessimistic default value to use when cross-compiling
-makes runtime tests impossible.  You do this by passing the optional
-last argument to @code{AC_RUN_IFELSE}.  @command{autoconf} prints a
-warning message when creating @command{configure} each time it
-encounters a call to @code{AC_RUN_IFELSE} with no
-@var{action-if-cross-compiling} argument given.  You may ignore the
-warning, though users cannot configure your package for
-cross-compiling.  A few of the macros distributed with Autoconf produce
-this warning message.
+@command{autoconf} prints a warning message when creating
+@command{configure} each time it encounters a call to
+@code{AC_RUN_IFELSE} with no @var{action-if-cross-compiling} argument
+given.  If you are not concerned about users configuring your package
+for cross-compilation, you may ignore the warning.  A few of the macros
+distributed with Autoconf produce this warning message; but if this is a
+problem for you, please report it as a bug, along with an appropriate
+pessimistic guess to use instead.
 
 To configure for cross-compiling you can also choose a value for those
 parameters based on the canonical system name (@pxref{Manual
@@ -11884,7 +12223,7 @@ except that it is not an error if @var{macro} is undefined.
 Expands to @var{if-true} if @var{cond} is not empty, otherwise to
 @var{if-false}.  This is shorthand for:
 @example
-m4_if([@var{cond}], [], [@var{if-true}], [@var{if-false}])
+m4_if([@var{cond}], [], [@var{if-false}], [@var{if-true}])
 @end example
 @end defmac
 
@@ -13324,6 +13663,13 @@ m4_bpatsubst([[@var{string}]], ['], ['\\''])
 @end example
 @end defmac
 
+@defmac AS_EXECUTABLE_P (@var{file})
+@asindex{EXECUTABLE_P}
+Emit code to probe whether @var{file} is a regular file with executable
+permissions (and not a directory with search permissions).  The caller
+is responsible for quoting @var{file}.
+@end defmac
+
 @defmac AS_EXIT (@dvar{status, $?})
 @asindex{EXIT}
 Emit code to exit the shell with @var{status}, defaulting to @samp{$?}.
@@ -14734,8 +15080,10 @@ subset described above, is fairly portable nowadays.  Also please see
 
 @menu
 * Shellology::                  A zoology of shells
+* Invoking the Shell::          Invoking the shell as a command
 * Here-Documents::              Quirks and tricks
 * File Descriptors::            FDs and redirections
+* Signal Handling::             Shells, signals, and headaches
 * File System Conventions::     File names
 * Shell Pattern Matching::      Pattern matching
 * Shell Substitutions::         Variable and command expansions
@@ -14871,6 +15219,44 @@ The default Mac OS X @command{sh} was originally Zsh; it was changed to
 Bash in Mac OS X 10.2.
 @end table
 
+@node Invoking the Shell
+@section Invoking the Shell
+@cindex invoking the shell
+@cindex shell invocation
+
+The Korn shell (up to at least version M-12/28/93d) has a bug when
+invoked on a file whose name does not contain a slash.  It first
+searches for the file's name in @env{PATH}, and if found it executes
+that rather than the original file.  For example, assuming there is a
+binary executable @file{/usr/bin/script} in your @env{PATH}, the last
+command in the following example fails because the Korn shell finds
+@file{/usr/bin/script} and refuses to execute it as a shell script:
+
+@example
+$ @kbd{touch xxyzzyz script}
+$ @kbd{ksh xxyzzyz}
+$ @kbd{ksh ./script}
+$ @kbd{ksh script}
+ksh: script: cannot execute
+@end example
+
+Bash 2.03 has a bug when invoked with the @option{-c} option: if the
+option-argument ends in backslash-newline, Bash incorrectly reports a
+syntax error.  The problem does not occur if a character follows the
+backslash:
+
+@example
+$ @kbd{$ bash -c 'echo foo \}
+> @kbd{'}
+bash: -c: line 2: syntax error: unexpected end of file
+$ @kbd{bash -c 'echo foo \}
+> @kbd{ '}
+foo
+@end example
+
+@noindent
+@xref{Backslash-Newline-Empty}, for how this can cause problems in makefiles.
+
 @node Here-Documents
 @section Here-Documents
 @cindex Here-documents
@@ -14903,6 +15289,19 @@ bash-2.04$ @kbd{cat <<EOF
 > EOF}
 \" \
 @end group
+@end example
+
+Using command substitutions in a here-document that is fed to a shell
+function is not portable.  For example, with Solaris 10 @command{/bin/sh}:
+
+@example
+$ @kbd{kitty () @{ cat; @}}
+$ @kbd{kitty <<EOF
+> `echo ok`
+> EOF}
+/tmp/sh199886: cannot open
+$ @kbd{echo $?}
+1
 @end example
 
 Some shells mishandle large here-documents: for example,
@@ -15035,12 +15434,12 @@ escape, while @samp{: `cd /zorglub 2>/dev/null`} works properly.
 On the other hand, some shells, such as Solaris or FreeBSD
 @command{/bin/sh}, warn about missing programs before performing
 redirections.  Therefore, to silently check whether a program exists, it
-is necessary to perform redirections on a subshell:
-
+is necessary to perform redirections on a subshell or brace group:
 @example
 $ @kbd{/bin/sh -c 'nosuch 2>/dev/null'}
 nosuch: not found
 $ @kbd{/bin/sh -c '(nosuch) 2>/dev/null'}
+$ @kbd{/bin/sh -c '@{ nosuch; @} 2>/dev/null'}
 $ @kbd{bash -c 'nosuch 2>/dev/null'}
 @end example
 
@@ -15060,6 +15459,18 @@ $ @kbd{mkfifo fifo}
 $ @kbd{exec 5<>fifo}
 $ @kbd{echo hi >&5}
 bash: echo: write error: Communication error on send
+@end example
+
+@noindent
+Furthermore, versions of @command{dash} before 0.5.6 mistakenly truncate
+regular files when using @samp{<>}:
+
+@example
+$ @kbd{echo a > file}
+$ @kbd{bash -c ': 1<>file'; cat file}
+a
+$ @kbd{dash -c ': 1<>file'; cat file}
+$ rm a
 @end example
 
 When catering to old systems, don't redirect the same file descriptor
@@ -15082,12 +15493,16 @@ In each case the expected result is of course @file{fullness} containing
 probably not of practical concern to modern platforms.
 
 Solaris 10 @command{sh} will try to optimize away a @command{:} command
-in a loop after the first iteration, even if it is redirected:
+(even if it is redirected) in a loop after the first iteration, or in a
+shell function after the first call:
 
 @example
 $ @kbd{for i in 1 2 3 ; do : >x$i; done}
-$ @kbd{ls}
+$ @kbd{ls x*}
 x1
+$ @kbd{f () @{ : >$1; @}; f y1; f y2; f y3;}
+$ @kbd{ls y*}
+y1
 @end example
 
 @noindent
@@ -15096,45 +15511,39 @@ As a workaround, @command{echo} or @command{eval} can be used.
 Don't rely on file descriptors 0, 1, and 2 remaining closed in a
 subsidiary program.  If any of these descriptors is closed, the
 operating system may open an unspecified file for the descriptor in the
-new process image.  Posix says this may be done only if the subsidiary
-program is set-user-ID or set-group-ID, but HP-UX 11.23 does
-it even for ordinary programs.
+new process image.  Posix 2008 says this may be done only if the
+subsidiary program is set-user-ID or set-group-ID, but HP-UX 11.23 does
+it even for ordinary programs, and the next version of Posix will allow
+HP-UX behavior.
 
-Don't rely on open file descriptors being open in child processes.  In
-@command{ksh}, file descriptors above 2 which are opened using
+If you want a file descriptor above 2 to be inherited into a child
+process, then you must use redirections specific to that command or a
+containing subshell or command group, rather than relying on
+@command{exec} in the shell. In @command{ksh} as well as HP-UX
+@command{sh}, file descriptors above 2 which are opened using
 @samp{exec @var{n}>file} are closed by a subsequent @samp{exec} (such as
-that involved in the fork-and-exec which runs a program or script).
-Thus, using @command{sh}, we have:
+that involved in the fork-and-exec which runs a program or script):
 
 @example
-$ @kbd{cat ./descrips}
-#!/bin/sh -
-echo hello >&5
-$ @kbd{exec 5>t}
-$ @kbd{./descrips}
-$ @kbd{cat t}
+$ @kbd{echo 'echo hello >&5' >k}
+$ @kbd{/bin/sh -c 'exec 5>t; ksh ./k; exec 5>&-; cat t}
 hello
-$
-@end example
-
-@noindent
-But using ksh:
-
-@example
-$ @kbd{exec 5>t}
-$ @kbd{./descrips}
+$ @kbd{bash -c 'exec 5>t; ksh ./k; exec 5>&-; cat t}
 hello
-$ @kbd{cat t}
-$
+$ @kbd{ksh -c 'exec 5>t; ksh ./k; exec 5>&-; cat t}
+./k[1]: 5: cannot open [Bad file number]
+$ @kbd{ksh -c '(ksh ./k) 5>t; cat t'}
+hello
+$ @kbd{ksh -c '@{ ksh ./k; @} 5>t; cat t'}
+hello
+$ @kbd{ksh -c '5>t ksh ./k; cat t}
+hello
 @end example
-
-@noindent
-Within the process which runs the @samp{descrips} script, file
-descriptor 5 is closed.
 
 Don't rely on duplicating a closed file descriptor to cause an
-error.  With Solaris @command{/bin/sh}, when the redirection fails, the
-output goes to the original file descriptor.
+error.  With Solaris @command{/bin/sh}, failed duplication is silently
+ignored, which can cause unintended leaks to the original file
+descriptor.  In this example, observe the leak to standard output:
 
 @example
 $ @kbd{bash -c 'echo hi >&3' 3>&-; echo $?}
@@ -15175,6 +15584,160 @@ $ @kbd{ksh -c 'exec 9>&-'; echo $?}
 $ @kbd{ksh -c 'exec 10>&-'; echo $?}
 ksh[1]: exec: 10: not found
 127
+@end example
+
+@c <http://lists.gnu.org/archive/html/bug-autoconf/2011-09/msg00004.html>
+@node Signal Handling
+@section Signal Handling
+@cindex Signal handling in the shell
+@cindex Signals, shells and
+
+Portable handling of signals within the shell is another major source of
+headaches.  This is worsened by the fact that various different, mutually
+incompatible approaches are possible in this area, each with its
+distinctive merits and demerits.  A detailed description of these possible
+approaches, as well as of their pros and cons, can be found in
+@uref{http://www.cons.org/cracauer/sigint.html, this article}.
+
+Solaris 10 @command{/bin/sh} automatically traps most signals by default;
+@c See: <http://dbaspot.com/shell/396118-bourne-shell-exit-code-term.html>
+the shell still exits with error upon termination by one of those signals,
+but in such a case the exit status might be somewhat unexpected (even if
+allowed by POSIX, strictly speaking):
+
+@example
+$ @kbd{bash -c 'kill -1 $$'; echo $?} # Will exit 128 + (signal number).
+Hangup
+129
+$ @kbd{/bin/ksh -c 'kill -15 $$'; echo $?} # Likewise.
+Terminated
+143
+$ @kbd{for sig in 1 2 3 15; do}
+> @kbd{  echo $sig:}
+> @kbd{  /bin/sh -c "kill -$s \$\$"; echo $?}
+> @kbd{done}
+signal 1:
+Hangup
+129
+signal 2:
+208
+signal 3:
+208
+signal 15:
+208
+@end example
+
+This gets even worse if one is using the POSIX `wait' interface to get
+details about the shell process terminations: it will result in the shell
+having exited normally, rather than by receiving a signal.
+
+@example
+$ @kbd{cat > foo.c <<'END'}
+#include <stdio.h>    /* for printf */
+#include <stdlib.h>   /* for system */
+#include <sys/wait.h> /* for WIF* macros */
+int main(void)
+@{
+  int status = system ("kill -15 $$");
+  printf ("Terminated by signal: %s\n",
+          WIFSIGNALED (status) ? "yes" : "no");
+  printf ("Exited normally: %s\n",
+          WIFEXITED (status) ? "yes" : "no");
+  return 0;
+@}
+END
+@c $$ font-lock
+$ @kbd{cc -o foo foo.c}
+$ @kbd{./a.out} # On GNU/Linux
+Terminated by signal: no
+Exited normally: yes
+$ @kbd{./a.out} # On Solaris 10
+Terminated by signal: yes
+Exited normally: no
+@end example
+
+Various shells seem to handle @code{SIGQUIT} specially: they ignore it even
+if it is not blocked, and even if the shell is not running interactively
+(in fact, even if the shell has no attached tty); among these shells
+are at least Bash (from version 2 onwards), Zsh 4.3.12, Solaris 10
+@code{/bin/ksh} and @code{/usr/xpg4/bin/sh}, and AT&T @code{ksh93} (2011).
+Still, @code{SIGQUIT} seems to be trappable quite portably within all
+these shells.  OTOH, some other shells doesn't special-case the handling
+of @code{SIGQUIT}; among these shells are at least @code{pdksh} 5.2.14,
+Solaris 10 and NetBSD 5.1 @code{/bin/sh}, and the Almquist Shell 0.5.5.1.
+
+@c See: <http://mail.opensolaris.org/pipermail/ksh93-integration-discuss/2009-February/004121.html>
+Some shells (especially Korn shells and derivatives) might try to
+propagate to themselves a signal that has killed a child process; this is
+not a bug, but a conscious design choice (although its overall value might
+be debatable).  The exact details of how this is attained vary from shell
+to shell.  For example, upon running @code{perl -e 'kill 2, $$'}, after
+the perl process has been interrupted AT&T @code{ksh93} (2011) will
+proceed to send itself a @code{SIGINT}, while Solaris 10 @code{/bin/ksh}
+and @code{/usr/xpg4/bin/sh} will proceed to exit with status 130 (i.e.,
+128 + 2). In any case, if there is an active trap associated with
+@code{SIGINT}, those shells will correctly execute it.
+
+@c See: <http://www.austingroupbugs.net/view.php?id=51>
+Some Korn shells, when a child process die due receiving a signal with
+signal number @var{n}, can leave in @samp{$?} an exit status of
+256+@var{n} instead of the more common 128+@var{n}.  Observe the
+difference between AT&T @code{ksh93} (2011) and @code{bash} 4.1.5 on
+Debian:
+
+@example
+$ @kbd{/bin/ksh -c 'sh -c "kill -1 \$\$"; echo $?'}
+/bin/ksh: line 1: 7837: Hangup
+257
+$ @kbd{/bin/bash -c 'sh -c "kill -1 \$\$"; echo $?'}
+/bin/bash: line 1:  7861 Hangup        (sh -c "kill -1 \$\$")
+129
+@end example
+
+@noindent
+This @command{ksh} behavior is allowed by POSIX, if implemented with
+due care; see this @uref{http://www.austingroupbugs.net/view.php?id=51,
+Austin Group discussion} for more background.  However, if it is not
+implemented with proper care, such a behavior might cause problems
+in some corner cases.  To see why, assume we have a ``wrapper'' script
+like this:
+
+@example
+#!/bin/sh
+# Ignore some signals in the shell only, not in its child processes.
+trap : 1 2 13 15
+wrapped_command "$@@"
+ret=$?
+other_command
+exit $ret
+@end example
+
+@noindent
+If @command{wrapped_command} is interrupted by a @code{SIGHUP} (which
+has signal number 1), @code{ret} will be set to 257.  Unless the
+@command{exit} shell builtin is smart enough to understand that such
+a value can only have originated from a signal, and adjust the final
+wait status of the shell appropriately, the value 257 will just get
+truncated to 1 by the closing @code{exit} call, so that a caller of
+the script will have no way to determine that termination by a signal
+was involved.  Observe the different behavior of AT&T @code{ksh93}
+(2011) and @code{bash} 4.1.5 on Debian:
+
+@example
+$ @kbd{cat foo.sh}
+#!/bin/sh
+sh -c 'kill -1 $$'
+ret=$?
+echo $ret
+exit $ret
+$ @kbd{/bin/ksh foo.sh; echo $?}
+foo.sh: line 2: 12479: Hangup
+257
+1
+$ @kbd{/bin/bash foo.sh; echo $?}
+foo.sh: line 2: 12487 Hangup        (sh -c 'kill -1 $$')
+129
+129
 @end example
 
 @node File System Conventions
@@ -15507,6 +16070,18 @@ $ @kbd{echo $@{10@}}
 bad substitution
 @end example
 
+Conversely, not all shells obey the Posix rule that when braces are
+omitted, multiple digits beyond a @samp{$} imply the single-digit
+positional parameter expansion concatenated with the remaining literal
+digits.  To work around the issue, you must use braces.
+
+@example
+$ @kbd{bash -c 'set a b c d e f g h i j; echo $10 $@{1@}0'}
+a0 a0
+$ @kbd{dash -c 'set a b c d e f g h i j; echo $10 $@{1@}0'}
+j a0
+@end example
+
 @item $@{@var{var}:-@var{value}@}
 @c Info cannot handle `:' in index entries.
 @ifnotinfo
@@ -15586,11 +16161,11 @@ then use @samp{$t} as the @var{value}, rather than trying to inline
 the expression needing quoting.
 
 @example
-$ @kbd{/bin/sh -c 't="a  b\"'\''@}\\"; echo "$@{a-$t@}"'}
+$ @kbd{/bin/sh -c 't="b  c\"'\''@}\\"; echo "$@{a-$t@}"'}
 b  c"'@}\
-$ @kbd{ksh -c 't="a  b\"'\''@}\\"; echo "$@{a-$t@}"'}
+$ @kbd{ksh -c 't="b  c\"'\''@}\\"; echo "$@{a-$t@}"'}
 b  c"'@}\
-$ @kbd{bash -c 't="a  b\"'\''@}\\"; echo "$@{a-$t@}"'}
+$ @kbd{bash -c 't="b  c\"'\''@}\\"; echo "$@{a-$t@}"'}
 b  c"'@}\
 @end example
 
@@ -16036,12 +16611,15 @@ for the rationale.
 @cindex Shell parentheses
 
 Beware of two opening parentheses in a row, as many shell
-implementations treat them specially.  Posix requires that the command
-@samp{((cat))} must behave like @samp{(cat)}, but many shells, including
+implementations treat them specially, and Posix says that a portable
+script cannot use @samp{((} outside the @samp{$((} form used for shell
+arithmetic.  In traditional shells, @samp{((cat))} behaves like
+@samp{(cat)}; but many shells, including
 Bash and the Korn shell, treat @samp{((cat))} as an arithmetic
 expression equivalent to @samp{let "cat"}, and may or may not report an
 error when they detect that @samp{cat} is not a number.  As another
-example, @samp{pdksh} 5.2.14 misparses the following code:
+example, @samp{pdksh} 5.2.14 does not treat the following code
+as a traditional shell would:
 
 @example
 if ((true) || false); then
@@ -16206,7 +16784,7 @@ PS4='+ '
 
 @noindent
 (actually, there is some complication due to bugs in @command{unset};
-see @pxref{unset, , Limitations of Shell Builtins}).
+@pxref{unset, , Limitations of Shell Builtins}).
 
 @item FPATH
 @evindex FPATH
@@ -16570,11 +17148,11 @@ segmentation fault.  To work around the issue, you can use
 in the execution flow of the function (@pxref{Common Shell Constructs}).
 
 Not all shells treat shell functions as simple commands impacted by
-@samp{set -e}, for example with Solaris 10 @command{bin/sh}:
+@samp{set -e}, for example with Solaris 10 @command{/bin/sh}:
 
 @example
-$ @kbd{bash -c 'f() @{ return 1; @}; set -e; f; echo oops}
-$ @kbd{/bin/sh -c 'f() @{ return 1; @}; set -e; f; echo oops}
+$ @kbd{bash -c 'f() @{ return 1; @}; set -e; f; echo oops'}
+$ @kbd{/bin/sh -c 'f() @{ return 1; @}; set -e; f; echo oops'}
 oops
 @end example
 
@@ -17129,6 +17707,20 @@ $ @kbd{ash -c 'export foo; env | grep foo'}
 foo=
 @end example
 
+Posix requires @command{export} to honor assignments made as arguments,
+but older shells do not support this, including @command{/bin/sh} in
+Solaris 10.  Portable scripts should separate assignments and exports
+into different statements.
+
+@example
+$ @kbd{bash -c 'export foo=bar; echo $foo'}
+bar
+$ @kbd{/bin/sh -c 'export foo=bar; echo $foo'}
+/bin/sh: foo=bar: is not an identifier
+$ @kbd{/bin/sh -c 'export foo; foo=bar; echo $foo'}
+bar
+@end example
+
 @item @command{false}
 @c ------------------
 @prindex @command{false}
@@ -17284,8 +17876,8 @@ for an @command{echo} that does not interpret @samp{\} or leading
 @samp{-}. With Solaris @command{ksh}, it is possible to use @code{print
 -r --} for this role instead.
 
-For a discussion of portable alternatives to both @command{printf}
-and @command{echo}, @xref{echo, , Limitations of Shell Builtins}.
+@xref{echo, , Limitations of Shell Builtins} for a discussion of
+portable alternatives to both @command{printf} and @command{echo}.
 
 
 @item @command{pwd}
@@ -17330,7 +17922,9 @@ Also please see the discussion of the @command{cd} command.
 @c -----------------
 @prindex @command{read}
 No options are portable, not even support @option{-r} (Solaris
-@command{/bin/sh} for example).
+@command{/bin/sh} for example).  Tru64/OSF 5.1 @command{sh} treats
+@command{read} as a special built-in, so it may exit if input is
+redirected from a non-existent or unreadable file.
 
 
 @anchor{set}
@@ -17370,11 +17964,11 @@ set -ex
 @cindex @command{set -e}
 The option @option{-e} has historically been underspecified, with enough
 ambiguities to cause numerous differences across various shell
-implementations.  Perhaps the best reference is
-@uref{http://www.opengroup.org/@/austin/@/mailarchives/@/ag-review/@/msg03507.html,
-this link}, recommending a change to Posix 2008 to match @command{ksh88}
-behavior.  Note that mixing @code{set -e} and shell functions is asking
-for surprises:
+implementations; see for example
+@uref{http://www.in-ulm.de/@/~mascheck/@/various/@/set-e/, this overview},
+or @uref{http://www.austingroupbugs.net/@/view.php?id=52, this link},
+documenting a change to Posix 2008 to match @command{ksh88} behavior.
+Note that mixing @code{set -e} and shell functions is asking for surprises:
 
 @example
 set -e
@@ -17494,6 +18088,26 @@ cim
 c
 @end example
 
+@cindex @command{set -n}
+Use of @command{set -n} (typically via @command{sh -n script}) to
+validate a script is not foolproof.  Modern @command{ksh93} tries to be
+helpful by informing you about better syntax, but switching the script
+to use the suggested syntax in order to silence the warnings would
+render the script no longer portable to older shells:
+
+@example
+$ @kbd{ksh -nc '``'}
+ksh: warning: line 1: `...` obsolete, use $(...)
+0
+@end example
+
+Furthermore, on ancient hosts, such as SunOS 4, @command{sh -n} could go
+into an infinite loop; even with that bug fixed, Solaris 8
+@command{/bin/sh} takes extremely long to parse large scripts.  Autoconf
+itself uses @command{sh -n} within its testsuite to check that correct
+scripts were generated, but only after first probing for other shell
+features (such as @code{test -n "$@{BASH_VERSION+set@}"}) that indicate
+a reasonably fast and working implementation.
 
 @item @command{shift}
 @c ------------------
@@ -17559,13 +18173,29 @@ It is safe to use @samp{!} as a @command{test} operator.  For example,
 To enable @command{configure} scripts to support cross-compilation, they
 shouldn't do anything that tests features of the build system instead of
 the host system.  But occasionally you may find it necessary to check
-whether some arbitrary file exists.  To do so, use @samp{test -f} or
-@samp{test -r}.  Do not use @samp{test -x}, because 4.3BSD does not
-have it.  Do not use @samp{test -e} either, because Solaris @command{/bin/sh}
+whether some arbitrary file exists.  To do so, use @samp{test -f},
+@samp{test -r}, or @samp{test -x}.  Do not use @samp{test -e}, because
+Solaris 10 @command{/bin/sh}
 lacks it.  To test for symbolic links on systems that have them, use
 @samp{test -h} rather than @samp{test -L}; either form conforms to
 Posix 1003.1-2001, but older shells like Solaris 8
 @code{/bin/sh} support only @option{-h}.
+
+For historical reasons, Posix reluctantly allows implementations of
+@samp{test -x} that will succeed for the root user, even if no execute
+permissions are present.  Furthermore, shells do not all agree on
+whether Access Control Lists should affect @samp{test -r}, @samp{test
+-w}, and @samp{test -x}; some shells base test results strictly on the
+current user id compared to file owner and mode, as if by
+@code{stat(2)}; while other shells base test results on whether the
+current user has the given right, even if that right is only granted by
+an ACL, as if by @code{faccessat(2)}.  Furthermore, there is a classic
+time of check to time of use race between any use of @command{test}
+followed by operating on the just-checked file.  Therefore, it is a good
+idea to write scripts that actually attempt an operation, and are
+prepared for the resulting failure if permission is denied, rather than
+trying to avoid an operation based solely on whether @command{test}
+guessed that it might not be permitted.
 
 @item @command{test} (strings)
 @c ---------------------------
@@ -17744,13 +18374,16 @@ and file name expansion.
 @item @command{unset}
 @c ------------------
 @prindex @command{unset}
-In some nonconforming shells (e.g., Bash 2.05a), @code{unset FOO} fails
-when @code{FOO} is not set.  You can use
+In some nonconforming shells (e.g., Solaris 10 @command{/bin/ksh} and
+@command{/usr/xpg4/bin/sh}, NetBSD 5.99.43 sh, or Bash 2.05a),
+@code{unset FOO} fails when @code{FOO} is not set.  This can interfere
+with @code{set -e} operation.  You can use
 
 @smallexample
 FOO=; unset FOO
 @end smallexample
 
+@noindent
 if you are not sure that @code{FOO} is set.
 
 A few ancient shells lack @command{unset} entirely.  For some variables
@@ -17763,8 +18396,8 @@ PS1='$ '
 Usually, shells that do not support @command{unset} need less effort to
 make the environment sane, so for example is not a problem if you cannot
 unset @command{CDPATH} on those shells.  However, Bash 2.01 mishandles
-@code{unset MAIL} in some cases and dumps core.  So, you should do
-something like
+@code{unset MAIL} and @code{unset MAILPATH} in some cases and dumps core.
+So, you should do something like
 
 @smallexample
 ( (unset MAIL) || exit 1) >/dev/null 2>&1 && unset MAIL || :
@@ -18051,7 +18684,16 @@ Avoid the @option{-r} option, since Posix 1003.1-2004 marks it as
 obsolescent and its behavior on special files is implementation-defined.
 Use @option{-R} instead.  On GNU hosts the two options
 are equivalent, but on Solaris hosts (for example) @code{cp -r}
-reads from pipes instead of replicating them.
+reads from pipes instead of replicating them.  AIX 5.3 @code{cp -R} may
+corrupt its own memory with some directory hierarchies and error out or
+dump core:
+
+@example
+@kbd{mkdir -p 12345678/12345678/12345678/12345678}
+@kbd{touch 12345678/12345678/x}
+@kbd{cp -R 12345678 t}
+cp: 0653-440 12345678/12345678/: name too long.
+@end example
 
 Some @command{cp} implementations (e.g., BSD/OS 4.2) do not allow
 trailing slashes at the end of nonexistent destination directories.  To
@@ -18066,17 +18708,19 @@ its @command{mv} does.
 @cindex timestamp resolution
 Traditionally, file timestamps had 1-second resolution, and @samp{cp
 -p} copied the timestamps exactly.  However, many modern file systems
-have timestamps with 1-nanosecond resolution.  Unfortunately, @samp{cp
--p} implementations truncate timestamps when copying files, so this
-can result in the destination file appearing to be older than the
+have timestamps with 1-nanosecond resolution.  Unfortunately, some older
+@samp{cp -p} implementations truncate timestamps when copying files,
+which can cause the destination file to appear to be older than the
 source.  The exact amount of truncation depends on the resolution of
-the system calls that @command{cp} uses; traditionally this was
-@code{utime}, which has 1-second resolution, but some newer
-@command{cp} implementations use @code{utimes}, which has
-1-microsecond resolution.  These newer implementations include GNU
-Core Utilities 5.0.91 or later, and Solaris 8 (sparc) patch 109933-02 or
-later.  Unfortunately as of January 2006 there is still no system
-call to set timestamps to the full nanosecond resolution.
+the system calls that @command{cp} uses.  Traditionally this was
+@code{utime}, which has 1-second resolution.  Less-ancient @command{cp}
+implementations such as GNU Core Utilities 5.0.91 (2003) use
+@code{utimes}, which has 1-microsecond resolution.  Modern
+implementations such as GNU Core Utilities 6.12 (2008) can set timestamps to
+the full nanosecond resolution, using the modern system calls
+@code{futimens} and @code{utimensat} when they are available.  As of
+2011, though, many platforms do not yet fully support these new system
+calls.
 
 Bob Proulx notes that @samp{cp -p} always @emph{tries} to copy
 ownerships.  But whether it actually does copy ownerships or not is a
@@ -18226,7 +18870,7 @@ not needed anyway.
 
 On the other hand, the behavior of the @samp{$} anchor is not portable
 on multi-line strings.  Posix is ambiguous whether the anchor applies to
-each line, as was done in older versions of GNU Coreutils, or
+each line, as was done in older versions of the GNU Core Utilities, or
 whether it applies only to the end of the overall string, as in
 Coreutils 6.0 and most other implementations.
 
@@ -18454,6 +19098,9 @@ cat file | join file -
 
 Use @samp{join - file} instead.
 
+On NetBSD, @command{join -a 1 file1 file2} mistakenly behaves like
+@command{join -a 1 -a 2 1 file1 file2}, resulting in a usage warning;
+the workaround is to use @command{join -a1 file1 file2} instead.
 
 @item @command{ln}
 @c ---------------
@@ -18642,10 +19289,12 @@ This problem no longer exists in Mac OS X 10.4.3.
 @prindex @command{rm}
 The @option{-f} and @option{-r} options are portable.
 
-It is not portable to invoke @command{rm} without operands.  For
-example, on many systems @samp{rm -f -r} (with no other arguments)
-silently succeeds without doing anything, but it fails with a diagnostic
-on NetBSD 2.0.2.
+It is not portable to invoke @command{rm} without options or operands.
+On the other hand, Posix now requires @command{rm -f} to silently
+succeed when there are no operands (useful for constructs like
+@command{rm -rf $filelist} without first checking if @samp{$filelist}
+was empty).  But this was not always portable; at least NetBSD
+@command{rm} built before 2008 would fail with a diagnostic.
 
 A file might not be removed even if its parent directory is writable
 and searchable.  Many Posix hosts cannot remove a mount point, a named
@@ -18683,7 +19332,7 @@ Unicos 9 @command{sed} loops endlessly on patterns like @samp{.*\n.*}.
 Sed scripts should not use branch labels longer than 7 characters and
 should not contain comments; AIX 5.3 @command{sed} rejects indented comments.
 HP-UX sed has a limit of 99 commands (not counting @samp{:} commands) and
-48 labels, which can not be circumvented by using more than one script
+48 labels, which cannot be circumvented by using more than one script
 file.  It can execute up to 19 reads with the @samp{r} command per cycle.
 Solaris @command{/usr/ucb/sed} rejects usages that exceed a limit of
 about 6000 bytes for the internal representation of commands.
@@ -18697,8 +19346,9 @@ $ @kbd{echo a | sed 's/x/x/;;s/x/x/'}
 sed: 1: "s/x/x/;;s/x/x/": invalid command code ;
 @end example
 
-Input should not have unreasonably long lines, since some @command{sed}
-implementations have an input buffer limited to 4000 bytes.  Likewise,
+Some @command{sed} implementations have a buffer limited to 4000 bytes,
+and this limits the size of input lines, output lines, and internal
+buffers that can be processed portably.  Likewise,
 not all @command{sed} implementations can handle embedded @code{NUL} or
 a missing trailing newline.
 
@@ -18993,7 +19643,7 @@ level of portability to use.
 @prindex @command{touch}
 @cindex timestamp resolution
 If you specify the desired timestamp (e.g., with the @option{-r}
-option), @command{touch} typically uses the @code{utime} or
+option), older @command{touch} implementations use the @code{utime} or
 @code{utimes} system call, which can result in the same kind of
 timestamp truncation problems that @samp{cp -p} has.
 
@@ -19034,13 +19684,16 @@ $ @kbd{nl='}
 moonlight
 @end example
 
-Not all versions of @command{tr} recognize ranges of characters: at
+Not all versions of @command{tr} recognize direct ranges of characters: at
 least Solaris @command{/usr/bin/tr} still fails to do so.  But you can
-use @command{/usr/xpg4/bin/tr} instead.
+use @command{/usr/xpg4/bin/tr} instead, or add brackets (which in Posix
+transliterate to themselves).
 
 @example
 $ @kbd{echo "Hazy Fantazy" | LC_ALL=C /usr/bin/tr a-z A-Z}
 HAZy FAntAZy
+$ @kbd{echo "Hazy Fantazy" | LC_ALL=C /usr/bin/tr '[a-z]' '[A-Z]'}
+HAZY FANTAZY
 $ @kbd{echo "Hazy Fantazy" | LC_ALL=C /usr/xpg4/bin/tr a-z A-Z}
 HAZY FANTAZY
 @end example
@@ -19100,7 +19753,7 @@ itself.
 * $< in Ordinary Make Rules::   $< in ordinary rules
 * Failure in Make Rules::       Failing portably in rules
 * Special Chars in Names::      Special Characters in Macro Names
-* Backslash-Newline-Newline::   Empty last lines in macro definitions
+* Backslash-Newline-Empty::     Empty lines after backslash-newline
 * Backslash-Newline Comments::  Spanning comments across line boundaries
 * Long Lines in Makefiles::     Line length limitations
 * Macros and Submakes::         @code{make macro=value} and submakes
@@ -19109,6 +19762,9 @@ itself.
 * Parallel Make::               Parallel @command{make} quirks
 * Comments in Make Rules::      Other problems with Make comments
 * Newlines in Make Rules::      Using literal newlines in rules
+* Comments in Make Macros::     Other problems with Make comments in macros
+* Trailing whitespace in Make Macros::  Macro substitution problems
+* Command-line Macros and whitespace::  Whitespace trimming of values
 * obj/ and Make::               Don't name a subdirectory @file{obj}
 * make -k Status::              Exit status of @samp{make -k}
 * VPATH and Make::              @code{VPATH} woes
@@ -19175,8 +19831,32 @@ this is test
 @noindent
 However, this problem is no longer of practical concern.
 
-@node Backslash-Newline-Newline
-@section Backslash-Newline-Newline in Make Macro Values
+@node Backslash-Newline-Empty
+@section Backslash-Newline Before Empty Lines
+
+A bug in Bash 2.03 can cause problems if a Make rule contains a
+backslash-newline followed by line that expands to nothing.
+For example, on Solaris 8:
+
+@example
+SHELL = /bin/bash
+EMPTY =
+foo:
+	touch foo \
+	$(EMPTY)
+@end example
+
+@noindent
+executes
+
+@example
+/bin/bash -c 'touch foo \
+'
+@end example
+
+@noindent
+which fails with a syntax error, due to the Bash bug.  To avoid this
+problem, avoid nullable macros in the last line of a multiline command.
 
 @c  This has been seen on ia64 hpux 11.20, and on one hppa hpux 10.20,
 @c  but another hppa hpux 10.20 didn't have it.  Bob Proulx
@@ -19441,13 +20121,12 @@ sh
 @cindex Parallel @command{make}
 
 Support for parallel execution in @command{make} implementation varies.
-Generally, using GNU make is your best bet.  When NetBSD
-@command{make} is invoked with @option{-j@var{N}}, it will reuse the
-same shell for multiple commands within one recipe.  This can have
-unexpected consequences.@footnote{Note that GNU make has
-heuristics to avoid spawning a shell at all if the command is deemed
-safe to be executed directly.} For example, change of directories or
-variables persist between commands:
+Generally, using GNU make is your best bet.
+
+When NetBSD or FreeBSD @command{make} are run in parallel mode, they will
+reuse the same shell for multiple commands within one recipe.  This can
+have various unexpected consequences.  For example, changes of directories
+or variables persist between recipes, so that:
 
 @example
 all:
@@ -19456,10 +20135,10 @@ all:
 @end example
 
 @noindent
-may output the following with @code{make -j1}:
+may output the following with @code{make -j1}, at least on NetBSD up to
+5.1 and FreeBSD up to 8.2:
 
 @example
---- all ---
 /
 value
 32235
@@ -19468,6 +20147,7 @@ value
 32235
 @end example
 
+@noindent
 while without @option{-j1}, or with @option{-B}, the output looks less
 surprising:
 
@@ -19480,21 +20160,102 @@ value
 32239
 @end example
 
-Another consequence of this is that, if one command in a recipe uses
-@code{exit 0} to indicate a successful exit, the shell will be gone
-and the remaining commands of this recipe will not be executed.
+@noindent
+Another consequence is that, if one command in a recipe uses @code{exit 0}
+to indicate a successful exit, the shell will be gone and the remaining
+commands of this recipe will not be executed.
 
-The above example also shows additional status output NetBSD
-@command{make} produces in parallel mode for targets being updated.
+The BSD @command{make} implementations, when run in parallel mode,
+will also pass the @command{Makefile} recipes to the shell through
+its standard input, thus making it unusable from the recipes:
 
-Furthermore, parallel NetBSD @command{make} will route standard error
-from commands that it spawns into its own standard output, and may
-remove leading whitespace from output lines.
+@example
+$ @kbd{cat Makefile}
+read:
+        @@read line; echo LINE: $$line
+@c $$ @c restore font-lock
+$ @kbd{echo foo | make read}
+LINE: foo
+$ @kbd{echo foo | make -j1 read} # NetBSD 5.1 and FreeBSD 8.2
+LINE:
+@end example
 
-You can avoid these issues by using the @option{-B} option to enable
+@noindent
+Moreover, when FreeBSD @command{make} (up at least to 8.2) is run in
+parallel mode, it implements the @code{@@} and @code{-} ``recipe
+modifiers'' by dynamically modifying the active shell flags.  This
+behavior has the effects of potentially clobbering the exit status
+of recipes silenced with the @code{@@} modifier if they also unset
+the @option{errexit} shell flag, and of mangling the output in
+unexpected ways:
+
+@example
+$ @kbd{cat Makefile}
+a:
+        @@echo $$-; set +e; false
+b:
+        -echo $$-; false; echo set -
+$ @kbd{make a; echo status: $?}
+ehBc
+*** Error code 1
+status: 1
+$ @kbd{make -j1 a; echo status: $?}
+ehB
+status: 0
+$ @kbd{make b}
+echo $-; echo set -
+hBc
+set -
+$ @kbd{make -j1 b}
+echo $-; echo hvB
+@end example
+
+@noindent
+You can avoid all these issues by using the @option{-B} option to enable
 compatibility semantics.  However, that will effectively also disable
 all parallelism as that will cause prerequisites to be updated in the
 order they are listed in a rule.
+
+Some make implementations (among them, FreeBSD @command{make}, NetBSD
+@command{make}, and Solaris @command{dmake}), when invoked with a
+@option{-j@var{N}} option, connect the standard output and standard
+error of all their child processes to pipes or temporary regular
+files.  This can lead to subtly different semantics in the behavior
+of the spawned processes.  For example, even if the @command{make}
+standard output is connected to a tty, the recipe command will not be:
+
+@example
+$ @kbd{cat Makefile}
+all:
+        @@test -t 1 && echo "Is a tty" || echo "Is not a tty"
+$ @kbd{make -j 2} # FreeBSD 8.2 make
+Is not a tty
+$ @kbd{make -j 2} # NetBSD 5.1 make
+--- all ---
+Is not a tty
+$ @kbd{dmake -j 2} # Solaris 10 dmake
+@var{hostname} --> 1 job
+@var{hostname} --> Job output
+Is not a tty
+@end example
+
+@noindent
+On the other hand:
+
+@example
+$ @kbd{make -j 2} # GNU make, Heirloom make
+Is a tty
+@end example
+
+@noindent
+The above examples also show additional status output produced in parallel
+mode for targets being updated by Solaris @command{dmake} and NetBSD
+@command{make} (but @emph{not} by FreeBSD @command{make}).
+
+Furthermore, parallel runs of those @command{make} implementations will
+route standard error from commands that they spawn into their own
+standard output, and may remove leading whitespace from output lines.
+
 
 @node Comments in Make Rules
 @section Comments in Make Rules
@@ -19520,6 +20281,21 @@ argument that gets ignored:
 all:
         : "foo"
 @end example
+
+Conversely, if you want to use the @samp{#} character in some command,
+you can only do so by expanding it inside a rule (@pxref{Comments in
+Make Macros}).  So for example, if @samp{COMMENT_CHAR} is substituted by
+@command{config.status} as @samp{#}, then the following substitutes
+@samp{@@COMMENT_CHAR@@} in a generated header:
+
+@example
+foo.h: foo.h.in
+        sed -e 's|@@''COMMENT_CHAR''@@|@@COMMENT_CHAR@@|g' \
+            $(srcdir)/foo.h.in > $@@
+@end example
+
+The funny shell quoting avoids a substitution at @command{config.status}
+run time of the left-hand side of the @command{sed} @samp{s} command.
 
 @node Newlines in Make Rules
 @section Newlines in Make Rules
@@ -19548,6 +20324,92 @@ inserts a blank line after every line of a file, this code can be used:
 nlinit=`echo 'nl="'; echo '"'`; eval "$$nlinit"; \
 sed -e "s/\$$/\\$$@{nl@}/" < input > output
 @end example
+
+@node Comments in Make Macros
+@section Comments in Make Macros
+@cindex Comments in @file{Makefile} macros
+@cindex @file{Makefile} macros and comments
+
+Avoid putting comments in macro values as far as possible.  Posix
+specifies that the text starting from the @samp{#} sign until the end of
+the line is to be ignored, which has the unfortunate effect of
+disallowing them even within quotes.  Thus, the following might lead to
+a syntax error at compile time:
+
+@example
+CPPFLAGS = "-DCOMMENT_CHAR='#'"
+@end example
+
+@noindent
+as @samp{CPPFLAGS} may be expanded to @samp{"-DCOMMENT_CHAR='}.
+
+Most @command{make} implementations disregard this and treat single and
+double quotes specially here.  Also, GNU @command{make} lets you put
+@samp{#} into a macro value by escaping it with a backslash, i.e.,
+@samp{\#}.  However, neither of these usages are portable.
+@xref{Comments in Make Rules}, for a portable alternative.
+
+Even without quoting involved, comments can have surprising effects,
+because the whitespace before them is part of the variable value:
+
+@example
+foo = bar # trailing comment
+print: ; @@echo "$(foo)."
+@end example
+
+@noindent
+prints @samp{bar .}, which is usually not intended, and can expose
+@command{make} bugs as described below.
+
+@node Trailing whitespace in Make Macros
+@section Trailing whitespace in Make Macros
+@cindex whitespace in @file{Makefile} macros
+@cindex @file{Makefile} macros and whitespace
+
+GNU @command{make} 3.80 mistreats trailing whitespace in macro
+substitutions and appends another spurious suffix:
+
+@example
+empty =
+foo = bar $(empty)
+print: ; @@echo $(foo:=.test)
+@end example
+
+@noindent
+prints @samp{bar.test .test}.
+
+BSD and Solaris @command{make} implementations do not honor trailing
+whitespace in macro definitions as Posix requires:
+
+@example
+foo = bar # Note the space after "bar".
+print: ; @@echo $(foo)t
+@end example
+
+@noindent
+prints @samp{bart} instead of @samp{bar t}.  To work around this, you
+can use a helper macro as in the previous example.
+
+
+@node Command-line Macros and whitespace
+@section Command-line Macros and whitespace
+@cindex whitespace in command-line macros
+@cindex command-line, macros set on
+@cindex environment, macros set from
+
+Some @command{make} implementations may strip trailing whitespace off
+of macros set on the command line in addition to leading whitespace.
+Further, some may strip leading whitespace off of macros set from
+environment variables:
+
+@example
+$ @kbd{echo 'print: ; @@echo "x$(foo)x$(bar)x"' |
+  foo=' f f ' make -f - bar=' b b '}
+x f f xb b x  # AIX, BSD, GNU make
+xf f xb b x   # HP-UX, IRIX, Tru64/OSF make
+x f f xb bx   # Solaris make
+@end example
+
 
 @node obj/ and Make
 @section The @file{obj/} Subdirectory and Make
@@ -19693,14 +20555,37 @@ However, this rule leads to real problems in practice.  For example, if
 the source directory contains an ordinary file named @file{test} that is
 used in a dependency, Solaris @command{make} rewrites commands like
 @samp{if test -r foo; @dots{}} to @samp{if ../pkg/src/test -r foo;
-@dots{}}, which is typically undesirable.  To avoid this problem,
-portable makefiles should never mention a source file whose name is that
-of a shell keyword like @file{until} or a shell command like
-@command{cat} or @command{gcc} or @command{test}.
+@dots{}}, which is typically undesirable.  In fact, @command{make} is
+completely unaware of shell syntax used in the rules, so the VPATH
+rewrite can potentially apply to @emph{any} whitespace-separated word
+in a rule, including shell variables, functions, and keywords.
 
-Because of these problems GNU @command{make} and many other
-@command{make} implementations do not rewrite commands, so portable
-makefiles should
+@example
+$ @kbd{mkdir build}
+$ @kbd{cd build}
+$ @kbd{cat > Makefile <<'END'}
+VPATH = ..
+all: arg func for echo
+        func () @{ for arg in "$$@@"; do echo $$arg; done; @}; \
+        func "hello world"
+END
+$ @kbd{touch ../arg ../func ../for ../echo}
+$ @kbd{make}
+../func () @{ ../for ../arg in "$@@"; do ../echo $arg; done; @}; \
+../func "hello world"
+sh: syntax error at line 1: `do' unexpected
+*** Error code 2
+@end example
+
+@noindent
+To avoid this problem, portable makefiles should never mention a source
+file or dependency whose name is that of a shell keyword like @file{for}
+or @file{until}, a shell command like @command{cat} or @command{gcc} or
+@command{test}, or a shell function or variable used in the corresponding
+@command{Makefile} recipe.
+
+Because of these problems GNU @command{make} and many other @command{make}
+implementations do not rewrite commands, so portable makefiles should
 search @code{VPATH} manually.  It is tempting to write this:
 
 @smallexample
@@ -20168,6 +21053,14 @@ dest-stamp: src
         date >dest-stamp
 @end example
 
+Apart from timestamp resolution, there are also differences in handling
+equal timestamps.  HP-UX @command{make} updates targets if it has the
+same time stamp as one of its prerequisites, in violation of Posix rules.
+
+This can cause spurious rebuilds for repeated runs of @command{make}.
+This in turn can cause @command{make} to fail if it tries to rebuild
+generated files in a possibly read-only source tree with tools not
+present on the end-user machine.  Use GNU @command{make} instead.
 
 
 
@@ -20272,11 +21165,11 @@ signed integer remainder, the C standard requires overflow
 behavior that is commonly not implemented.
 
 @menu
-* Integer Overflow Basics::      Why integer overflow is a problem
-* Signed Overflow Examples::     Examples of code assuming wraparound
+* Integer Overflow Basics::     Why integer overflow is a problem
+* Signed Overflow Examples::    Examples of code assuming wraparound
 * Optimization and Wraparound::  Optimizations that break uses of wraparound
-* Signed Overflow Advice::       Practical advice for signed overflow issues
-* Signed Integer Division::      @code{INT_MIN / -1} and @code{INT_MIN % -1}
+* Signed Overflow Advice::      Practical advice for signed overflow issues
+* Signed Integer Division::     @code{INT_MIN / -1} and @code{INT_MIN % -1}
 @end menu
 
 @node Integer Overflow Basics
@@ -20859,11 +21752,14 @@ system types are involved.  The options to specify them are:
 @item --build=@var{build-type}
 the type of system on which the package is being configured and
 compiled.  It defaults to the result of running @command{config.guess}.
+Specifying a @var{build-type} that differs from @var{host-type} enables
+cross-compilation mode.
 
 @item --host=@var{host-type}
 the type of system on which the package runs.  By default it is the
-same as the build machine.  Specifying it enables the cross-compilation
-mode.
+same as the build machine.  Specifying a @var{host-type} that differs
+from @var{build-type}, when @var{build-type} was also explicitly
+specified, enables cross-compilation mode.
 
 @item --target=@var{target-type}
 the type of system for which any compiler tools in the package
@@ -21689,11 +22585,14 @@ if test "$cache_file" = /dev/null; then
 fi
 @end example
 
-@cindex Filesystem Hierarchy Standard
+@c Leave this use of ``File system'' rendered as one word, but
+@c slightly obfuscated so as not to trigger the syntax-check prohibition.
+@cindex File@/system Hierarchy Standard
 @cindex FHS
 
 Another use of @file{config.site} is for priming the directory variables
-in a manner consistent with the Filesystem Hierarchy Standard
+@c ``File system'', but slightly obfuscated, as above.
+in a manner consistent with the File@/system Hierarchy Standard
 (FHS).  Once the following file is installed at
 @file{/usr/share/config.site}, a user can execute simply
 @code{./configure --prefix=/usr} to get all the directories chosen in
@@ -21868,13 +22767,10 @@ can alter its behavior:
 @anchor{CONFIG_SHELL}
 @defvar CONFIG_SHELL
 @evindex CONFIG_SHELL
-The shell with which to run @command{configure} for the @option{--recheck}
-option.  It must be Bourne-compatible.  The default is a shell that
-supports @code{LINENO} if available, and @file{/bin/sh} otherwise.
-Invoking @command{configure} by hand bypasses this setting, so you may
-need to use a command like @samp{CONFIG_SHELL=/bin/bash /bin/bash ./configure}
-to insure that the same shell is used everywhere.  The absolute name of the
-shell should be passed.
+The shell with which to run @command{configure}.  It must be
+Bourne-compatible, and the absolute name of the shell should be passed.
+The default is a shell that supports @code{LINENO} if available, and
+@file{/bin/sh} otherwise.
 @end defvar
 
 @defvar CONFIG_STATUS
@@ -22935,7 +23831,7 @@ issue.
 @defmac AC_SYS_SIGLIST_DECLARED
 @acindex{SYS_SIGLIST_DECLARED}
 This macro was renamed @code{AC_DECL_SYS_SIGLIST}.  However, even that
-name is obsolete, as the same functionality is now acheived via
+name is obsolete, as the same functionality is now achieved via
 @code{AC_CHECK_DECLS} (@pxref{AC_CHECK_DECLS}).
 @end defmac
 
@@ -23050,7 +23946,7 @@ AC_LINK_IFELSE([AC_LANG_CALL([], [@var{function}])],
 @end defmac
 
 @defmac AC_TRY_RUN (@var{program}, @ovar{action-if-true}, @
-  @ovar{action-if-false}, @ovar{action-if-cross-compiling})
+  @ovar{action-if-false}, @dvar{action-if-cross-compiling, AC_MSG_FAILURE})
 @acindex{TRY_RUN}
 Same as:
 
@@ -23077,7 +23973,7 @@ function returning @code{void}, define @code{RETSIGTYPE} to be
 portable to assume C89, and that signal handlers return @code{void},
 without needing to use this macro or @code{RETSIGTYPE}.
 
-When targetting older K&R C, it is possible to define signal handlers as
+When targeting older K&R C, it is possible to define signal handlers as
 returning type @code{RETSIGTYPE}, and omit a return statement:
 
 @example
@@ -23569,10 +24465,7 @@ and they're different, @command{configure} enters cross compilation
 mode, so it doesn't run any tests that require execution.
 
 Hint: if you mean to override the result of @command{config.guess},
-prefer @option{--build} over @option{--host}.  In the future,
-@option{--host} will not override the name of the build system type.
-Whenever you specify @option{--host}, be sure to specify @option{--build}
-too.
+prefer @option{--build} over @option{--host}.
 
 @sp 1
 
@@ -23840,7 +24733,7 @@ the installer's end.
 Each test of the validation suite should be part of some test group.  A
 @dfn{test group} is a sequence of interwoven tests that ought to be
 executed together, usually because one test in the group creates data
-files than a later test in the same group needs to read.  Complex test
+files that a later test in the same group needs to read.  Complex test
 groups make later debugging more tedious.  It is much better to
 keep only a few tests per test group.  Ideally there is only one test
 per test group.
@@ -23858,7 +24751,7 @@ identification of the package, is automatically included if found.
 A convenient alternative consists in moving all the global issues
 (local Autotest macros, elementary health checking, and @code{AT_INIT}
 invocation) into the file @code{local.at}, and making
-@file{testsuite.at} be a simple list of @code{m4_include} of sub test
+@file{testsuite.at} be a simple list of @code{m4_include}s of sub test
 suites.  In such case, generating the whole test suite or pieces of it
 is only a matter of choosing the @command{autom4te} command line
 arguments.
@@ -23891,7 +24784,7 @@ It often happens in practice that individual tests in the validation
 suite need to get information coming out of the configuration process.
 Some of this information, common for all validation suites, is provided
 through the file @file{atconfig}, automatically created by
-@code{AC_CONFIG_TESTDIR}.  For configuration informations which your
+@code{AC_CONFIG_TESTDIR}.  For configuration information which your
 testing environment specifically needs, you might prepare an optional
 file named @file{atlocal.in}, instantiated by @code{AC_CONFIG_FILES}.
 The configuration process produces @file{atconfig} and @file{atlocal}
@@ -24068,7 +24961,7 @@ complete and if no option from @var{options} was used.
 @var{help-text} is added to the end of the list of options shown in
 @command{testsuite --help} (@pxref{AS_HELP_STRING}).
 
-It it recommended that you use a package-specific prefix to @var{options}
+It is recommended that you use a package-specific prefix to @var{options}
 names in order to avoid clashes with future Autotest built-in options.
 @end defmac
 
@@ -24099,7 +24992,7 @@ complete and if no option from @var{options} was used.
 @var{help-text} is added to the end of the list of options shown in
 @command{testsuite --help} (@pxref{AS_HELP_STRING}).
 
-It it recommended that you use a package-specific prefix to @var{options}
+It is recommended that you use a package-specific prefix to @var{options}
 names in order to avoid clashes with future Autotest built-in options.
 @end defmac
 
@@ -24593,7 +25486,7 @@ With Automake, here is a minimal example for inclusion in
 validation suite.
 
 @example
-# The `:;' works around a Bash 3.2 bug when the output is not writeable.
+# The `:;' works around a Bash 3.2 bug when the output is not writable.
 $(srcdir)/package.m4: $(top_srcdir)/configure.ac
         :;@{ \
           echo '# Signature of the current package.' && \
@@ -24774,8 +25667,8 @@ people have to do (mainly its maintainer).
 Why not use Imake instead of @command{configure} scripts?
 @end display
 
-Several people have written addressing this question, so I include
-adaptations of their explanations here.
+Several people have written addressing this question, so
+adaptations of their explanations are included here.
 
 The following answer is based on one written by Richard Pixley:
 
@@ -24810,7 +25703,7 @@ restrictions.
 Here is some further explanation, written by Per Bothner:
 
 @quotation
-One of the advantages of Imake is that it easy to generate large
+One of the advantages of Imake is that it is easy to generate large
 makefiles using the @samp{#include} and macro mechanisms of @command{cpp}.
 However, @code{cpp} is not programmable: it has limited conditional
 facilities, and no looping.  And @code{cpp} cannot inspect its
@@ -24927,6 +25820,11 @@ DISTCLEANFILES = myprog-paths.h
 myprog-paths.h: Makefile
         echo '#define DATADIR "$(datadir)"' >$@@
 @end example
+
+@noindent
+The gnulib module @samp{configmake} provides such a header with all the
+standard directory variables defined, @pxref{configmake,,, gnulib, GNU
+Gnulib}.
 
 @item
 Use @code{AC_DEFINE} but have @command{configure} compute the literal
@@ -25167,7 +26065,7 @@ is happening, remember that the use of @code{AC_COMPILE_IFELSE} includes
 a call to @code{AC_REQUIRE([AC_PROG_CC])} under the hood.  According to
 the documented semantics of @code{AC_REQUIRE}, this means that
 @code{AC_PROG_CC} @emph{must} occur before the body of the outermost
-@code{AC_DEFUN}, which in this case is @code{BAR}, thus preceeding the
+@code{AC_DEFUN}, which in this case is @code{BAR}, thus preceding the
 use of @samp{foobar=}.  The older versions of Autoconf were broken with
 regards to the rules of @code{AC_REQUIRE}, which explains why the code
 changed from one over to two copies of @code{AC_PROG_CC} when upgrading
@@ -25272,7 +26170,7 @@ failed.
 Debugging @command{configure} script execution may be done by sprinkling
 pairs of @code{set -x} and @code{set +x} into the shell script before
 and after the region that contains a bug.  Running the whole script with
-@samp{@var{shell} ./configure -vx 2>&1 | tee @var{log-file}} with a decent
+@samp{@var{shell} -vx ./configure 2>&1 | tee @var{log-file}} with a decent
 @var{shell} may work, but produces lots of output.  Here, it can help to
 search for markers like @samp{checking for} a particular test in the
 @var{log-file}.
@@ -25350,6 +26248,8 @@ then provide it through documented shell variables.
 @node History
 @chapter History of Autoconf
 @cindex History of autoconf
+
+@emph{This chapter was written by the original author, David MacKenzie.}
 
 You may be wondering, Why was Autoconf originally written?  How did it
 get into its present form?  (Why does it look like gorilla spit?)  If
@@ -25713,7 +26613,7 @@ introduced in this document.
 @c  LocalWords:  linux netinet ia Tru XFree DIRENT NDIR dirent ndir multitable
 @c  LocalWords:  NAMLEN strlen namlen MKDEV SYSMACROS makedev RESOLV resolv DNS
 @c  LocalWords:  inet structs NAMESER arpa NETDB netdb UTekV UTS GCC's kB
-@c  LocalWords:  STDBOOL BOOL stdbool conformant cplusplus bool Bool stdarg tm
+@c  LocalWords:  STDBOOL BOOL stdbool cplusplus bool Bool stdarg tm
 @c  LocalWords:  ctype strchr strrchr rindex bcopy memmove memchr WEXITSTATUS
 @c  LocalWords:  WIFEXITED TIOCGWINSZ GWINSZ termios preprocess preprocessable
 @c  LocalWords:  DECLS strdup calloc BLKSIZE blksize RDEV rdev TZNAME tzname pw
@@ -25758,7 +26658,7 @@ introduced in this document.
 @c  LocalWords:  GOBJC OTP ERLC erl valloc decr dumpdef errprint incr
 @c  LocalWords:  esyscmd len maketemp pushdef substr syscmd sysval translit txt
 @c  LocalWords:  sinclude foreach myvar tolower toupper uniq BASENAME STDIN
-@c  LocalWords:  Dynix descrips basename aname cname macroexpands xno xcheck
+@c  LocalWords:  Dynix basename aname cname macroexpands xno xcheck
 @c  LocalWords:  LIBREADLINE lreadline lncurses libreadline
 
 @c Local Variables:

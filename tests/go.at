@@ -1,8 +1,8 @@
 #							-*- Autotest -*-
 
-AT_BANNER([Autoscan.])
+AT_BANNER([Go low level compiling and utility macros.])
 
-# Copyright (C) 2005, 2009-2012 Free Software Foundation, Inc.
+# Copyright (C) 2011-2012 Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,31 +17,17 @@ AT_BANNER([Autoscan.])
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-AT_SETUP([autoscan])
 
-AT_DATA([Makefile.am],
-[[SUBDIRS = subpkg
+# Since the macros which compile are required by most tests, check
+# them first.  But remember that looking for a compiler is even more
+# primitive, so check those first.
+
+
+## ------------- ##
+## Go Compiler.  ##
+## ------------- ##
+
+AT_CHECK_MACRO([Go],
+[[AC_LANG(Go)
+AC_LANG_COMPILER
 ]])
-
-AT_DATA([configure.ac],
-[[AC_INIT
-AC_PREREQ(2.59)
-AM_INIT_AUTOMAKE(foreign)
-AC_CONFIG_SUBDIRS(subpkg)
-AC_CONFIG_FILES(Makefile)
-AC_OUTPUT
-]])
-
-mkdir subpkg
-
-AT_DATA([subpkg/Makefile.am], [])
-AT_DATA([subpkg/configure.ac],
-[[AC_INIT
-AM_INIT_AUTOMAKE(foreign)
-AC_CONFIG_FILES(Makefile)
-AC_OUTPUT
-]])
-AT_CHECK([autoscan])
-AT_CHECK([grep subpkg/Makefile configure.scan], [1], [], [ignore])
-
-AT_CLEANUP
