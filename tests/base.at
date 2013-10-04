@@ -7,8 +7,8 @@ AT_BANNER([Autoconf base layer.])
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2, or (at your option)
-# any later version.
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,9 +16,7 @@ AT_BANNER([Autoconf base layer.])
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA.
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 ## ------------------------------- ##
@@ -200,6 +198,27 @@ AT_CHECK_CONFIGURE
 AT_CLEANUP
 
 
+## -------- ##
+## AC_INIT. ##
+## -------- ##
+
+# Make sure AC_INIT sets PACKAGE_TARNAME properly.
+
+AT_SETUP([AC_INIT])
+
+AT_DATA([configure.ac],
+[[AC_INIT([GNU fu], [1.0], [bug-fu@gnu.org])
+]])
+
+AT_CHECK_AUTOCONF
+AT_CHECK_CONFIGURE([-q])
+
+# Ensure we get the expected definition:
+AT_CHECK([grep "^PACKAGE_TARNAME='fu'\$" configure], [], [ignore])
+
+AT_CLEANUP
+
+
 ## ---------------- ##
 ## AC_CACHE_CHECK.  ##
 ## ---------------- ##
@@ -299,9 +318,9 @@ AT_DATA([configure.ac],
 cat <&AS@&t@_ORIGINAL_STDIN_FD >&AS@&t@_MESSAGE_FD
 ]])
 AT_CHECK_AUTOCONF
-AT_CHECK([echo Hello | CONFIG_SITE=/dev/null ./configure | grep -v 'configure: loading site script '],, [Hello
+AT_CHECK([echo Hello | CONFIG_SITE=/dev/null ./configure $configure_options | grep -v 'configure: loading site script '],, [Hello
 ])
-AT_CHECK([echo Hello | CONFIG_SITE=/dev/null ./configure --silent])
+AT_CHECK([echo Hello | CONFIG_SITE=/dev/null ./configure $configure_options --silent])
 
 AT_CLEANUP
 

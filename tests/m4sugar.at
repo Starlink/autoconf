@@ -7,8 +7,8 @@ AT_BANNER([M4sugar.])
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2, or (at your option)
-# any later version.
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,9 +16,7 @@ AT_BANNER([M4sugar.])
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA.
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 # AT_CHECK_M4SUGAR_TEXT(CODE, STDOUT, STDERR)
@@ -1129,6 +1127,7 @@ AT_CLEANUP
 ## -------------- ##
 
 AT_SETUP([m4@&t@_text_wrap])
+AT_KEYWORDS([m4@&t@_escape])
 
 # m4_text_wrap is used to display the help strings.  Also, check that
 # commas and $ are not swallowed.  This can easily happen because of
@@ -1136,6 +1135,11 @@ AT_SETUP([m4@&t@_text_wrap])
 
 AT_DATA_M4SUGAR([script.4s],
 [[m4_init[]m4_divert([0])dnl
+m4_define([a], [OOPS])dnl
+m4_escape([a[b $c#]d])
+m4_if(m4_escape([a[b $c#]d]), [a[b $c#]d], [oops],
+      m4_escape([a[b $c#]d]), [a@<:@b @S|@c@%:@@:>@d], [pass], [oops])
+
 m4_text_wrap([Short string */], [   ], [/* ], 20)
 
 m4_text_wrap([Much longer string */], [   ], [/* ], 20)
@@ -1146,13 +1150,16 @@ m4_text_wrap([Short doc.], [          ], [  --too-wide], 30)
 
 m4_text_wrap([Super long documentation.], [          ], [  --too-wide], 30)
 
-m4_text_wrap([First, second  , third, [,quoted]])
+m4_text_wrap([First, second  , third, [,quoted  space]])
 m4_define([xfff], [oops])
 m4_text_wrap([Some $1 $2 $3 $4 embedded dollars.], [ $* ], [ $@ ], [0xfff & 20])
 ]])
 
 AT_DATA([expout],
-[[/* Short string */
+[[a[b $c#]d
+pass
+
+/* Short string */
 
 /* Much longer
    string */
@@ -1166,7 +1173,7 @@ AT_DATA([expout],
           Super long
           documentation.
 
-First, second , third, [,quoted]
+First, second , third, [,quoted space]
 
  $@ Some $1 $2 $3
  $* $4 embedded
@@ -1290,6 +1297,43 @@ no\
 AB
 AB
 AB
+]])
+
+AT_CLEANUP
+
+## ------------------------ ##
+## m4_toupper, m4_tolower.  ##
+## ------------------------ ##
+
+AT_SETUP([m4@&t@_toupper and m4@&t@_tolower])
+
+AT_CHECK_M4SUGAR_TEXT(
+[[m4_define([abc], [hI])m4_define([ABC], [Hi])
+m4_toupper(abc aBc ABC)
+m4_tolower(abc aBc ABC)
+m4_toupper([abc aBc ABC])
+m4_tolower([abc aBc ABC])
+m4_echo(m4_toupper(abc aBc ABC))
+m4_echo(m4_tolower(abc aBc ABC))
+m4_echo(m4_toupper([abc aBc ABC]))
+m4_echo(m4_tolower([abc aBc ABC]))
+m4_do(m4_toupper(abc aBc ABC))
+m4_do(m4_tolower(abc aBc ABC))
+m4_do(m4_toupper([abc aBc ABC]))
+m4_do(m4_tolower([abc aBc ABC]))
+]], [[
+HI ABC HI
+hi abc hi
+ABC ABC ABC
+abc abc abc
+HI ABC HI
+hi abc hi
+ABC ABC ABC
+abc abc abc
+HI Hi HI
+hi hI hi
+Hi Hi Hi
+hI hI hI
 ]])
 
 AT_CLEANUP

@@ -1,6 +1,6 @@
 # Make Autotest library.
 
-# Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+# Copyright (C) 2001, 2002, 2009 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 autotestlibdir = $(pkgdatadir)/autotest
-dist_autotestlib_DATA = autotest.m4 general.m4
+dist_autotestlib_DATA = autotest.m4 general.m4 specific.m4
 nodist_autotestlib_DATA = autotest.m4f
 CLEANFILES = $(nodist_autotestlib_DATA)
 

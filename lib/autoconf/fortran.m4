@@ -1,50 +1,28 @@
 # This file is part of Autoconf.                       -*- Autoconf -*-
 # Fortran languages support.
-# Copyright (C) 2001, 2003, 2004, 2005, 2006, 2007, 2008, 2009
-# Free Software Foundation, Inc.
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2, or (at your option)
-# any later version.
+# Copyright (C) 2001, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free
+# Software Foundation, Inc.
+
+# This file is part of Autoconf.  This program is free
+# software; you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
+# Under Section 7 of GPL version 3, you are granted additional
+# permissions described in the Autoconf Configure Script Exception,
+# version 3.0, as published by the Free Software Foundation.
+#
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA.
-#
-# As a special exception, the Free Software Foundation gives unlimited
-# permission to copy, distribute and modify the configure scripts that
-# are the output of Autoconf.  You need not follow the terms of the GNU
-# General Public License when using or distributing such scripts, even
-# though portions of the text of Autoconf appear in them.  The GNU
-# General Public License (GPL) does govern all other use of the material
-# that constitutes the Autoconf program.
-#
-# Certain portions of the Autoconf source text are designed to be copied
-# (in certain cases, depending on the input) into the output of
-# Autoconf.  We call these the "data" portions.  The rest of the Autoconf
-# source text consists of comments plus executable code that decides which
-# of the data portions to output in any given case.  We call these
-# comments and executable code the "non-data" portions.  Autoconf never
-# copies any of the non-data portions into its output.
-#
-# This special exception to the GPL applies to versions of Autoconf
-# released by the Free Software Foundation.  When you make and
-# distribute a modified version of Autoconf, you may extend this special
-# exception to the GPL to apply to your modified version as well, *unless*
-# your modified version has the potential to copy into its output some
-# of the text that was the non-data portion of the version that you started
-# with.  (In other words, unless your change moves or copies text from
-# the non-data portions to the data portions.)  If your modification has
-# such potential, you must delete any notice of this special exception
-# to the GPL from your modified version.
-#
+# and a copy of the Autoconf Configure Script Exception along with
+# this program; see the files COPYINGv3 and COPYING.EXCEPTION
+# respectively.  If not, see <http://www.gnu.org/licenses/>.
+
 # Written by David MacKenzie, with help from
 # Franc,ois Pinard, Karl Berry, Richard Pixley, Ian Lance Taylor,
 # Roland McGrath, Noah Friedman, david d zuhn, and many others.
@@ -202,7 +180,7 @@ fi[]dnl
 
 # AC_LANG(Fortran 77)
 # -------------------
-AC_LANG_DEFINE([Fortran 77], [f77], [F], [],
+AC_LANG_DEFINE([Fortran 77], [f77], [F], [F77], [],
 [ac_ext=f
 ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&AS_MESSAGE_LOG_FD'
 ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&AS_MESSAGE_LOG_FD'
@@ -327,7 +305,7 @@ m4_define([AC_LANG_FUNC_LINK_TRY(Preprocessed Fortran)],
 
 # AC_LANG(Fortran)
 # ----------------
-AC_LANG_DEFINE([Fortran], [fc], [FC], [Fortran 77],
+AC_LANG_DEFINE([Fortran], [fc], [FC], [FC], [Fortran 77],
 [ac_ext=${ac_fc_srcext-f}
 ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&AS_MESSAGE_LOG_FD'
 ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&AS_MESSAGE_LOG_FD'
@@ -341,15 +319,15 @@ ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 
 # AC_LANG(Preprocessed Fortran)
 # --------------------------------
-# We need a separate `preprocessed' language, because not all Fortran 
+# We need a separate `preprocessed' language, because not all Fortran
 # compilers have a preprocessor built in.  Therefore we may need to
 # resort to an `indirect' compilation, .F->.f->.o, including the
 # generation of a suitable extra build rule.  The language extension
-# is set in macro AC_PROG_FPP, to $FPP_SRC_EXT. Note we base on 
+# is set in macro AC_PROG_FPP, to $FPP_SRC_EXT. Note we base on
 # Fortran 77 which gets some support macros we previously defined.
 AC_LANG_DEFINE([Preprocessed Fortran], [fpp], [FPP], [Fortran 77],
 [ac_ext=$FPP_SRC_EXT
-# We need to use variables because compilation depends on whether 
+# We need to use variables because compilation depends on whether
 # $F77 supports direct compilation of source with cpp directives
 ac_compile=$ac_fpp_compile
 ac_link=$ac_fpp_link
@@ -449,7 +427,7 @@ cat > conftest.$ac_ext << \_ACEOF
 _ACEOF
 _AC_EVAL_STDERR($ac_compile)
 AC_MSG_CHECKING([for suffix of module files])
-for ac_mod_file in conftest.mod conftest.MOD conftest.M CONFTEST.MOD none	 
+for ac_mod_file in conftest.mod conftest.MOD conftest.M CONFTEST.MOD none
 do
   if test -f $ac_mod_file; then
     break;
@@ -517,7 +495,7 @@ fi
 #  efc: Intel Fortran 95 compiler for IA64
 #  f77 -old_f77: DIGITAL Fortran 77 (as opposed to f90 in F77 mode)
 #
-# Must check for lf95 before f95 - some Lahey versions ship an f95 binary 
+# Must check for lf95 before f95 - some Lahey versions ship an f95 binary
 # in the default path that must be avoided.
 # (A proper fix would involve being able to go back and try another compiler
 #  if the first one fails, but that requires a major reworking of much of
@@ -1395,22 +1373,22 @@ AC_LANG_POP(Fortran)dnl
 #
 # The problem with this is ... we are doing this in order to find what
 # flag must be passed to the compiler to compile a preprocessed file;
-# but we haven't (or need not have) constructed the ac_fpp_compile 
+# but we haven't (or need not have) constructed the ac_fpp_compile
 # variable yet. Thus we must check to see first if we know how to compile
 # preprocessed source, and otherwise pretend that we're compiling normal
 # Fortran.
-# 
+#
 # The (other) problem is that flags may be different for preprocessed
 # free form, and preprocessed fixed form, source. This is true for
 # the xlf compiler, but this can be faked by treating the free/fixed
 # form question and the fpp/nofpp question separately, and adding both
 # to F(C|PP)FLAGS_SRCEXT. This requires good behaviour on the part of
-# automake or the package maintainer though. It really ought to be 
+# automake or the package maintainer though. It really ought to be
 # fixed at some point.
 #
 # For the moment, the flags we test for are:
 #       <none> : rely on current source extension
-# -qsuffix=cpp : xlf 
+# -qsuffix=cpp : xlf
 #         -cpp : Tru64, (some versions of) Intel Fortran
 #         -fpp : NAG, (some versions of) Intel Fortran
 #  -lfe "-Cpp" : Lahey (undocumented)
@@ -1443,7 +1421,7 @@ for ac_flag in none -qsuffix=cpp=$1 -cpp -fpp '-lfe "-Cpp"'; do
       end
 #endif
 ],   [ac_cv_fpp_srcext_$1=$ac_flag; break])
-     AC_LANG_POP([Preprocessed Fortran]) 
+     AC_LANG_POP([Preprocessed Fortran])
   fi
 done
 rm -f conftest.$ac_objext conftest.$1
@@ -1530,10 +1508,10 @@ fi
 # The known flags are:
 #        -ffree-form: GNU g77
 #                -FR: Intel compiler (icc, ecc)
-#              -free: Compaq compiler (fort), NAG compiler 
+#              -free: Compaq compiler (fort), NAG compiler
 #             -qfree: IBM compiler (xlf) (generates a warning with
 #                                         recent versions)
-#         -qfree=f90: Newer xlf versions 
+#         -qfree=f90: Newer xlf versions
 #             --nfix: Lahey compiler
 # -Mfree, -Mfreeform: Portland Group compiler
 #          -freeform: SGI compiler
@@ -1550,6 +1528,7 @@ for ac_flag in none -ffree-form -FR -free -qfree "-qfree=f90" -Mfree -Mfreeform 
                -freeform "-f free" --nfix
 do
   test "x$ac_flag" != xnone && FCFLAGS="$ac_fc_freeform_FCFLAGS_save $ac_flag"
+dnl Use @&t@ below to ensure that editors don't turn 8+ spaces into tab.
   AC_COMPILE_IFELSE([
 program freeform
 ! FIXME: how to best confuse non-freeform compilers?
@@ -1588,7 +1567,7 @@ AC_LANG_POP(Fortran)dnl
 # comma) to check combinations of specifiers.  You may not include a
 # space in the `specifier', even quoted.  Each argument must be a
 # maximum of 65 characters in length (to abide by Fortran 77
-# line-length limits). 
+# line-length limits).
 #
 dnl Multiple m4_quote instances are necessary in case specifier includes comma.
 dnl In the Fortran OPEN line, include status='scratch' unless status=???
@@ -1637,7 +1616,7 @@ AC_DEFUN([AC_FC_CHECK_INTRINSICS],
               [AC_CACHE_CHECK([whether ${FC} supports intrinsic ]IntrinsicName,
                               [ac_cv_fc_has_]IntrinsicName,
                               [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[
-dnl All we need do is attempt to declare the thing as an intrinsic, 
+dnl All we need do is attempt to declare the thing as an intrinsic,
 dnl since it is an error to thus declare a symbol which is not
 dnl in fact an intrinsic function.
       intrinsic IntrinsicName
@@ -1863,7 +1842,7 @@ AC_DEFUN([AC_FC_HAVE_BOZ],
 # A problem with this test is that it may compile but the assignments are not
 # actually typeless and have been done as integer casts.  To stop this we need
 # to run the program and check if an integer equals a floating point value, by
-# value, they shouldn't for a bit pattern assignment. Uses a "EXIT(1)" to 
+# value, they shouldn't for a bit pattern assignment. Uses a "EXIT(1)" to
 # signal a problem. This is non-standard, so the test may fail for that reason.
 AC_DEFUN([AC_FC_HAVE_TYPELESS_BOZ],
          [AC_REQUIRE([AC_PROG_FC])dnl
@@ -1871,7 +1850,7 @@ AC_DEFUN([AC_FC_HAVE_TYPELESS_BOZ],
                          [ac_cv_fc_have_typeless_boz],
                          [AC_LANG_PUSH([Fortran])
                           AC_RUN_IFELSE([AC_LANG_SOURCE([
-      PROGRAM TMP  
+      PROGRAM TMP
       INTEGER I
       PARAMETER ( I = X'FF7FFFFF' )
       REAL D
@@ -1902,7 +1881,7 @@ AC_DEFUN([AC_FC_HAVE_TYPELESS_BOZ],
 # A problem with this test is that it may compile but the assignments are not
 # actually typeless and have been done as integer casts.  To stop this we need
 # to run the program and check if an integer equals a floating point value, by
-# value, they shouldn't for a bit pattern assignment. Uses a "EXIT(1)" to 
+# value, they shouldn't for a bit pattern assignment. Uses a "EXIT(1)" to
 # signal a problem. This is non-standard, so the test may fail for that reason.
 AC_DEFUN([AC_FC_HAVE_OLD_TYPELESS_BOZ],
          [AC_REQUIRE([AC_PROG_FC])dnl
@@ -1910,7 +1889,7 @@ AC_DEFUN([AC_FC_HAVE_OLD_TYPELESS_BOZ],
                          [ac_cv_fc_have_old_typeless_boz],
                          [AC_LANG_PUSH([Fortran])
                           AC_RUN_IFELSE([AC_LANG_SOURCE([
-      PROGRAM TMP  
+      PROGRAM TMP
       INTEGER I
       PARAMETER ( I = 'FF7FFFFF'X )
       REAL D
@@ -1995,14 +1974,14 @@ AC_DEFUN([AC_FC_LITERAL_BACKSLASH],
 # -------------------------
 # Check which flag is necessary to alter the compiler's search path
 # for module files.
-# This obviously requires that the compiler has some notion of 
-# module files as separate from object files and some sensible 
-# method of altering its search path. This will therefore not work 
+# This obviously requires that the compiler has some notion of
+# module files as separate from object files and some sensible
+# method of altering its search path. This will therefore not work
 # on early Cray F90 compilers, or on v5 (and 6?) of ifc.
 #
 # Nearly every compiler I have found uses -Ipath for this purpose;
 # Sun F95 v7.1 (at least), uses -Mpath
-# 
+#
 AC_DEFUN([AC_FC_CHECK_MOD_PATH_FLAG],[
           AC_REQUIRE([AC_PROG_FC])
           ac_cv_fc_mod_path_flag=no
@@ -2118,7 +2097,7 @@ AC_DEFUN([_AC_LANG_PROGRAM_FPP_SUBS],
 # _AC_LANG_PROGRAM_FPP_WRAP
 # ---------------------------
 # Test whether preprocessor breaks lines that become too long due
-# to macro substitution. 
+# to macro substitution.
 # If not, this gives an "unterminated character constant" error
 AC_DEFUN([_AC_LANG_PROGRAM_FPP_WRAP],
 [AC_LANG_PROGRAM([
@@ -2158,16 +2137,16 @@ do
     case $_t in
         d*)    ac_fpp_need_d=yes    ;;
         nod*)  ac_fpp_need_d=no     ;;
-        i*)    ac_fpp_need_i=yes    ;;   
+        i*)    ac_fpp_need_i=yes    ;;
         noi*)  ac_fpp_need_i=no     ;;
-        s*)    ac_fpp_need_subs=yes    ;;   
+        s*)    ac_fpp_need_subs=yes    ;;
         nos*)  ac_fpp_need_subs=no     ;;
-        w*)    ac_fpp_need_wrap=yes   ;;   
-        now*)  ac_fpp_need_wrap=no    ;;   
-        c*)    ac_fpp_need_cstyle=yes ;;   
-        noc*)  ac_fpp_need_cstyle=no  ;;   
-        C*)    ac_fpp_need_CSTYLE=yes ;;   
-        noC*)  ac_fpp_need_CSTYLE=no  ;;   
+        w*)    ac_fpp_need_wrap=yes   ;;
+        now*)  ac_fpp_need_wrap=no    ;;
+        c*)    ac_fpp_need_cstyle=yes ;;
+        noc*)  ac_fpp_need_cstyle=no  ;;
+        C*)    ac_fpp_need_CSTYLE=yes ;;
+        noC*)  ac_fpp_need_CSTYLE=no  ;;
         nil)   ;;
     esac
 done
@@ -2193,7 +2172,7 @@ ac_fpp_command=$1
 if eval '$ac_fpp_command conftest.$ac_ext > conftest.log 2>/dev/null'; then
   if test -f conftest.f; then
     if cmp conftest.$ac_ext conftest.f >/dev/null; then
-      # ooops -- these two are the same file.  Ie, this is a 
+      # ooops -- these two are the same file.  Ie, this is a
       # case-insensitive filesystem, so ignore this file
       ac_tmp=
     else
@@ -2288,7 +2267,7 @@ fi
 dnl AC_LANG_POP()dnl
 ])
 AC_CACHE_CHECK([how to redirect $ac_cv_prog_fpp output],
-  ac_cv_fpp_out, 
+  ac_cv_fpp_out,
   [ac_cv_fpp_out=$ac_fpp_out])
 FPP=$ac_cv_prog_fpp
 ac_fpp_out=$ac_cv_fpp_out
@@ -2348,7 +2327,7 @@ else
        AC_TRY_EVAL(ac_link) && test -s conftest${ac_exeext}; then
      ac_cv_prog_fpp_p=-P
    fi
-   FPPFLAGS=$ac_save_FPPFLAGS   
+   FPPFLAGS=$ac_save_FPPFLAGS
 fi
 rm -f conftest*
 AC_LANG_POP(Fortran)dnl
@@ -2364,7 +2343,7 @@ fi
 # -------------------
 # Check whether FPP lets C-style options through to FC
 AC_DEFUN([_AC_PROG_FPP_CSTYLE],
-[AC_CACHE_CHECK([how to pass C-style comments to $FC], 
+[AC_CACHE_CHECK([how to pass C-style comments to $FC],
    ac_cv_prog_fpp_cstyle,
 [ac_cv_prog_fpp_cstyle=unknown
 dnl AC_LANG_PUSH(Preprocessed Fortran)
@@ -2381,7 +2360,7 @@ if AC_TRY_EVAL(ac_cmd) &&
    ac_cv_prog_fpp_cstyle=
 else
    ac_save_FPPFLAGS=$FPPFLAGS
-   ac_name=`expr "x$FPP" : 'x\(fpp\)'` 
+   ac_name=`expr "x$FPP" : 'x\(fpp\)'`
    if test "x$ac_name" = xfpp; then
      ac_flag="-c_com=no"
    else
@@ -2393,7 +2372,7 @@ else
      cat conftest.f | grep '/[[*]].*[[*]]/' >/dev/null 2>&1; then
      ac_cv_prog_fpp_cstyle=$ac_flag
    fi
-   FPPFLAGS=$ac_save_FPPFLAGS   
+   FPPFLAGS=$ac_save_FPPFLAGS
 fi
 rm -f conftest*
 AC_LANG_POP(Fortran)dnl
@@ -2410,7 +2389,7 @@ fi
 #FIXME: this is only for fixed form code. Need a separate check for free-form.
 # Test whether compilation of Fortan code with preprocessor directives
 # succeeds, and check for supported features
-# 
+#
 # Sets ac_fpp_ok to "no" if a requested feature is unavailable
 #
 AC_DEFUN([_AC_PROG_FC_CPP],
@@ -2427,9 +2406,9 @@ AC_LANG_ASSERT(Preprocessed Fortran)
 AC_MSG_CHECKING([for fixed form Fortran preprocessor features])
 # We must use AC_LINK_IFELSE because Lahey Fortran (and maybe others) have
 # broken exit status when compiling
-AC_LINK_IFELSE([_AC_LANG_PROGRAM_FPP_SIMPLE], 
+AC_LINK_IFELSE([_AC_LANG_PROGRAM_FPP_SIMPLE],
    [ac_prog_fc_cpp=yes],
-   [ac_fpp_ok=no]) 
+   [ac_fpp_ok=no])
 
 if test $ac_prog_fc_cpp = yes; then
 
@@ -2438,7 +2417,7 @@ if test $ac_prog_fc_cpp = yes; then
        ac_save_FPPFLAGS=$FPPFLAGS
        FPPFLAGS="$FPPFLAGS -DOK"
        AC_LINK_IFELSE([_AC_LANG_PROGRAM_FPP_D],
-         [ac_prog_fc_cpp_d=yes; FPPFLAGS_DEF="-D"], 
+         [ac_prog_fc_cpp_d=yes; FPPFLAGS_DEF="-D"],
          [:])
        FPPFLAGS=$ac_save_FPPFLAGS
        if test $ac_prog_fc_cpp_d = no; then
@@ -2446,7 +2425,7 @@ if test $ac_prog_fc_cpp = yes; then
           ac_save_FPPFLAGS=$FPPFLAGS
           FPPFLAGS="$FPPFLAGS -WF,-DOK"
           AC_LINK_IFELSE([_AC_LANG_PROGRAM_FPP_D],
-            [ac_prog_fc_cpp_d=yes; FPPFLAGS_DEF="-WF,-D"], 
+            [ac_prog_fc_cpp_d=yes; FPPFLAGS_DEF="-WF,-D"],
             [ac_fpp_ok=no])
           FPPFLAGS=$ac_save_FPPFLAGS
        fi
@@ -2470,19 +2449,19 @@ _ACEOF
 
     if test $ac_fpp_need_subs = yes; then
         AC_LINK_IFELSE([_AC_LANG_PROGRAM_FPP_SUBS],
-           [ac_prog_fc_cpp_subs=yes], 
+           [ac_prog_fc_cpp_subs=yes],
            [ac_fpp_ok=no])
     fi
 
     if test $ac_fpp_need_wrap = yes; then
         AC_LINK_IFELSE([_AC_LANG_PROGRAM_FPP_WRAP],
-           [ac_prog_fc_cpp_wrap=yes], 
+           [ac_prog_fc_cpp_wrap=yes],
            [ac_fpp_ok=no])
     fi
 
     if test $ac_fpp_need_CSTYLE = yes; then
         AC_LINK_IFELSE([_AC_LANG_PROGRAM_FPP_CSTYLE],
-           [ac_prog_fc_cpp_CSTYLE=yes], 
+           [ac_prog_fc_cpp_CSTYLE=yes],
            [ac_fpp_ok=no])
     fi
 fi
@@ -2581,7 +2560,7 @@ elif test -z "$ac_cv_prog_fpp"; then
 elif test $ac_fpp_equals_fc = yes; then
    ac_cv_fpp_build_rule=direct
    ac_fpp_status=fail
-else   
+else
    ac_fpp_status=fail
 # Both methods - direct and indirect - fail to meet some requirements
 # We use a simple approach to choose the best alternative
@@ -2730,36 +2709,36 @@ AC_LANG_PUSH(Preprocessed Fortran)
 # The reason for that is reusability of the macro for other cv variables (see below)
 _AC_PROG_FC_CPP
 
-AC_CACHE_CHECK([whether $FC compiles programs with cpp directives], 
-   ac_cv_prog_fc_cpp, 
+AC_CACHE_CHECK([whether $FC compiles programs with cpp directives],
+   ac_cv_prog_fc_cpp,
   [ac_cv_prog_fc_cpp=$ac_prog_fc_cpp])
 
 if test $ac_fpp_need_d = yes; then
-  AC_CACHE_CHECK([whether $FC accepts -D], 
-     ac_cv_prog_fc_cpp_d, 
+  AC_CACHE_CHECK([whether $FC accepts -D],
+     ac_cv_prog_fc_cpp_d,
     [ac_cv_prog_fc_cpp_d=$ac_prog_fc_cpp_d])
 fi
 
 if test $ac_fpp_need_i = yes; then
-  AC_CACHE_CHECK([whether $FC accepts -I], 
+  AC_CACHE_CHECK([whether $FC accepts -I],
      ac_cv_prog_fc_cpp_i,
     [ac_cv_prog_fc_cpp_i=$ac_prog_fc_cpp_i])
 fi
 
 if test $ac_fpp_need_subs = yes; then
-  AC_CACHE_CHECK([whether $FC substitutes macros in Fortran code], 
+  AC_CACHE_CHECK([whether $FC substitutes macros in Fortran code],
      ac_cv_prog_fc_cpp_subs,
     [ac_cv_prog_fc_cpp_subs=$ac_prog_fc_cpp_subs])
 fi
 
-if test $ac_fpp_need_wrap = yes; then 
-  AC_CACHE_CHECK([whether $FC wraps long lines automatically], 
+if test $ac_fpp_need_wrap = yes; then
+  AC_CACHE_CHECK([whether $FC wraps long lines automatically],
      ac_cv_prog_fc_cpp_wrap,
     [ac_cv_prog_fc_cpp_wrap=$ac_prog_fc_cpp_wrap])
 fi
 
-if test $ac_fpp_need_CSTYLE = yes; then 
-  AC_CACHE_CHECK([whether $FC handles C-style comments], 
+if test $ac_fpp_need_CSTYLE = yes; then
+  AC_CACHE_CHECK([whether $FC handles C-style comments],
      ac_cv_prog_fc_cpp_CSTYLE,
     [ac_cv_prog_fc_cpp_CSTYLE=$ac_prog_fc_cpp_CSTYLE])
 fi
@@ -2833,36 +2812,36 @@ AC_LANG_PUSH(Preprocessed Fortran)
 # The reason for that is reusability of the macro for other cv variables (see below)
 _AC_PROG_FC_CPP
 
-AC_CACHE_CHECK([whether $FC compiles programs with cpp directives], 
-   ac_cv_prog_fc_cpp, 
+AC_CACHE_CHECK([whether $FC compiles programs with cpp directives],
+   ac_cv_prog_fc_cpp,
   [ac_cv_prog_fc_cpp=$ac_prog_fc_cpp])
 
 if test $ac_fpp_need_d = yes; then
-  AC_CACHE_CHECK([whether $FC accepts -D], 
-     ac_cv_prog_fc_cpp_d, 
+  AC_CACHE_CHECK([whether $FC accepts -D],
+     ac_cv_prog_fc_cpp_d,
     [ac_cv_prog_fc_cpp_d=$ac_prog_fc_cpp_d])
 fi
 
 if test $ac_fpp_need_i = yes; then
-  AC_CACHE_CHECK([whether $FC accepts -I], 
+  AC_CACHE_CHECK([whether $FC accepts -I],
      ac_cv_prog_fc_cpp_i,
     [ac_cv_prog_fc_cpp_i=$ac_prog_fc_cpp_i])
 fi
 
 if test $ac_fpp_need_subs = yes; then
-  AC_CACHE_CHECK([whether $FC substitutes macros in Fortran code], 
+  AC_CACHE_CHECK([whether $FC substitutes macros in Fortran code],
      ac_cv_prog_fc_cpp_subs,
     [ac_cv_prog_fc_cpp_subs=$ac_prog_fc_cpp_subs])
 fi
 
-if test $ac_fpp_need_wrap = yes; then 
-  AC_CACHE_CHECK([whether $FC wraps long lines automatically], 
+if test $ac_fpp_need_wrap = yes; then
+  AC_CACHE_CHECK([whether $FC wraps long lines automatically],
      ac_cv_prog_fc_cpp_wrap,
     [ac_cv_prog_fc_cpp_wrap=$ac_prog_fc_cpp_wrap])
 fi
 
-if test $ac_fpp_need_CSTYLE = yes; then 
-  AC_CACHE_CHECK([whether $FC handles C-style comments], 
+if test $ac_fpp_need_CSTYLE = yes; then
+  AC_CACHE_CHECK([whether $FC handles C-style comments],
      ac_cv_prog_fc_cpp_CSTYLE,
     [ac_cv_prog_fc_cpp_CSTYLE=$ac_prog_fc_cpp_CSTYLE])
 fi
@@ -2895,31 +2874,31 @@ fi
 #
 # include   : correctly process #include directives and -I
 # define    : correctly process -D
-# substitute: substitute macros in Fortran code 
+# substitute: substitute macros in Fortran code
 #             (some preprocessors touch only lines starting with #)
-# wrap      : wrap lines that become too long through macro substitution  
+# wrap      : wrap lines that become too long through macro substitution
 #             fpp is probably the only preprocessor that does this.
 # cstyle    : Do not suppress C style comments (-C option in cpp)
 # CSTYLE    : *Do* suppress C style comments
 #             (e.g. code contains C-style comments, and compiler may not
 #             know how to handle them)
-# 
+#
 # Features can be abbreviated: i, in, inc etc. are equivalent to include.
-# Features can be deselected (feature not needed) by prepending "no", 
+# Features can be deselected (feature not needed) by prepending "no",
 #   e.g. nodef (=nodefine), now (=nowrap).
 #
-# Default for the feature list is 
+# Default for the feature list is
 #       [include define substitute nowrap nocstyle noCSTYLE]
 # Feature requirements corresponding to the defaults may be omitted
 #
 # Note that "wrap" implies "substitute", and CSTYLE and cstyle cannot
-# be requested at the same time. The macro adjusts this automatically. 
+# be requested at the same time. The macro adjusts this automatically.
 #
 # This macro sets and substitutes the variables FPP and FPPFLAGS, and
 # causes to be set FPP_OUTPUT, FPP_MAKE_FLAGS, and FPP_COMPILE_EXT
 # (actually set in macro _AC_FPP_BUILD_RULE)
 #
-# The macro depends on both FC and CPP, because we must possibly fall 
+# The macro depends on both FC and CPP, because we must possibly fall
 # back on CPP for preprocessing.
 #
 AC_DEFUN([AC_PROG_FPP],
@@ -2961,36 +2940,36 @@ else
 fi
 
 if test $ac_fpp_need_d = yes; then
-  AC_CACHE_CHECK([whether $FPP accepts -D], 
-     ac_cv_prog_fpp_d, 
+  AC_CACHE_CHECK([whether $FPP accepts -D],
+     ac_cv_prog_fpp_d,
     [ac_cv_prog_fpp_d=$ac_prog_fc_cpp_d])
 fi
 
 if test $ac_fpp_need_i = yes; then
-  AC_CACHE_CHECK([whether $FPP accepts -I], 
+  AC_CACHE_CHECK([whether $FPP accepts -I],
      ac_cv_prog_fpp_i,
     [ac_cv_prog_fpp_i=$ac_prog_fc_cpp_i])
 fi
 
 if test $ac_fpp_need_subs = yes; then
-  AC_CACHE_CHECK([whether $FPP substitutes macros in Fortran code], 
+  AC_CACHE_CHECK([whether $FPP substitutes macros in Fortran code],
      ac_cv_prog_fpp_subs,
     [ac_cv_prog_fpp_subs=$ac_prog_fc_cpp_subs])
 fi
 
-if test $ac_fpp_need_wrap = yes; then 
-  AC_CACHE_CHECK([whether $FPP wraps long lines automatically], 
+if test $ac_fpp_need_wrap = yes; then
+  AC_CACHE_CHECK([whether $FPP wraps long lines automatically],
      ac_cv_prog_fpp_wrap,
     [ac_cv_prog_fpp_wrap=$ac_prog_fc_cpp_wrap])
 fi
 
-if test $ac_fpp_need_CSTYLE = yes; then 
-  AC_CACHE_CHECK([whether $FPP suppresses C-style comments], 
+if test $ac_fpp_need_CSTYLE = yes; then
+  AC_CACHE_CHECK([whether $FPP suppresses C-style comments],
      ac_cv_prog_fpp_CSTYLE,
     [ac_cv_prog_fpp_CSTYLE=$ac_prog_fc_cpp_CSTYLE])
 
-elif test $ac_fpp_need_cstyle = yes; then 
-# It only makes sense to test this for indirect compilation, 
+elif test $ac_fpp_need_cstyle = yes; then
+# It only makes sense to test this for indirect compilation,
 # i.e., if .f files are generated
     _AC_PROG_FPP_CSTYLE
 fi
@@ -3000,7 +2979,7 @@ AC_CACHE_CHECK([whether $FPP fulfills requested features],
   [ac_cv_prog_fpp_ok=$ac_fpp_ok])
 
 # We have all necessary information.
-# It remains to construct optimal build rules 
+# It remains to construct optimal build rules
 # (direct: .F.o or indirect: .F.f)
 # and carry out the substitutions.
 _AC_FPP_BUILD_RULE
@@ -3009,9 +2988,9 @@ AC_SUBST(FPP)
 AC_SUBST(FPPFLAGS)
 AC_SUBST(FPP_OUTPUT)
 AC_SUBST(FPP_MAKE_FLAGS)
-AC_SUBST(FPP_COMPILE_EXT) 
-AC_SUBST(FPP_PREPROCESS_EXT) 
-AC_SUBST(FPP_SRC_EXT) 
+AC_SUBST(FPP_COMPILE_EXT)
+AC_SUBST(FPP_PREPROCESS_EXT)
+AC_SUBST(FPP_SRC_EXT)
 
 AC_LANG_POP(Preprocessed Fortran)
 

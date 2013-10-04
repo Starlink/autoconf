@@ -2,13 +2,13 @@
 
 AT_BANNER([Semantics.])
 
-# Copyright (C) 2000, 2001, 2002, 2004, 2005, 2006, 2007 Free Software
-# Foundation, Inc.
+# Copyright (C) 2000, 2001, 2002, 2004, 2005, 2006, 2007, 2009 Free
+# Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2, or (at your option)
-# any later version.
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,9 +16,7 @@ AT_BANNER([Semantics.])
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA.
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 ## -------------------------------- ##
@@ -255,6 +253,32 @@ AT_CHECK_DEFINES(
 AT_CLEANUP
 
 
+# AC_CHECK_MEMBER
+# ----------------
+# Check that it performs the correct actions.
+# Must define HAVE_STRUCT_YES_S_YES, but not HAVE_STRUCT_YES_S_NO.
+AT_CHECK_MACRO([AC_CHECK_MEMBER],
+[[AC_CHECK_MEMBER([struct yes_s.yes],
+		  [AC_DEFINE([HAVE_STRUCT_YES_S_YES], [1],
+			     [Define to 1 if `yes' is a member of `struct yes_s'.])],,
+		   [struct sub { int x; };
+		    struct yes_s { int yes; struct sub substruct; };])
+  AC_CHECK_MEMBER([struct yes_s.no],
+		  [AC_DEFINE([HAVE_STRUCT_YES_S_NO], [1],
+			     [Define to 1 if `no' is a member of `struct yes_s'.])],,
+		   [struct sub { int x; };
+		    struct yes_s { int yes; struct sub substruct; };])
+  AC_CHECK_MEMBER([struct yes_s.substruct],
+		  [AC_DEFINE([HAVE_STRUCT_YES_S_SUBSTRUCT], [1],
+			     [Define to 1 if `substruct' is a member of `struct yes_s'.])],,
+		   [struct sub { int x; };
+		    struct yes_s { int yes; struct sub substruct; };])]],
+[AT_CHECK_DEFINES(
+[/* #undef HAVE_STRUCT_YES_S_NO */
+#define HAVE_STRUCT_YES_S_SUBSTRUCT 1
+#define HAVE_STRUCT_YES_S_YES 1
+])])
+
 # AC_CHECK_MEMBERS
 # ----------------
 # Check that it performs the correct actions.
@@ -267,7 +291,9 @@ AT_CHECK_MACRO([AC_CHECK_MEMBERS],
 [/* #undef HAVE_STRUCT_YES_S_NO */
 #define HAVE_STRUCT_YES_S_SUBSTRUCT 1
 #define HAVE_STRUCT_YES_S_YES 1
-])])
+])
+AT_CHECK([grep 'yes.*member of.*yes_s' config.h], [], [ignore])
+])
 
 
 # AC_CHECK_ALIGNOF

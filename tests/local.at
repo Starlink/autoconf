@@ -5,8 +5,8 @@
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2, or (at your option)
-# any later version.
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,9 +14,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA.
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 m4_version_prereq([2.57])
 
@@ -231,7 +229,7 @@ m4_define([AT_CHECK_AUTOHEADER],
 # Using --srcdir is more expensive.
 m4_define([AT_CHECK_CONFIGURE],
 [AT_CAPTURE_FILE([config.log])[]dnl
- AT_CHECK([./configure $1],
+ AT_CHECK([./configure $configure_options $1],
 	  [$2],
 	  m4_default([$3], [ignore]), [$4])])
 
@@ -298,6 +296,7 @@ if test -f state-env.before && test -f state-env.after; then
       [ERL|ERLC|ERLCFLAGS|ERLANG_PATH_ERL|ERLANG_ROOT_DIR|ERLANG_LIB_DIR],
       [ERLANG_LIB_DIR_.*|ERLANG_LIB_VER_.*|ERLANG_INSTALL_LIB_DIR],
       [ERLANG_INSTALL_LIB_DIR_.*|ERLANG_ERTS_VER|OBJC|OBJCPP|OBJCFLAGS],
+      [OBJCXX|OBJCXXCPP|OBJCXXFLAGS],
       [OPENMP_CFLAGS],
       [LIBS|LIB@&t@OBJS|LTLIBOBJS|LDFLAGS],
       [INSTALL(_(DATA|PROGRAM|SCRIPT))?],
@@ -337,6 +336,8 @@ fi
 # - RANDOM [zsh]
 # - SECONDS [zsh]
 # - '$' [zsh]
+# - argv [zsh]
+# - ARGC [zsh]
 #
 # Furthermore, it is okay for a non-cache variable initialized to empty in one
 # run to be unset in another run.  This happens when, for example, cache update
@@ -359,6 +360,8 @@ do
 	/^RANDOM=/ d
 	/^SECONDS=/ d
 	/'\'\\\$\''=/ d
+	/^argv=/ d
+	/^ARGC=/ d
 	' $act_file >at_config_vars-$act_file
 done
 AT_CMP([at_config_vars-$1], [at_config_vars-$2])[]dnl
