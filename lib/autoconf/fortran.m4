@@ -694,7 +694,8 @@ _AS_ECHO_LOG([$[*]])
 # gfortran 4.3 outputs lines setting COLLECT_GCC_OPTIONS, COMPILER_PATH,
 # LIBRARY_PATH; skip all such settings.
 ac_[]_AC_LANG_ABBREV[]_v_output=`eval $ac_link AS_MESSAGE_LOG_FD>&1 2>&1 |
-  grep -v 'Driving:' | grep -v "^[[_$as_cr_Letters]][[_$as_cr_alnum]]*="`
+  sed '/^Driving:/d; /^Configured with:/d;
+      '"/^[[_$as_cr_Letters]][[_$as_cr_alnum]]*=/d"`
 AS_ECHO(["$ac_[]_AC_LANG_ABBREV[]_v_output"]) >&AS_MESSAGE_LOG_FD
 _AC_LANG_PREFIX[]FLAGS=$ac_save_[]_AC_LANG_PREFIX[]FLAGS
 
@@ -1090,12 +1091,12 @@ AC_DEFUN([__AC_FC_NAME_MANGLING],
 AC_CACHE_CHECK([for _AC_LANG name-mangling scheme],
 	       ac_cv_[]_AC_LANG_ABBREV[]_mangling,
 [AC_COMPILE_IFELSE(
-[      subroutine foobar()
+[[      subroutine foobar()
       return
       end
       subroutine foo_bar()
       return
-      end],
+      end]],
 [mv conftest.$ac_objext cfortran_test.$ac_objext
 
   ac_save_LIBS=$LIBS
@@ -1532,10 +1533,10 @@ for ac_flag in none -ffixed-form -fixed -qfixed -Mfixed -fixedform "-f fixed" \
 	       +source=fixed -fix
 do
   test "x$ac_flag" != xnone && FCFLAGS="$ac_fc_fixedform_FCFLAGS_save $ac_flag"
-  AC_COMPILE_IFELSE([
+  AC_COMPILE_IFELSE([[
 C     This comment should confuse free-form compilers.
       program main
-      end],
+      end]],
 		    [ac_cv_fc_fixedform=$ac_flag; break])
 done
 rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
@@ -1614,8 +1615,8 @@ for ac_flag in none \
 	       "-W $ac_fc_line_len" +extend_source -wide -e
 do
   test "x$ac_flag" != xnone && FCFLAGS="$ac_fc_line_length_FCFLAGS_save $ac_flag"
-  AC_COMPILE_IFELSE([$ac_fc_line_length_test
-      end subroutine],
+  AC_COMPILE_IFELSE([[$ac_fc_line_length_test
+      end subroutine]],
 		    [ac_cv_fc_line_length=$ac_flag; break])
 done
 rm -f conftest.err conftest.$ac_objext conftest.$ac_ext

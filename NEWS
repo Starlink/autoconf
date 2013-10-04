@@ -1,5 +1,53 @@
 GNU Autoconf NEWS - User visible changes.
 
+* Noteworthy changes in release 2.68 (2010-09-22) [stable]
+  Released by Eric Blake, based on git versions 2.67.*.
+
+** AC_MSG_ERROR (and AS_ERROR) can once again be followed immediately by
+   `dnl'.  Regression introduced in 2.66.
+
+** AC_INIT again allows URLs with '?' for its BUG-REPORT argument.
+   Regression introduced in 2.66.
+
+** AC_REPLACE_FUNCS again allows a non-literal argument, such as a shell
+   variable that expands to a list of functions to check.  Regression
+   introduced in 2.66.
+
+** AT_BANNER() with empty argument will cause visual separation from previous
+   test category.
+
+** The macros AC_PREPROC_IFELSE, AC_COMPILE_IFELSE, AC_LINK_IFELSE, and
+   AC_RUN_IFELSE now warn if the first argument failed to use
+   AC_LANG_SOURCE or AC_LANG_PROGRAM to generate the conftest file
+   contents.  A new macro AC_LANG_DEFINES_PROVIDED exists if you have
+   a compelling reason why you cannot use AC_LANG_SOURCE but must
+   avoid the warning.
+
+** The macro m4_define_default is now documented.
+
+** Symlinked config.cache files are supported; configure now tries to
+   update non-symlinked cache files atomically, so that concurrent configure
+   runs do not leave behind broken cache files.  It is still unspecified
+   which subset or union of results is cached though.
+
+** Autotest testsuites should not contain long text lines any more, and be
+   portable even when very many test groups are used.
+
+** AT_CHECK semantics with respect to the Autotest variable $at_status and
+   shell execution environment of the arguments are documented now.
+
+** AC_FC_LIBRARY_LDFLAGS now tolerates output from newer gfortran.
+
+** Newly obsolete macros
+   The following macros have been marked obsolete.  New programs
+   should use the corresponding Gnulib modules.  Gnulib not only
+   detects a larger set of portability problems with these functions,
+   but also provides complete workarounds.
+
+     AC_FUNC_ERROR_AT_LINE  AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
+     AC_FUNC_MKTIME  AC_FUNC_STRTOD
+
+
 * Major changes in Autoconf 2.67 (2010-07-21) [stable]
   Released by Eric Blake, based on git versions 2.66.*.
 

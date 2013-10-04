@@ -46,14 +46,18 @@
 @c with texi2dvi.  But then you wake up an old problem: we use macros
 @c in @defmac etc. where TeX does perform the expansion, but not makeinfo.
 
-@c Define an environment variable index.
+@c Define an environment variable index, for variables users may set
+@c in their environment or on the configure command line.
 @defcodeindex ev
-@c Define an output variable index.
+@c Define an output variable index, for commonly AC_SUBST'ed variables.
 @defcodeindex ov
-@c Define a CPP variable index.
-@defcodeindex cv
-@c Define a cache variable index.
+@c Define a cache variable index, for variables matching *_cv_*.
 @defcodeindex CA
+@c Other shell variables not fitting the above categories should be
+@c listed in the predefined vrindex, which we merge in the concept index.
+@syncodeindex vr cp
+@c Define a CPP preprocessor macro index, for #define'd strings.
+@defcodeindex cv
 @c Define an Autoconf macro index that @defmac doesn't write to.
 @defcodeindex AC
 @c Define an Autotest macro index that @defmac doesn't write to.
@@ -729,7 +733,8 @@ about difficulties in writing Autoconf input, and not in the behavior of
 the resulting @file{configure}.  Even packages that don't use Autoconf
 will generally provide a @file{configure} script, and the most common
 complaint about these alternative home-grown scripts is that they fail
-to meet one or more of the GNU Coding Standards that users
+to meet one or more of the GNU Coding Standars (@pxref{Configuration, , ,
+standards, The GNU Coding Standards}) that users
 have come to expect from Autoconf-generated @file{configure} scripts.
 
 The Metaconfig package is similar in purpose to Autoconf, but the
@@ -1658,9 +1663,9 @@ System in a fresh tree.
 GNU Build System in the specified directories and their
 subdirectories (@pxref{Subdirectories}).  By default, it only remakes
 those files that are older than their sources.  The environment variables
-@env{AUTOCONF}, @env{AUTOHEADER}, @env{AUTOMAKE}, @env{ACLOCAL},
-@env{AUTOPOINT}, @env{LIBTOOLIZE}, @env{M4}, and @env{MAKE} may be used
-to override the invocation of the respective tools.
+@env{AUTOM4TE}, @env{AUTOCONF}, @env{AUTOHEADER}, @env{AUTOMAKE},
+@env{ACLOCAL}, @env{AUTOPOINT}, @env{LIBTOOLIZE}, @env{M4}, and @env{MAKE}
+may be used to override the invocation of the respective tools.
 
 If you install a new version of some tool, you can make
 @command{autoreconf} remake @emph{all} of the files by giving it the
@@ -1889,7 +1894,8 @@ Exactly @samp{@var{package} @var{version}}.
 @acindex{PACKAGE_BUGREPORT}
 @ovindex PACKAGE_BUGREPORT
 @cvindex PACKAGE_BUGREPORT
-Exactly @var{bug-report}, if one was provided.
+Exactly @var{bug-report}, if one was provided.  Typically an email
+address, or URL to a bug management web page.
 
 @item @code{AC_PACKAGE_URL}, @code{PACKAGE_URL}
 @acindex{PACKAGE_URL}
@@ -2249,25 +2255,30 @@ The variables set during the execution of @command{configure} are
 
 @table @code
 @item srcdir
+@vrindex srcdir
 The name of the top source directory, assuming that the working
 directory is the top build directory.  This
 is what the @command{configure} option @option{--srcdir} sets.
 
 @item ac_top_srcdir
+@vrindex ac_top_srcdir
 The name of the top source directory, assuming that the working
 directory is the current build directory.
 
 @item ac_top_build_prefix
+@vrindex ac_top_build_prefix
 The name of the top build directory, assuming that the working
 directory is the current build directory.
 It can be empty, or else ends with a slash, so that you may concatenate
 it.
 
 @item ac_srcdir
+@vrindex ac_srcdir
 The name of the corresponding source directory, assuming that the
 working directory is the current build directory.
 
 @item tmp
+@vrindex tmp
 The name of a temporary directory within the build tree, which you
 can use if you need to create additional temporary files.  The
 directory is cleaned up when @command{config.status} is done or
@@ -3915,6 +3926,9 @@ order, and set output variable @code{AWK} to the first one that is found.
 It tries @code{gawk} first because that is reported to be the
 best implementation.  The result can be overridden by setting the
 variable @code{AWK} or the cache variable @code{ac_cv_prog_AWK}.
+
+Using this macro is sufficient to avoid the pitfalls of traditional
+@command{awk} (@pxref{awk, , Limitations of Usual Tools}).
 @end defmac
 
 @defmac AC_PROG_GREP
@@ -4316,6 +4330,8 @@ the @code{ac_cv_path_@var{variable}} variable.
   @ovar{action-if-not-found}, @dvar{path, $PATH})
 @acindex{PATH_PROGS_FEATURE_CHECK}
 @caindex path_@var{variable}
+@vrindex ac_path_@var{variable}
+@vrindex ac_path_@var{variable}_found
 This macro was introduced in Autoconf 2.62.  If @var{variable} is not
 empty, then set the cache variable @code{ac_cv_path_@var{variable}} to
 its value.  Otherwise, check for each program in the blank-separated
@@ -4510,7 +4526,12 @@ it, then you can use one of the general function-check macros.
 Most usual functions can either be missing, or be buggy, or be limited
 on some architectures.  This section tries to make an inventory of these
 portability issues.  By definition, this list always requires
-additions.  Please help us keeping it as complete as possible.
+additions.  A much more complete list is maintained by the Gnulib
+project (@pxref{Gnulib}), covering @ref{Function Substitutes, ,
+Current Posix Functions, gnulib, GNU gnulib}, @ref{Legacy Function
+Substitutes, , Legacy Functions, gnulib, GNU gnulib}, and @ref{Glibc
+Function Substitutes, , Glibc Functions, gnulib, GNU gnulib}.  Please
+help us keep the gnulib list as complete as possible.
 
 @table @asis
 @item @code{exit}
@@ -4812,6 +4833,14 @@ like the following, to declare it properly.
 
 @example
 @group
+#ifdef STDC_HEADERS
+# include <stdlib.h>
+# include <stddef.h>
+#else
+# ifdef HAVE_STDLIB_H
+#  include <stdlib.h>
+# endif
+#endif
 #ifdef HAVE_ALLOCA_H
 # include <alloca.h>
 #elif defined __GNUC__
@@ -4822,11 +4851,12 @@ like the following, to declare it properly.
 # include <malloc.h>
 # define alloca _alloca
 #else
-# include <stddef.h>
-# ifdef  __cplusplus
+# ifndef HAVE_ALLOCA
+#  ifdef  __cplusplus
 extern "C"
-# endif
+#  endif
 void *alloca (size_t);
+# endif
 #endif
 @end group
 @end example
@@ -4876,6 +4906,9 @@ If the @code{error_at_line} function is not found, require an
 
 The result of this macro is cached in the @code{ac_cv_lib_error_at_line}
 variable.
+
+The @code{AC_FUNC_ERROR_AT_LINE} macro is obsolescent.  New programs
+should use Gnulib's @code{error} module.  @xref{Gnulib}.
 @end defmac
 
 @defmac AC_FUNC_FNMATCH
@@ -5117,6 +5150,9 @@ If @code{lstat} behaves properly, define
 
 The result of this macro is cached in the
 @code{ac_cv_func_lstat_dereferences_slashed_symlink} variable.
+
+The @code{AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK} macro is obsolescent.
+New programs should use Gnulib's @code{lstat} module.  @xref{Gnulib}.
 @end defmac
 
 @defmac AC_FUNC_MALLOC
@@ -5206,6 +5242,9 @@ Posix standard and should be the inverse of
 
 The result of this macro is cached in the
 @code{ac_cv_func_working_mktime} variable.
+
+The @code{AC_FUNC_MKTIME} macro is obsolescent.  New programs should
+use Gnulib's @code{mktime} module.  @xref{Gnulib}.
 @end defmac
 
 @anchor{AC_FUNC_MMAP}
@@ -5385,6 +5424,9 @@ variable @code{POW_LIB} to the extra library needed.
 
 This macro caches its result in the @code{ac_cv_func_strtod} variable
 and depends upon the result in the @code{ac_cv_func_pow} variable.
+
+The @code{AC_FUNC_STRTOD} macro is obsolescent.  New programs should
+use Gnulib's @code{strtod} module.  @xref{Gnulib}.
 @end defmac
 
 @defmac AC_FUNC_STRTOLD
@@ -5543,6 +5585,7 @@ Gnulib (@pxref{Gnulib}).
 Specify that @samp{@var{function}.c} must be included in the executables
 to replace a missing or broken implementation of @var{function}.
 
+@vrindex ac_objext
 Technically, it adds @samp{@var{function}.$ac_objext} to the output
 variable @code{LIBOBJS} if it is not already in, and calls
 @code{AC_LIBSOURCE} for @samp{@var{function}.c}.  You should not
@@ -5644,9 +5687,13 @@ it, then you can use one of the general header-file check macros.
 @cindex Portability of headers
 @cindex Header portability
 
-This section tries to collect knowledge about common headers, and the
-problems they cause.  By definition, this list always requires
-additions.  Please help us keeping it as complete as possible.
+This section documents some collected knowledge about common headers,
+and the problems they cause.  By definition, this list always requires
+additions.  A much more complete list is maintained by the Gnulib
+project (@pxref{Gnulib}), covering @ref{Header File Substitutes, ,
+Posix Headers, gnulib, GNU gnulib} and @ref{Glibc Header File
+Substitutes, , Glibc Headers, gnulib, GNU gnulib}.  Please help us keep
+the gnulib list as complete as possible.
 
 @table @asis
 
@@ -7027,7 +7074,7 @@ etc.).
 @ovindex OPENMP_CXXFLAGS
 @ovindex OPENMP_FFLAGS
 @ovindex OPENMP_FCFLAGS
-OpenMP (@url{http://@/www.openmp.org/}) specifies extensions of C, C++,
+@uref{http://@/www.openmp.org/, OpenMP} specifies extensions of C, C++,
 and Fortran that simplify optimization of shared memory parallelism,
 which is a common problem on multicore CPUs.
 
@@ -7888,6 +7935,8 @@ may not work with C/C++ compiler drivers.
 @defmacx AC_FC_DUMMY_MAIN (@ovar{action-if-found}, @ovar{action-if-not-found})
 @acindex{F77_DUMMY_MAIN}
 @cvindex F77_DUMMY_MAIN
+@acindex{FC_DUMMY_MAIN}
+@cvindex FC_DUMMY_MAIN
 With many compilers, the Fortran libraries detected by
 @code{AC_F77_LIBRARY_LDFLAGS} or @code{AC_FC_LIBRARY_LDFLAGS} provide
 their own @code{main} entry function that initializes things like
@@ -8505,6 +8554,7 @@ which programming language is used in the subsequent tests in
 
 @anchor{AC_LANG}
 @defmac AC_LANG (@var{language})
+@acindex{LANG}
 Do compilation tests using the compiler, preprocessor, and file
 extensions for the specified @var{language}.
 
@@ -8578,8 +8628,9 @@ AC_LANG_POP([Fortran 77])
 @end defmac
 
 @defmac AC_LANG_ASSERT (@var{language})
-@acindex{LANG_ASSERT} Check statically that the current language is
-@var{language}.  You should use this in your language specific macros
+@acindex{LANG_ASSERT}
+Check statically that the current language is @var{language}.
+You should use this in your language specific macros
 to avoid that they be called with an inappropriate language.
 
 This macro runs only at @command{autoconf} time, and incurs no cost at
@@ -8727,15 +8778,38 @@ the results of all of the @code{AC_DEFINE} performed so far.
 Note that the @var{source} is evaluated exactly once, like regular
 Autoconf macro arguments, and therefore (i) you may pass a macro
 invocation, (ii) if not, be sure to double quote if needed.
+
+This macro issues a warning during @command{autoconf} processing if
+@var{source} does not include an expansion of the macro
+@code{AC_LANG_DEFINES_PROVIDED} (note that both @code{AC_LANG_SOURCE} and
+@code{AC_LANG_PROGRAM} call this macro, and thus avoid the warning).
+
+This macro is seldom called directly, but is used under the hood by more
+common macros such as @code{AC_COMPILE_IFELSE} and @code{AC_RUN_IFELSE}.
+@end defmac
+
+@defmac AC_LANG_DEFINES_PROVIDED
+@acindex{LANG_DEFINES_PROVIDED}
+This macro is called as a witness that the file
+@file{conftest.@var{extension}} appropriate for the current language is
+complete, including all previously determined results from
+@code{AC_DEFINE}.  This macro is seldom called directly, but exists if
+you have a compelling reason to write a conftest file without using
+@code{AC_LANG_SOURCE}, yet still want to avoid a syntax warning from
+@code{AC_LANG_CONFTEST}.
 @end defmac
 
 @defmac AC_LANG_SOURCE (@var{source})
 @acindex{LANG_SOURCE}
 Expands into the @var{source}, with the definition of
-all the @code{AC_DEFINE} performed so far.
+all the @code{AC_DEFINE} performed so far.  This macro includes an
+expansion of @code{AC_LANG_DEFINES_PROVIDED}.
+
+In many cases, you may find it more convenient to use the wrapper
+@code{AC_LANG_PROGRAM}.
 @end defmac
 
-For instance executing (observe the double quotation!):
+For instance, executing (observe the double quotation!):
 
 @example
 @c If you change this example, adjust tests/compile.at:AC_LANG_SOURCE example.
@@ -9782,6 +9856,12 @@ file gradually accumulates information whenever someone runs a new
 results with the existing cache file.)  This may cause problems,
 however, if the system configuration (e.g., the installed libraries or
 compilers) changes and the stale cache file is not deleted.
+
+If @command{configure} is interrupted at the right time when it updates
+a cache file outside of the build directory where the @command{configure}
+script is run, it may leave behind a temporary file named after the
+cache file with digits following it.  You may safely delete such a file.
+
 
 @node Cache Checkpointing
 @subsection Cache Checkpointing
@@ -11760,6 +11840,12 @@ demo4([empty], [text])
 @end example
 @end defmac
 
+@defmac m4_define_default (@var{macro}, @ovar{default-definition})
+@msindex{define_default}
+If @var{macro} does not already have a definition, then define it to
+@var{default-definition}.
+@end defmac
+
 @defmac m4_ifblank (@var{cond}, @ovar{if-blank}, @ovar{if-text})
 @defmacx m4_ifnblank (@var{cond}, @ovar{if-text}, @ovar{if-blank})
 @msindex{ifblank}
@@ -13404,8 +13490,9 @@ results in a script that will output the line @samp{hello} three times.
 AC_DEFUN([MY_ACTION],
 [AS_LITERAL_IF([$1],
   [echo "$$1"],
-  [AS_VAR_COPY([tmp], [$1])
-   echo "$tmp"],
+@c $$
+  [AS_VAR_COPY([var], [$1])
+   echo "$var"],
   [eval 'echo "$'"$1"\"])])
 foo=bar bar=hello
 MY_ACTION([bar])
@@ -13424,8 +13511,8 @@ efficient scaling.
 For situations where the final contents of @var{var} are relatively
 short (less than 256 bytes), it is more efficient to use the simpler
 code sequence of @code{@var{var}=$@{@var{var}@}@var{text}} (or its
-polymorphic equivalent of @code{AS_VAR_COPY([tmp], [@var{var}])} and
-@code{AS_VAR_SET([@var{var}], ["$tmp"@var{text}])}).  But in the case
+polymorphic equivalent of @code{AS_VAR_COPY([t], [@var{var}])} and
+@code{AS_VAR_SET([@var{var}], ["$t"@var{text}])}).  But in the case
 when the script will be repeatedly appending text into @code{var},
 issues of scaling start to become apparent.  A naive implementation
 requires execution time linear to the length of the current contents of
@@ -13488,12 +13575,13 @@ done
 @comment AS_VAR_GET is intentionally undocumented; it can't handle
 @comment trailing newlines uniformly, and forks too much.
 
-@defmac AS_VAR_IF (@var{var}, @ovar{value}, @ovar{if-equal}, @
+@defmac AS_VAR_IF (@var{var}, @ovar{word}, @ovar{if-equal}, @
   @ovar{if-not-equal})
 @asindex{VAR_IF}
 Output a shell conditional statement.  If the contents of the
-polymorphic shell variable @var{var} match the string @var{value},
-execute @var{if-equal}; otherwise execute @var{if-not-equal}.  Avoids
+polymorphic shell variable @var{var} match the string @var{word},
+execute @var{if-equal}; otherwise execute @var{if-not-equal}.  @var{word}
+must be a single shell word (typically a quoted string).  Avoids
 shell bugs if an interrupt signal arrives while a command substitution
 in @var{var} is being expanded.
 @end defmac
@@ -13661,6 +13749,33 @@ automatically invoked by @code{AC_INIT} in configure scripts.
 Set up variable @env{as_me} to be the basename of the currently executing
 script.  This macro is automatically invoked by @code{AC_INIT} in
 configure scripts.
+@end defmac
+
+@defmac AS_TMPDIR (@var{prefix}, @dvar{dir, $@{TMPDIR:=/tmp@}})
+@asindex{TMPDIR}
+@evindex TMPDIR
+@ovindex tmp
+Create, as safely as possible, a temporary sub-directory within
+@var{dir} with a name starting with @var{prefix}.  @var{prefix} should
+be 2-4 characters, to make it slightly easier to identify the owner of
+the directory.  If @var{dir} is omitted, then the value of @env{TMPDIR}
+will be used (defaulting to @samp{/tmp}).  On success, the name of the
+newly created directory is stored in the shell variable @code{tmp}.  On
+error, the script is aborted.
+
+Typically, this macro is coupled with some exit traps to delete the created
+directory and its contents on exit or interrupt.  However, there is a
+slight window between when the directory is created and when the name is
+actually known to the shell, so an interrupt at the right moment might
+leave the temporary directory behind.  Hence it is important to use a
+@var{prefix} that makes it easier to determine if a leftover temporary
+directory from an interrupted script is safe to delete.
+
+The use of the output variable @samp{$tmp} rather than something in the
+@samp{as_} namespace is historical; it has the unfortunate consequence
+that reusing this otherwise common name for any other purpose inside
+your script has the potential to break any cleanup traps designed to
+remove the temporary directory.
 @end defmac
 
 @defmac AS_SHELL_SANITIZE
@@ -14602,7 +14717,7 @@ However, these ancient systems are no longer of practical concern.
 
 The set of external programs you should run in a @command{configure} script
 is fairly small.  @xref{Utilities in Makefiles, , Utilities in
-Makefiles, standards, GNU Coding Standards}, for the list.  This
+Makefiles, standards, The GNU Coding Standards}, for the list.  This
 restriction allows users to start out with a fairly small set of
 programs and build the rest, avoiding too many interdependencies between
 packages.
@@ -14804,6 +14919,15 @@ be worked around by omitting the braces: @code{$variable}.  The bug was
 fixed in
 @samp{ksh93g} (1998-04-30) but as of 2006 many operating systems were
 still shipping older versions with the bug.
+
+Empty here-documents are not portable either; with the following code,
+@command{zsh} up to at least version 4.3.10 creates a file with a single
+newline, whereas other shells create an empty file:
+
+@example
+cat >file <<EOF
+EOF
+@end example
 
 Many shells (including the Bourne shell) implement here-documents
 inefficiently.  In particular, some shells can be extremely inefficient when
@@ -15039,6 +15163,20 @@ descriptor 4 had a special use on the Stardent/Kubota Titan (circa
 obsolete, so it's now safe to treat file descriptors 3 and 4 like any
 other file descriptors.
 
+On the other hand, you can't portably use multi-digit file descriptors.
+Solaris @command{ksh} doesn't understand any file descriptor larger than
+@samp{9}:
+
+@example
+$ @kbd{bash -c 'exec 10>&-'; echo $?}
+0
+$ @kbd{ksh -c 'exec 9>&-'; echo $?}
+0
+$ @kbd{ksh -c 'exec 10>&-'; echo $?}
+ksh[1]: exec: 10: not found
+127
+@end example
+
 @node File System Conventions
 @section File System Conventions
 @cindex File system conventions
@@ -15267,9 +15405,35 @@ $ @kbd{echo "`echo \"hello\"`"}
 There is just no portable way to use double-quoted strings inside
 double-quoted back-quoted expressions (pfew!).
 
+Bash 4.1 has a bug where quoted empty strings adjacent to unquoted
+parameter expansions are elided during word splitting.  Meanwhile, zsh
+does not perform word splitting except when in Bourne compatibility
+mode.  In the example below, the correct behavior is to have five
+arguments to the function, and exactly two spaces on either side of the
+middle @samp{-}, since word splitting collapses multiple spaces in
+@samp{$f} but leaves empty arguments intact.
+
+@example
+$ @kbd{bash -c 'n() @{ echo "$#$@@"; @}; f="  -  "; n - ""$f"" -'}
+3- - -
+$ @kbd{ksh -c 'n() @{ echo "$#$@@"; @}; f="  -  "; n - ""$f"" -'}
+5-  -  -
+$ @kbd{zsh -c 'n() @{ echo "$#$@@"; @}; f="  -  "; n - ""$f"" -'}
+3-   -   -
+$ @kbd{zsh -c 'emulate sh;}
+> @kbd{n() @{ echo "$#$@@"; @}; f="  -  "; n - ""$f"" -'}
+5-  -  -
+@end example
+
+@noindent
+You can work around this by doing manual word splitting, such as using
+@samp{"$str" $list} rather than @samp{"$str"$list}.
+
+There are also portability pitfalls with particular expansions:
+
 @table @code
 @item $@@
-@cindex @samp{"$@@"}
+@cindex @code{"$@@"}
 One of the most famous shell-portability issues is related to
 @samp{"$@@"}.  When there are no positional arguments, Posix says
 that @samp{"$@@"} is supposed to be equivalent to nothing, but the
@@ -15346,28 +15510,184 @@ bad substitution
 @item $@{@var{var}:-@var{value}@}
 @c Info cannot handle `:' in index entries.
 @ifnotinfo
-@cindex $@{@var{var}:-@var{value}@}
+@cindex @code{$@{@var{var}:-@var{value}@}}
 @end ifnotinfo
+@cindex @code{$@{@var{var}-@var{value}@}}
 Old BSD shells, including the Ultrix @code{sh}, don't accept the
 colon for any shell substitution, and complain and die.
 Similarly for $@{@var{var}:=@var{value}@}, $@{@var{var}:?@var{value}@}, etc.
+However, all shells that support functions allow the use of colon in
+shell substitution, and since m4sh requires functions, you can portably
+use null variable substitution patterns in configure scripts.
 
-@item $@{@var{var}=@var{literal}@}
-@cindex $@{@var{var}=@var{literal}@}
-Be sure to quote:
+@item $@{@var{var}+@var{value}@}
+@cindex @code{$@{@var{var}+@var{value}@}}
+When using @samp{$@{@var{var}-@var{value}@}} or
+@samp{$@{@var{var}-@var{value}@}} for providing alternate substitutions,
+@var{value} must either be a single shell word, quoted, or in the
+context of an unquoted here-document.  Solaris
+@command{/bin/sh} complains otherwise.
 
 @example
-: $@{var='Some words'@}
+$ @kbd{/bin/sh -c 'echo $@{a-b c@}'}
+/bin/sh: bad substitution
+$ @kbd{/bin/sh -c 'echo $@{a-'\''b c'\''@}'}
+b c
+$ @kbd{/bin/sh -c 'echo "$@{a-b c@}"'}
+b c
+$ @kbd{/bin/sh -c 'cat <<EOF
+$@{a-b c@}
+EOF}
+b c
+@end example
+
+According to Posix, if an expansion occurs inside double quotes, then
+the use of unquoted double quotes within @var{value} is unspecified, and
+any single quotes become literal characters; in that case, escaping must
+be done with backslash.  Likewise, the use of unquoted here-documents is
+a case where double quotes have unspecified results:
+
+@example
+$ @kbd{/bin/sh -c 'echo "$@{a-"b  c"@}"'}
+/bin/sh: bad substitution
+$ @kbd{ksh -c 'echo "$@{a-"b  c"@}"'}
+b c
+$ @kbd{bash -c 'echo "$@{a-"b  c"@}"'}
+b  c
+$ @kbd{/bin/sh -c 'a=; echo $@{a+'\''b  c'\''@}'}
+b  c
+$ @kbd{/bin/sh -c 'a=; echo "$@{a+'\''b  c'\''@}"'}
+'b  c'
+$ @kbd{/bin/sh -c 'a=; echo "$@{a+\"b  c\"@}"'}
+"b  c"
+$ @kbd{/bin/sh -c 'a=; echo "$@{a+b  c@}"'}
+b  c
+$ @kbd{/bin/sh -c 'cat <<EOF
+$@{a-"b  c"@}
+EOF'}
+"b  c"
+$ @kbd{/bin/sh -c 'cat <<EOF
+$@{a-'b  c'@}
+EOF'}
+'b  c'
+$ @kbd{bash -c 'cat <<EOF
+$@{a-"b  c"@}
+EOF'}
+b  c
+$ @kbd{bash -c 'cat <<EOF
+$@{a-'b  c'@}
+EOF'}
+'b  c'
+@end example
+
+Perhaps the easiest way to work around quoting issues in a manner
+portable to all shells is to place the results in a temporary variable,
+then use @samp{$t} as the @var{value}, rather than trying to inline
+the expression needing quoting.
+
+@example
+$ @kbd{/bin/sh -c 't="a  b\"'\''@}\\"; echo "$@{a-$t@}"'}
+b  c"'@}\
+$ @kbd{ksh -c 't="a  b\"'\''@}\\"; echo "$@{a-$t@}"'}
+b  c"'@}\
+$ @kbd{bash -c 't="a  b\"'\''@}\\"; echo "$@{a-$t@}"'}
+b  c"'@}\
+@end example
+
+@item $@{@var{var}=@var{value}@}
+@cindex @code{$@{@var{var}=@var{value}@}}
+When using @samp{$@{@var{var}=@var{value}@}} to assign a default value
+to @var{var}, remember that even though the assignment to @var{var} does
+not undergo file name expansion, the result of the variable expansion
+does unless the expansion occurred within double quotes.  In particular,
+when using @command{:} followed by unquoted variable expansion for the
+side effect of setting a default value, if the final value of
+@samp{$var} contains any globbing characters (either from @var{value} or
+from prior contents), the shell has to spend time performing file name
+expansion and field splitting even though those results will not be
+used.  Therefore, it is a good idea to consider double quotes when performing
+default initialization; while remembering how this impacts any quoting
+characters appearing in @var{value}.
+
+@example
+$ @kbd{time bash -c ': "$@{a=/usr/bin/*@}"; echo "$a"'}
+/usr/bin/*
+
+real	0m0.005s
+user	0m0.002s
+sys	0m0.003s
+$ @kbd{time bash -c ': $@{a=/usr/bin/*@}; echo "$a"'}
+/usr/bin/*
+
+real	0m0.039s
+user	0m0.026s
+sys	0m0.009s
+$ @kbd{time bash -c 'a=/usr/bin/*; : $@{a=noglob@}; echo "$a"'}
+/usr/bin/*
+
+real	0m0.031s
+user	0m0.020s
+sys	0m0.010s
+
+$ @kbd{time bash -c 'a=/usr/bin/*; : "$@{a=noglob@}"; echo "$a"'}
+/usr/bin/*
+
+real	0m0.006s
+user	0m0.002s
+sys	0m0.003s
+@end example
+
+As with @samp{+} and @samp{-}, you must use quotes when using @samp{=}
+if the @var{value} contains more than one shell word; either single
+quotes for just the @var{value}, or double quotes around the entire
+expansion:
+
+@example
+$ @kbd{: $@{var1='Some words'@}}
+$ @kbd{: "$@{var2=like this@}"}
+$ @kbd{echo $var1 $var2}
+Some words like this
 @end example
 
 @noindent
-otherwise some shells, such as on Digital Unix V 5.0, die because
-of a ``bad substitution''.
+otherwise some shells, such as Solaris @command{/bin/sh} or on Digital
+Unix V 5.0, die because of a ``bad substitution''.  Meanwhile, Posix
+requires that with @samp{=}, quote removal happens prior to the
+assignment, and the expansion be the final contents of @var{var} without
+quoting (and thus subject to field splitting), in contrast to the
+behavior with @samp{-} passing the quoting through to the final
+expansion.  However, @command{bash} 4.1 does not obey this rule.
 
-@sp 1
+@example
+$ @kbd{ksh -c 'echo $@{var-a\ \ b@}'}
+a  b
+$ @kbd{ksh -c 'echo $@{var=a\ \ b@}'}
+a b
+$ @kbd{bash -c 'echo $@{var=a\ \ b@}'}
+a  b
+@end example
 
-Solaris @command{/bin/sh} has a frightening bug in its interpretation
-of this.  Imagine you need set a variable to a string containing
+Finally, Posix states that when mixing @samp{$@{a=b@}} with regular
+commands, it is unspecified whether the assignments affect the parent
+shell environment.  It is best to perform assignments independently from
+commands, to avoid the problems demonstrated in this example:
+
+@example
+$ @kbd{bash -c 'x= y=$@{x:=b@} sh -c "echo +\$x+\$y+";echo -$x-'}
++b+b+
+-b-
+$ @kbd{/bin/sh -c 'x= y=$@{x:=b@} sh -c "echo +\$x+\$y+";echo -$x-'}
+++b+
+--
+$ @kbd{ksh -c 'x= y=$@{x:=b@} sh -c "echo +\$x+\$y+";echo -$x-'}
++b+b+
+--
+@end example
+
+@item $@{@var{var}=@var{value}@}
+@cindex @code{$@{@var{var}=@var{literal}@}}
+Solaris @command{/bin/sh} has a frightening bug in its handling of
+literal assignments.  Imagine you need set a variable to a string containing
 @samp{@}}.  This @samp{@}} character confuses Solaris @command{/bin/sh}
 when the affected variable was already set.  This bug can be exercised
 by running:
@@ -15388,10 +15708,11 @@ $ @kbd{echo $foo}
 
 It seems that @samp{@}} is interpreted as matching @samp{$@{}, even
 though it is enclosed in single quotes.  The problem doesn't happen
-using double quotes.
+using double quotes, or when using a temporary variable holding the
+problematic string.
 
 @item $@{@var{var}=@var{expanded-value}@}
-@cindex $@{@var{var}=@var{expanded-value}@}
+@cindex @code{$@{@var{var}=@var{expanded-value}@}}
 On Ultrix,
 running
 
@@ -15459,11 +15780,11 @@ test "$@{var+set@}" = set || var=@var{@{value@}}
 @itemx $@{@var{var}%%@var{word}@}
 @itemx $@{@var{var}#@var{word}@}
 @itemx $@{@var{var}##@var{word}@}
-@cindex $@{#@var{var}@}
-@cindex $@{@var{var}%@var{word}@}
-@cindex $@{@var{var}%%@var{word}@}
-@cindex $@{@var{var}#@var{word}@}
-@cindex $@{@var{var}##@var{word}@}
+@cindex @code{$@{#@var{var}@}}
+@cindex @code{$@{@var{var}%@var{word}@}}
+@cindex @code{$@{@var{var}%%@var{word}@}}
+@cindex @code{$@{@var{var}#@var{word}@}}
+@cindex @code{$@{@var{var}##@var{word}@}}
 Posix requires support for these usages, but they do not work with many
 traditional shells, e.g., Solaris 10 @command{/bin/sh}.
 
@@ -15474,7 +15795,7 @@ yields the empty string.
 
 
 @item `@var{commands}`
-@cindex `@var{commands}`
+@cindex @code{`@var{commands}`}
 @cindex Command Substitution
 Posix requires shells to trim all trailing newlines from command
 output before substituting it, so assignments like
@@ -15531,7 +15852,7 @@ $ @kbd{^C}
 @end example
 
 @item $(@var{commands})
-@cindex $(@var{commands})
+@cindex @code{$(@var{commands})}
 This construct is meant to replace @samp{`@var{commands}`},
 and it has most of the problems listed under @code{`@var{commands}`}.
 
@@ -15573,7 +15894,7 @@ echo $(case x in x) echo hello;; esac)
 
 
 @item $((@var{expression}))
-@cindex $((@var{expression}))
+@cindex @code{$((@var{expression}))}
 Arithmetic expansion is not portable as some shells (most
 notably Solaris 10 @command{/bin/sh}) don't support it.
 
@@ -15618,7 +15939,7 @@ foo=$func_arith_result
 
 
 @item ^
-@cindex ^ quoting
+@cindex @code{^} quoting
 Always quote @samp{^}, otherwise traditional shells such as
 @command{/bin/sh} on Solaris 10 treat this like @samp{|}.
 
@@ -15676,7 +15997,7 @@ If the default value is a literal and does not contain any closing
 brace, use:
 
 @example
-: $@{var='my literal'@}
+: "$@{var='my literal'@}"
 @end example
 
 @item
@@ -16143,6 +16464,11 @@ than 3.1.6-dev-18.  If you are using an older @command{zsh}
 and forget to set @env{NULLCMD},
 your script might be suspended waiting for data on its standard input.
 
+@item options
+@evindex options
+For @command{zsh} 4.3.10, @env{options} is treated as an associative
+array even after @code{emulate sh}, so it should not be used.
+
 @item PATH_SEPARATOR
 @evindex PATH_SEPARATOR
 On DJGPP systems, the @env{PATH_SEPARATOR} environment
@@ -16152,6 +16478,24 @@ separator Bash uses to set up certain environment variables (such as
 @command{configure} to use @samp{;} as a separator; this might be useful
 if you plan to use non-Posix shells to execute files.  @xref{File System
 Conventions}, for more information about @code{PATH_SEPARATOR}.
+
+@item POSIXLY_CORRECT
+@evindex POSIXLY_CORRECT
+In the GNU environment, exporting @env{POSIXLY_CORRECT} with any value
+(even empty) causes programs to try harder to conform to Posix.
+Autoconf does not directly manipulate this variable, but @command{bash}
+ties the shell variable @env{POSIXLY_CORRECT} to whether the script is
+running in Posix mode.  Therefore, take care when exporting or unsetting
+this variable, so as not to change whether @command{bash} is in Posix
+mode.
+
+@example
+$ @kbd{bash --posix -c 'set -o | grep posix}
+> @kbd{unset POSIXLY_CORRECT}
+> @kbd{set -o | grep posix'}
+posix           on
+posix           off
+@end example
 
 @item PWD
 @evindex PWD
@@ -16186,6 +16530,20 @@ hence read-only.  Do not use it.
 Nowadays, it is difficult to find a shell that does not support
 shell functions at all.  However, some differences should be expected.
 
+When declaring a shell function, you must include whitespace between the
+@samp{)} after the function name and the start of the compound
+expression, to avoid upsetting @command{ksh}.  While it is possible to
+use any compound command, most scripts use @samp{@{@dots{}@}}.
+
+@example
+$ @kbd{/bin/sh -c 'a()@{ echo hi;@}; a'}
+hi
+$ @kbd{ksh -c 'a()@{ echo hi;@}; a'}
+ksh: syntax error at line 1: `@}' unexpected
+$ @kbd{ksh -c 'a() @{ echo hi;@}; a'}
+hi
+@end example
+
 Inside a shell function, you should not rely on the error status of a
 subshell if the last command of that subshell was @code{exit} or
 @code{trap}, as this triggers bugs in zsh 4.x; while Autoconf tries to
@@ -16197,10 +16555,10 @@ function.  This has the effect that using a function as the first
 command in a @command{trap} handler can cause problems.
 
 @example
-$ @kbd{bash -c 'foo()@{ echo $?; @}; trap foo 0; (exit 2); exit 2'; echo $?}
+$ @kbd{bash -c 'foo() @{ echo $?; @}; trap foo 0; (exit 2); exit 2'; echo $?}
 2
 2
-$ @kbd{ash -c 'foo()@{ echo $?; @}; trap foo 0; (exit 2); exit 2'; echo $?}
+$ @kbd{ash -c 'foo() @{ echo $?; @}; trap foo 0; (exit 2); exit 2'; echo $?}
 0
 2
 @end example
@@ -16215,8 +16573,8 @@ Not all shells treat shell functions as simple commands impacted by
 @samp{set -e}, for example with Solaris 10 @command{bin/sh}:
 
 @example
-$ @kbd{bash -c 'f()@{ return 1; @}; set -e; f; echo oops}
-$ @kbd{/bin/sh -c 'f()@{ return 1; @}; set -e; f; echo oops}
+$ @kbd{bash -c 'f() @{ return 1; @}; set -e; f; echo oops}
+$ @kbd{/bin/sh -c 'f() @{ return 1; @}; set -e; f; echo oops}
 oops
 @end example
 
@@ -16243,13 +16601,13 @@ Meanwhile, not all shells follow the Posix rule that the assignment must
 affect the current environment in the same manner as special built-ins.
 
 @example
-$ @kbd{/bin/sh -c 'func()@{ echo $a;@}; a=1 func; echo $a'}
+$ @kbd{/bin/sh -c 'func() @{ echo $a;@}; a=1 func; echo $a'}
 @result{}
 @result{}
-$ @kbd{ash -c 'func()@{ echo $a;@}; a=1 func; echo $a'}
+$ @kbd{ash -c 'func() @{ echo $a;@}; a=1 func; echo $a'}
 @result{}1
 @result{}
-$ @kbd{bash -c 'set -o posix; func()@{ echo $a;@}; a=1 func; echo $a'}
+$ @kbd{bash -c 'set -o posix; func() @{ echo $a;@}; a=1 func; echo $a'}
 @result{}1
 @result{}1
 @end example
@@ -16260,7 +16618,7 @@ arguments of the script were lost after the first function invocation.
 It is probably not worth worrying about these shells any more.
 
 With AIX sh, a @command{trap} on 0 installed in a shell function
-triggers at function exit rather than at script exit, see @xref{trap, ,
+triggers at function exit rather than at script exit.  @xref{trap, ,
 Limitations of Shell Builtins}.
 
 @node Limitations of Builtins
@@ -16541,7 +16899,17 @@ Also, Autoconf-generated scripts check for this problem when computing
 variables like @code{ac_top_srcdir} (@pxref{Configuration Actions}),
 so it is safe to @command{cd} to these variables.
 
-See @xref{Special Shell Variables}, for portability problems involving
+Posix states that behavior is undefined if @command{cd} is given an
+explicit empty argument.  Some shells do nothing, some change to the
+first entry in @env{CDPATH}, some change to @env{HOME}, and some exit
+the shell rather than returning an error.  Unfortunately, this means
+that if @samp{$var} is empty, then @samp{cd "$var"} is less predictable
+than @samp{cd $var} (at least the latter is well-behaved in all shells
+at changing to @env{HOME}, although this is probably not what you wanted
+in a script).  You should check that a directory name was supplied
+before trying to change locations.
+
+@xref{Special Shell Variables}, for portability problems involving
 @command{cd} and the @env{CDPATH} environment variable.
 Also please see the discussion of the @command{pwd} command.
 
@@ -17218,6 +17586,8 @@ $ @kbd{test -n =}
 test: argument expected
 $ @kbd{test ! -n}
 test: argument expected
+$ @kbd{test -z ")"; echo $?}
+0
 @end example
 
 Similarly, Posix says that both @samp{test "@var{string1}" = "@var{string2"}}
@@ -17364,6 +17734,11 @@ exit status of failure, which is correct for @command{false}, but not
 for @command{true}.
 @end quotation
 
+Remember that even though @samp{:} ignores its arguments, it still takes
+time to compute those arguments.  It is a good idea to use double quotes
+around any arguments to @samp{:} to avoid time spent in field splitting
+and file name expansion.
+
 
 @anchor{unset}
 @item @command{unset}
@@ -17420,6 +17795,7 @@ include some limitations you should be aware of.
 @c This table includes things like `@command{expr} (|)', so we can't
 @c use @table @command.
 @table @asis
+@anchor{awk}
 @item @command{awk}
 @c ----------------
 @prindex @command{awk}
@@ -17516,7 +17892,8 @@ Solaris @command{/bin/awk}, have many limitations and do not
 conform to Posix.  Nowadays @code{AC_PROG_AWK} (@pxref{Particular
 Programs}) finds you an Awk that doesn't have these problems, but if
 for some reason you prefer not to use @code{AC_PROG_AWK} you may need to
-address them.
+address them.  For more detailed descriptions, see @ref{Language
+History, , @command{awk} language history, gawk, GNU Awk User's Guide}.
 
 Traditional Awk does not support multidimensional arrays or user-defined
 functions.
@@ -17533,7 +17910,8 @@ Traditional Awk does not support the expressions
 @code{@var{a}?@var{b}:@var{c}}, @code{!@var{a}}, @code{@var{a}^@var{b}},
 or @code{@var{a}^=@var{b}}.
 
-Traditional Awk does not support the predefined @code{CONVFMT} variable.
+Traditional Awk does not support the predefined @code{CONVFMT} or
+@code{ENVIRON} variables.
 
 Traditional Awk supports only the predefined functions @code{exp}, @code{index},
 @code{int}, @code{length}, @code{log}, @code{split}, @code{sprintf},
@@ -18185,22 +18563,22 @@ use a file inside this directory.  Both methods prevent attackers from
 gaining control, though @command{mktemp} is far less likely to fail
 gratuitously under attack.
 
-Here is sample code to create a new temporary directory safely:
+Here is sample code to create a new temporary directory @samp{$dir} safely:
 
 @example
-# Create a temporary directory $tmp in $TMPDIR (default /tmp).
+# Create a temporary directory $dir in $TMPDIR (default /tmp).
 # Use mktemp if possible; otherwise fall back on mkdir,
 # with $RANDOM to make collisions less likely.
-: $@{TMPDIR=/tmp@}
+: "$@{TMPDIR:=/tmp@}"
 @{
-  tmp=`
+  dir=`
     (umask 077 && mktemp -d "$TMPDIR/fooXXXXXX") 2>/dev/null
   ` &&
-  test -n "$tmp" && test -d "$tmp"
+  test -d "$dir"
 @} || @{
-  tmp=$TMPDIR/foo$$-$RANDOM
+  dir=$TMPDIR/foo$$-$RANDOM
 @c $$ restore font-lock
-  (umask 077 && mkdir "$tmp")
+  (umask 077 && mkdir "$dir")
 @} || exit $?
 @end example
 
@@ -18303,8 +18681,8 @@ them.
 Unicos 9 @command{sed} loops endlessly on patterns like @samp{.*\n.*}.
 
 Sed scripts should not use branch labels longer than 7 characters and
-should not contain comments.  HP-UX sed has a limit of 99 commands
-(not counting @samp{:} commands) and
+should not contain comments; AIX 5.3 @command{sed} rejects indented comments.
+HP-UX sed has a limit of 99 commands (not counting @samp{:} commands) and
 48 labels, which can not be circumvented by using more than one script
 file.  It can execute up to 19 reads with the @samp{r} command per cycle.
 Solaris @command{/usr/ucb/sed} rejects usages that exceed a limit of
@@ -18323,6 +18701,28 @@ Input should not have unreasonably long lines, since some @command{sed}
 implementations have an input buffer limited to 4000 bytes.  Likewise,
 not all @command{sed} implementations can handle embedded @code{NUL} or
 a missing trailing newline.
+
+Remember that ranges within a bracket expression of a regular expression
+are only well-defined in the @samp{C} (or @samp{POSIX}) locale.
+Meanwhile, support for character classes like @samp{[[:upper:]]} is not
+yet universal, so if you cannot guarantee the setting of @env{LC_ALL},
+it is better to spell out a range @samp{[ABCDEFGHIJKLMNOPQRSTUVWXYZ]}
+than to rely on @samp{[A-Z]}.
+
+Additionally, Posix states that regular expressions are only
+well-defined on characters.  Unfortunately, there exist platforms such
+as MacOS X 10.5 where not all 8-bit byte values are valid characters,
+even though that platform has a single-byte @samp{C} locale.  And Posix
+allows the existence of a multi-byte @samp{C} locale, although that does
+not yet appear to be a common implementation.  At any rate, it means
+that not all bytes will be matched by the regular expression @samp{.}:
+
+@example
+$ @kbd{printf '\200\n' | LC_ALL=C sed -n /./p | wc -l}
+0
+$ @kbd{printf '\200\n' | LC_ALL=en_US.ISO8859-1 sed -n /./p | wc -l}
+1
+@end example
 
 Portable @command{sed} regular expressions should use @samp{\} only to escape
 characters in the string @samp{$()*.0123456789[\^n@{@}}.  For example,
@@ -19803,7 +20203,7 @@ and the rest of section assumes at least C89, the first C standard.
 
 Program portability is a huge topic, and this section can only briefly
 introduce common pitfalls.  @xref{System Portability, , Portability
-between System Types, standards, GNU Coding Standards}, for
+between System Types, standards, The GNU Coding Standards}, for
 more information.
 
 @menu
@@ -20235,7 +20635,7 @@ more subtle ways to get them.
 
 Using @code{int} values to index into an array or compute array sizes
 causes problems on typical 64-bit hosts where an array index might
-be @math{2^31} or larger.  Index values of type @code{size_t} avoid this
+be @math{2^{31}} or larger.  Index values of type @code{size_t} avoid this
 problem, but cannot be negative.  Index values of type @code{ptrdiff_t}
 are signed, and are wide enough in practice.
 
@@ -20586,7 +20986,7 @@ otherwise it defaults to @code{host}.
 @end defmac
 
 Note that there can be artifacts due to the backward compatibility
-code.  See @xref{Hosts and Cross-Compilation}, for more.
+code.  @xref{Hosts and Cross-Compilation}, for more.
 
 @node Using System Type
 @section Using the System Type
@@ -21075,7 +21475,7 @@ by an environment variable.  The programs should examine that file at
 runtime, rather than at compile time.  Runtime configuration is more
 convenient for users and makes the configuration process simpler than
 getting the information while configuring.  @xref{Directory Variables, ,
-Variables for Installation Directories, standards, GNU Coding
+Variables for Installation Directories, standards, The GNU Coding
 Standards}, for more information on where to put data files.
 
 @node Transforming Names
@@ -21309,7 +21709,7 @@ if test "$prefix" = /usr; then
 fi
 @end example
 
-@cindex lib64
+@cindex @file{lib64}
 @cindex 64-bit libraries
 Likewise, on platforms where 64-bit libraries are built by default, then
 installed in @file{/usr/local/@/lib64} instead of @file{/usr/local/@/lib},
@@ -23641,6 +24041,7 @@ The @var{copyright-notice} shows up in both the head of
 @defmac AT_ARG_OPTION (@var{options}, @var{help-text}, @
   @ovar{action-if-given}, @ovar{action-if-not-given})
 @atindex{ARG_OPTION}
+@vrindex at_arg_@var{option}
 Accept options from the space-separated list @var{options}, a list that
 has leading dashes removed from the options.  Long options will be
 prefixed with @samp{--}, single-character options with @samp{-}.  The
@@ -23654,6 +24055,8 @@ the variable will be set to @samp{:}.  If the user does not pass the
 option, or passes @option{--no-@var{option}}, then the variable will be
 set to @samp{false}.
 
+@vrindex at_optarg
+@vrindex at_optarg_@var{option}
 @var{action-if-given} is run each time the option is encountered; here,
 the variable @code{at_optarg} will be set to @samp{:} or @samp{false} as
 appropriate.  @code{at_optarg} is actually just a copy of
@@ -23672,6 +24075,7 @@ names in order to avoid clashes with future Autotest built-in options.
 @defmac AT_ARG_OPTION_ARG (@var{options}, @var{help-text}, @
   @ovar{action-if-given}, @ovar{action-if-not-given})
 @atindex{ARG_OPTION_ARG}
+@vrindex at_arg_@var{option}
 Accept options with arguments from the space-separated list
 @var{options}, a list that has leading dashes removed from the options.
 Long options will be prefixed with @samp{--}, single-character options
@@ -23684,6 +24088,7 @@ If the user passes @option{--@var{option}=@var{arg}} or
 @option{--@var{option} @var{arg}} to the @command{testsuite}, the
 variable will be set to @samp{@var{arg}}.
 
+@vrindex at_optarg
 @var{action-if-given} is run each time the option is encountered; here,
 the variable @code{at_optarg} will be set to @samp{@var{arg}}.
 @code{at_optarg} is actually just a copy of @code{at_arg_@var{option}}.
@@ -23729,9 +24134,8 @@ When the resulting @file{testsuite} is invoked with more than one test
 group to run, its output will include a banner containing
 @var{test-category-name} prior to any tests run from that category.  The
 banner should be no more than about 40 or 50 characters.  A blank banner
-will not print, effectively ending a category and letting subsequent
-test groups behave as though they are uncategorized when run in
-isolation.
+indicates uncategorized tests; an empty line will be inserted after
+tests from an earlier category, effectively ending that category.
 @end defmac
 
 @defmac AT_SETUP (@var{test-group-name})
@@ -23825,7 +24229,8 @@ End the current test group.
 Initialize an input data @var{file} with given @var{contents}.  Of
 course, the @var{contents} have to be properly quoted between square
 brackets to protect against included commas or spurious M4
-expansion.  The contents must end with an end of line.  @var{file} must
+expansion.  @var{contents} must be empty or end with a newline.
+@var{file} must
 be a single shell word that expands into a single file name.
 @end defmac
 
@@ -23835,15 +24240,18 @@ be a single shell word that expands into a single file name.
   @ovar{stderr}, @ovar{run-if-fail}, @ovar{run-if-pass})
 @atindex{CHECK}
 @atindex{CHECK_UNQUOTED}
-Execute a test by performing given shell @var{commands}.  @var{commands}
-is output as-is, so shell expansions are honored.  These commands
-should normally exit with @var{status}, while producing expected
+@vrindex at_status
+Execute a test by performing given shell @var{commands} in a subshell.
+@var{commands} is output as-is, so shell expansions are honored.  These
+commands should normally exit with @var{status}, while producing expected
 @var{stdout} and @var{stderr} contents.  If @var{commands} exit with
 unexpected status 77, then the rest of the test group is skipped.  If
 @var{commands} exit with unexpected status 99, then the test group is
-immediately failed.  Otherwise, if this test
-fails, run shell commands @var{run-if-fail} or, if this test passes, run shell
-commands @var{run-if-pass}.
+immediately failed.  Otherwise, if this test fails, run shell commands
+@var{run-if-fail} or, if this test passes, run shell commands
+@var{run-if-pass}, both inside the current shell execution environment.
+At the beginning of @var{run-if-fail} and @var{run-if-pass}, the status of
+@var{commands} is available in the @code{at_status} shell variable.
 
 This macro must be invoked in between @code{AT_SETUP} and @code{AT_CLEANUP}.
 
@@ -24164,9 +24572,9 @@ Invoke @code{AC_CONFIG_TESTDIR}.
 @defmac AC_CONFIG_TESTDIR (@var{directory}, @dvar{test-path, directory})
 @acindex{CONFIG_TESTDIR}
 An Autotest test suite is to be configured in @var{directory}.  This
-macro requires the instantiation of @file{@var{directory}/atconfig} from
-@file{@var{directory}/atconfig.in}, and sets the default
-@code{AUTOTEST_PATH} to @var{test-path} (@pxref{testsuite Invocation}).
+macro causes @file{@var{directory}/atconfig} to be created by
+@command{config.status} and sets the default @code{AUTOTEST_PATH} to
+@var{test-path} (@pxref{testsuite Invocation}).
 @end defmac
 
 @item
@@ -24870,6 +25278,10 @@ search for markers like @samp{checking for} a particular test in the
 @var{log-file}.
 
 @item
+Alternatively, you might use a shell with debugging capabilities like
+@uref{http://bashdb.sourceforge.net/, bashdb}.
+
+@item
 When @command{configure} tests produce invalid results for your system,
 it may be necessary to override them:
 
@@ -25220,7 +25632,9 @@ preceding @samp{AC_}.
 This is an alphabetical list of the M4, M4sugar, and M4sh macros.
 @ifset shortindexflag
 To make the list easier to use, the macros are listed without their
-preceding @samp{m4_} or @samp{AS_}.
+preceding @samp{m4_} or @samp{AS_}.  The prefix is @samp{m4_} for
+all-lowercase macro names and @samp{AS_} for all-uppercase macro
+names.
 @end ifset
 
 @printindex MS

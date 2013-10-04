@@ -227,11 +227,18 @@ dnl Remove any tests from suggested that are also required
 	[# We cannot yet assume a decent shell, so we have to provide a
 	# neutralization value for shells without unset; and this also
 	# works around shells that cannot unset nonexistent variables.
+	# Preserve -v and -x to the replacement shell.
 	BASH_ENV=/dev/null
 	ENV=/dev/null
 	(unset BASH_ENV) >/dev/null 2>&1 && unset BASH_ENV ENV
 	export CONFIG_SHELL
-	exec "$CONFIG_SHELL" "$as_myself" ${1+"$[@]"}])
+	case $- in @%:@ ((((
+	  *v*x* | *x*v* ) as_opts=-vx ;;
+	  *v* ) as_opts=-v ;;
+	  *x* ) as_opts=-x ;;
+	  * ) as_opts= ;;
+	esac
+	exec "$CONFIG_SHELL" $as_opts "$as_myself" ${1+"$[@]"}])
 
 dnl Unfortunately, $as_me isn't available here.
     AS_IF([test x$as_have_required = xno],
@@ -425,6 +432,7 @@ _AS_PATH_SEPARATOR_PREPARE
 IFS=" ""	$as_nl"
 
 # Find who we are.  Look in the path if we contain no directory separator.
+as_myself=
 case $[0] in @%:@((
   *[[\\/]]* ) as_myself=$[0] ;;
   *) _AS_PATH_WALK([],
@@ -858,8 +866,10 @@ m4_defun([AS_LINENO_PUSH],
 # -----------------------
 # If this is call balances the outermost call to AS_LINENO_PUSH,
 # AS_MESSAGE will restart printing $LINENO as the line number.
+#
+# No need to use AS_UNSET, since as_lineno is necessarily set.
 m4_defun([AS_LINENO_POP],
-[eval $as_lineno_stack; test "x$as_lineno_stack" = x && AS_UNSET([as_lineno])])
+[eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno])
 
 
 
@@ -1135,23 +1145,23 @@ dnl trailing '-' during substitution so that $LINENO is not a special
 dnl case at line end.  (Raja R Harinath suggested sed '=', and Paul
 dnl Eggert wrote the scripts with optimization help from Paolo Bonzini).
 [_AS_LINENO_WORKS || {
-  # Blame Lee E. McMahon (1931-1989) for sed's syntax.  :-)
+[  # Blame Lee E. McMahon (1931-1989) for sed's syntax.  :-)
   sed -n '
     p
-    /[[$]]LINENO/=
+    /[$]LINENO/=
   ' <$as_myself |
     sed '
-      s/[[$]]LINENO.*/&-/
+      s/[$]LINENO.*/&-/
       t lineno
       b
       :lineno
       N
       :loop
-      s/[[$]]LINENO\([[^'$as_cr_alnum'_]].*\n\)\(.*\)/\2\1\2/
+      s/[$]LINENO\([^'$as_cr_alnum'_].*\n\)\(.*\)/\2\1\2/
       t loop
       s/-\n.*//
     ' >$as_me.lineno &&
-  chmod +x "$as_me.lineno" ||
+  chmod +x "$as_me.lineno"] ||
     AS_ERROR([cannot create $as_me.lineno; rerun with a POSIX shell])
 
   # Don't try to exec as it changes $[0], causing all sort of problems
@@ -1387,7 +1397,7 @@ m4_define([_AS_BOX],
 # _AS_BOX_LITERAL(MESSAGE, [FRAME-CHARACTER = `-'])
 # -------------------------------------------------
 m4_define([_AS_BOX_LITERAL],
-[AS_ECHO(["_AS_ESCAPE(m4_expand([m4_text_box($@)]), [`], [\"$])"])])
+[AS_ECHO(["_AS_ESCAPE(m4_dquote(m4_expand([m4_text_box($@)])), [`], [\"$])"])])
 
 
 # _AS_BOX_INDIR(MESSAGE, [FRAME-CHARACTER = `-'])
@@ -1614,12 +1624,16 @@ m4_define([_AS_LITERAL_HEREDOC_IF_NO], [$2])
 # -------------------------------------------------
 # Create as safely as possible a temporary directory in DIRECTORY
 # which name is inspired by PREFIX (should be 2-4 chars max).
+#
+# Even though $tmp does not fit our normal naming scheme of $as_*,
+# it is a documented part of the public API and must not be changed.
 m4_define([AS_TMPDIR],
 [# Create a (secure) tmp directory for tmp files.
-m4_if([$2], [], [: ${TMPDIR=/tmp}])
+m4_if([$2], [], [: "${TMPDIR:=/tmp}"])
 {
-  tmp=`(umask 077 && mktemp -d "m4_default([$2], [$TMPDIR])/$1XXXXXX") 2>/dev/null` &&
-  test -n "$tmp" && test -d "$tmp"
+  tmp=`(umask 077 && mktemp -d "m4_default([$2],
+    [$TMPDIR])/$1XXXXXX") 2>/dev/null` &&
+  test -d "$tmp"
 }  ||
 {
   tmp=m4_default([$2], [$TMPDIR])/$1$$-$RANDOM
@@ -1979,10 +1993,12 @@ m4_define([AS_VAR_GET],
 # Polymorphic, and avoids sh expansion error upon interrupt or term signal.
 m4_define([AS_VAR_IF],
 [AS_LITERAL_WORD_IF([$1],
-  [AS_IF([test "x$$1" = x""$2]],
+  [AS_IF(m4_ifval([$2], [[test "x$$1" = x[]$2]], [[${$1:+false} :]])],
   [AS_VAR_COPY([as_val], [$1])
-   AS_IF([test "x$as_val" = x""$2]],
-  [AS_IF([eval test \"x\$"$1"\" = x"_AS_ESCAPE([$2], [`], [\"$])"]]),
+   AS_IF(m4_ifval([$2], [[test "x$as_val" = x[]$2]], [[${as_val:+false} :]])],
+  [AS_IF(m4_ifval([$2],
+    [[eval test \"x\$"$1"\" = x"_AS_ESCAPE([$2], [`], [\"$])"]],
+    [[eval \${$1:+false} :]])]),
 [$3], [$4])])
 
 
@@ -2061,13 +2077,13 @@ m4_define([AS_VAR_SET_IF],
 
 # AS_VAR_TEST_SET(VARIABLE)
 # -------------------------
-# Expands into the `test' expression which is true if VARIABLE
+# Expands into an expression which is true if VARIABLE
 # is set.  Polymorphic.
 m4_define([AS_VAR_TEST_SET],
 [AS_LITERAL_WORD_IF([$1],
-	       [test "${$1+set}" = set],
-	       [{ as_var=$1; eval "test \"\${$as_var+set}\" = set"; }],
-	       [eval "test \"\${$1+set}\"" = set])])
+  [${$1+:} false],
+  [{ as_var=$1; eval \${$as_var+:} false; }],
+  [eval \${$1+:} false])])
 
 
 ## -------------------- ##

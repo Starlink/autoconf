@@ -68,6 +68,7 @@ gnulib-update:
 	cp $(gnulib_dir)/doc/gnu-oids.texi $(srcdir)/doc
 	cp $(gnulib_dir)/doc/make-stds.texi $(srcdir)/doc
 	cp $(gnulib_dir)/doc/standards.texi $(srcdir)/doc
+	cp $(gnulib_dir)/m4/autobuild.m4 $(srcdir)/m4
 	cp $(gnulib_dir)/top/GNUmakefile $(srcdir)
 
 WGET = wget
@@ -110,4 +111,4 @@ update-copyright-env = \
   UPDATE_COPYRIGHT_MAX_LINE_LENGTH=72
 
 # Prevent incorrect NEWS edits.
-old_NEWS_hash = 8cc9e3fa54a0b12094a7ecfdbd539f82
+old_NEWS_hash = 2ddcbbdee88e191370a07c8d73d8680c

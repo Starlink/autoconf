@@ -6,7 +6,7 @@ START-INFO-DIR-ENTRY
 * Standards: (standards).       GNU coding standards.
 END-INFO-DIR-ENTRY
 
-   The GNU coding standards, last updated April 12, 2010.
+   The GNU coding standards, last updated September 9, 2010.
 
    Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software
@@ -25,7 +25,7 @@ File: standards.info,  Node: Top,  Next: Preface,  Prev: (dir),  Up: (dir)
 Version
 *******
 
-The GNU coding standards, last updated April 12, 2010.
+The GNU coding standards, last updated September 9, 2010.
 
    Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software
@@ -106,8 +106,8 @@ more maintainable by others.
 coding standards for a trivial program.
 `http://www.gnu.org/software/hello/hello.html'.
 
-   This release of the GNU Coding Standards was last updated April 12,
-2010.
+   This release of the GNU Coding Standards was last updated September
+9, 2010.
 
 
 File: standards.info,  Node: Legal Issues,  Next: Design Advice,  Prev: Preface,  Up: Top
@@ -506,6 +506,7 @@ interface, and how libraries should behave.
 * User Interfaces::             Standards about interfaces generally.
 * Graphical Interfaces::        Standards for graphical interfaces.
 * Command-Line Interfaces::     Standards for command line interfaces.
+* Dynamic Plug-In Interfaces::  Standards for dynamic plug-in interfaces.
 * Option Table::                Table of long options.
 * OID Allocations::             Table of OID slots for GNU.
 * Memory Usage::                When and how to care about memory needs.
@@ -811,7 +812,7 @@ doing the work to provide the functionality and the graphical
 interface, these won't be much extra work.
 
 
-File: standards.info,  Node: Command-Line Interfaces,  Next: Option Table,  Prev: Graphical Interfaces,  Up: Program Behavior
+File: standards.info,  Node: Command-Line Interfaces,  Next: Dynamic Plug-In Interfaces,  Prev: Graphical Interfaces,  Up: Program Behavior
 
 4.7 Standards for Command Line Interfaces
 =========================================
@@ -1023,9 +1024,44 @@ help using GNU programs.  The format should be like this:
    It is ok to mention other appropriate mailing lists and web pages.
 
 
-File: standards.info,  Node: Option Table,  Next: OID Allocations,  Prev: Command-Line Interfaces,  Up: Program Behavior
+File: standards.info,  Node: Dynamic Plug-In Interfaces,  Next: Option Table,  Prev: Command-Line Interfaces,  Up: Program Behavior
 
-4.8 Table of Long Options
+4.8 Standards for Dynamic Plug-in Interfaces
+============================================
+
+Another aspect of keeping free programs free is encouraging development
+of free plug-ins, and discouraging development of proprietary plug-ins.
+Many GNU programs will not have anything like plug-ins at all, but
+those that do should follow these practices.
+
+   First, the general plug-in architecture design should closely tie the
+plug-in to the original code, such that the plug-in and the base
+program are parts of one extended program.  For GCC, for example,
+plug-ins receive and modify GCC's internal data structures, and so
+clearly form an extended program with the base GCC.
+
+   Second, you should require plug-in developers to affirm that their
+plug-ins are released under an appropriate license.  This should be
+enforced with a simple programmatic check.  For GCC, again for example,
+a plug-in must define the global symbol `plugin_is_GPL_compatible',
+thus asserting that the plug-in is released under a GPL-compatible
+license (*note Plugins: (gccint)Plugins.).
+
+   By adding this check to your program you are not creating a new legal
+requirement.  The GPL itself requires plug-ins to be free software,
+licensed compatibly.  As long as you have followed the first rule above
+to keep plug-ins closely tied to your original program, the GPL and AGPL
+already require those plug-ins to be released under a compatible
+license.  The symbol definition in the plug-in--or whatever equivalent
+works best in your program--makes it harder for anyone who might
+distribute proprietary plug-ins to legally defend themselves.  If a case
+about this got to court, we can point to that symbol as evidence that
+the plug-in developer understood that the license had this requirement.
+
+
+File: standards.info,  Node: Option Table,  Next: OID Allocations,  Prev: Dynamic Plug-In Interfaces,  Up: Program Behavior
+
+4.9 Table of Long Options
 =========================
 
 Here is a table of long options used by GNU programs.  It is surely
@@ -2116,8 +2152,8 @@ meanings, so we can update the table.
 
 File: standards.info,  Node: OID Allocations,  Next: Memory Usage,  Prev: Option Table,  Up: Program Behavior
 
-4.9 OID Allocations
-===================
+4.10 OID Allocations
+====================
 
 The OID (object identifier) 1.3.6.1.4.1.11591 has been assigned to the
 GNU Project (thanks to Werner Koch).  These are used for SNMP, LDAP,
@@ -2147,6 +2183,8 @@ OID assignments.
 
      1.3.6.1.4.1.11591.7 GNU Radio
 
+     1.3.6.1.4.1.11591.8 GNU Dico
+
      1.3.6.1.4.1.11591.12 digestAlgorithm
        1.3.6.1.4.1.11591.12.2 TIGER/192
        1.3.6.1.4.1.11591.13 encryptionAlgorithm
@@ -2169,7 +2207,7 @@ OID assignments.
 
 File: standards.info,  Node: Memory Usage,  Next: File Usage,  Prev: OID Allocations,  Up: Program Behavior
 
-4.10 Memory Usage
+4.11 Memory Usage
 =================
 
 If a program typically uses just a few meg of memory, don't bother
@@ -2189,10 +2227,15 @@ are bigger than will fit in memory all at once.
    If your program creates complicated data structures, just make them
 in memory and give a fatal error if `malloc' returns zero.
 
+   Memory leak detectors such as `valgrind' can be useful, but don't
+complicate a program merely to avoid their false alarms.  For example,
+if memory is used until just before a process exits, don't free it
+simply to silence a leak detector.
+
 
 File: standards.info,  Node: File Usage,  Prev: Memory Usage,  Up: Program Behavior
 
-4.11 File Usage
+4.12 File Usage
 ===============
 
 Programs should be prepared to operate when `/usr' and `/etc' are
@@ -2457,6 +2500,14 @@ for valid and legitimate code which they do not want to change.  If you
 want to do this, then do.  The compiler should be your servant, not
 your master.
 
+   Don't make the program ugly just to placate static analysis tools
+such as `lint', `clang', and GCC with extra warnings options such as
+`-Wconversion' and `-Wundef'.  These tools can help find bugs and
+unclear code, but they can also generate so many false alarms that that
+it hurts readability to silence them with unnecessary casts, wrappers,
+and other complications.  For example, please don't insert casts to
+`void' or calls to do-nothing functions merely to pacify a lint checker.
+
    Declarations of external functions and functions to appear later in
 the source file should all go in one place near the beginning of the
 file (somewhere before the first function definition in the file), or
@@ -2473,7 +2524,7 @@ declaration of each local variable into the smallest scope that includes
 all its uses.  This makes the program even cleaner.
 
    Don't use local variables or parameters that shadow global
-identifiers.
+identifiers.  GCC's `-Wshadow' option can detect this problem.
 
    Don't declare multiple variables in one declaration that spans lines.
 Start a new declaration on each line, instead.  For example, instead of
@@ -2549,9 +2600,9 @@ instead, write this:
      if (foo == 0)
        fatal ("virtual memory exhausted");
 
-   Don't make the program ugly to placate `lint'.  Please don't insert
-any casts to `void'.  Zero without a cast is perfectly fine as a null
-pointer constant, except when calling a varargs function.
+   This example uses zero without a cast as a null pointer constant.
+This is perfectly fine, except that a cast is needed when calling a
+varargs function or when using `sizeof'.
 
 
 File: standards.info,  Node: Names,  Next: System Portability,  Prev: Syntactic Conventions,  Up: Writing C
@@ -4630,10 +4681,12 @@ All GNU programs should have the following targets in their Makefiles:
           foo.dvi: foo.texi chap1.texi chap2.texi
                   $(TEXI2DVI) $(srcdir)/foo.texi
 
-     You must define the variable `TEXI2DVI' in the Makefile.  It should
-     run the program `texi2dvi', which is part of the Texinfo
-     distribution.(1)  Alternatively, write just the dependencies, and
-     allow GNU `make' to provide the command.
+     You must define the variable `TEXI2DVI' in the Makefile.  It
+     should run the program `texi2dvi', which is part of the Texinfo
+     distribution.  (`texi2dvi' uses TeX to do the real work of
+     formatting. TeX is not distributed with Texinfo.)  Alternatively,
+     write only the dependencies, and allow GNU `make' to provide the
+     command.
 
      Here's another example, this one for generating HTML from Texinfo:
 
@@ -4707,11 +4760,6 @@ programs in which they are useful.
 
      This rule should not modify the directories where compilation is
      done.  It should do nothing but create installation directories.
-
-   ---------- Footnotes ----------
-
-   (1) `texi2dvi' uses TeX to do the real work of formatting. TeX is
-not distributed with Texinfo.
 
 
 File: standards.info,  Node: Install Command Categories,  Prev: Standard Targets,  Up: Makefile Conventions
@@ -4982,7 +5030,7 @@ So GNU packages should never recommend non-free documentation.
    By contrast, it is ok to refer to journal articles and textbooks in
 the comments of a program for explanation of how it functions, even
 though they are non-free.  This is because we don't include such things
-in the GNU system even they are free--they are outside the scope of
+in the GNU system even if they are free--they are outside the scope of
 what a software distribution needs to include.
 
    Referring to a web site that describes or recommends a non-free
@@ -5529,6 +5577,8 @@ Index
 * change logs, style:                    Style of Change Logs.
                                                               (line   6)
 * character set:                         Character Set.       (line   6)
+* clang:                                 Syntactic Conventions.
+                                                              (line  17)
 * command-line arguments, decoding:      Semantics.           (line  46)
 * command-line interface:                Command-Line Interfaces.
                                                               (line   6)
@@ -5554,6 +5604,8 @@ Index
 * documentation:                         Documentation.       (line   6)
 * doschk:                                Names.               (line  38)
 * downloading this manual:               Preface.             (line  14)
+* dynamic plug-ins:                      Dynamic Plug-In Interfaces.
+                                                              (line   6)
 * encodings:                             Character Set.       (line   6)
 * error messages:                        Semantics.           (line  19)
 * error messages, formatting:            Errors.              (line   6)
@@ -5606,7 +5658,7 @@ Index
                                                               (line  16)
 * license for manuals:                   License for Manuals. (line   6)
 * lint:                                  Syntactic Conventions.
-                                                              (line 109)
+                                                              (line  17)
 * locale-specific quote characters:      Quote Characters.    (line   6)
 * long option names:                     Option Table.        (line   6)
 * long-named options:                    Command-Line Interfaces.
@@ -5618,12 +5670,13 @@ Index
 * manual structure:                      Manual Structure Details.
                                                               (line   6)
 * memory allocation failure:             Semantics.           (line  25)
+* memory leak:                           Memory Usage.        (line  23)
 * memory usage:                          Memory Usage.        (line   6)
 * message text, and internationalization: Internationalization.
                                                               (line  29)
 * mmap:                                  Mmap.                (line   6)
 * multiple variables in a line:          Syntactic Conventions.
-                                                              (line  35)
+                                                              (line  43)
 * names of variables, functions, and files: Names.            (line   6)
 * NEWS file:                             NEWS File.           (line   6)
 * non-ASCII characters:                  Character Set.       (line   6)
@@ -5640,6 +5693,10 @@ Index
 * packaging:                             Releases.            (line   6)
 * PATH_INFO, specifying standard options as: Command-Line Interfaces.
                                                               (line  31)
+* plug-ins:                              Dynamic Plug-In Interfaces.
+                                                              (line   6)
+* plugin_is_GPL_compatible:              Dynamic Plug-In Interfaces.
+                                                              (line  17)
 * portability, and data types:           CPU Portability.     (line   6)
 * portability, and library functions:    System Functions.    (line   6)
 * portability, between system types:     System Portability.  (line   6)
@@ -5677,86 +5734,87 @@ Index
 * table of long options:                 Option Table.        (line   6)
 * temporary files:                       Semantics.           (line  84)
 * temporary variables:                   Syntactic Conventions.
-                                                              (line  23)
+                                                              (line  31)
 * texinfo.tex, in a distribution:        Releases.            (line  70)
 * TMPDIR environment variable:           Semantics.           (line  84)
 * trademarks:                            Trademarks.          (line   6)
 * user interface styles:                 Graphical Interfaces.
                                                               (line   6)
+* valgrind:                              Memory Usage.        (line  23)
 * where to obtain standards.texi:        Preface.             (line  14)
 * X.509:                                 OID Allocations.     (line   6)
 
 
 
 Tag Table:
-Node: Top813
-Node: Preface2088
-Node: Legal Issues4801
-Node: Reading Non-Free Code5271
-Node: Contributions7001
-Node: Trademarks9239
-Node: Design Advice10874
-Node: Source Language11466
-Node: Compatibility13592
-Node: Using Extensions15220
-Node: Standard C16796
-Node: Conditional Compilation19199
-Node: Program Behavior20597
-Node: Non-GNU Standards21713
-Node: Semantics23994
-Node: Libraries28714
-Node: Errors29959
-Node: User Interfaces32452
-Node: Graphical Interfaces34057
-Node: Command-Line Interfaces35241
-Node: --version37273
-Node: --help43010
-Node: Option Table43883
-Node: OID Allocations58838
-Node: Memory Usage60635
-Node: File Usage61671
-Node: Writing C62421
-Node: Formatting63393
-Node: Comments67682
-Node: Syntactic Conventions71234
-Node: Names74696
-Node: System Portability76908
-Node: CPU Portability79799
-Node: System Functions83700
-Node: Internationalization88897
-Node: Character Set92891
-Node: Quote Characters93704
-Node: Mmap95224
-Node: Documentation95932
-Node: GNU Manuals97038
-Node: Doc Strings and Manuals102776
-Node: Manual Structure Details104329
-Node: License for Manuals105747
-Node: Manual Credits106721
-Node: Printed Manuals107114
-Node: NEWS File107800
-Node: Change Logs108478
-Node: Change Log Concepts109232
-Node: Style of Change Logs111335
-Node: Simple Changes113835
-Node: Conditional Changes115277
-Node: Indicating the Part Changed116699
-Node: Man Pages117226
-Node: Reading other Manuals119432
-Node: Managing Releases120223
-Node: Configuration121004
-Node: Makefile Conventions129669
-Node: Makefile Basics130668
-Node: Utilities in Makefiles133842
-Node: Command Variables136347
-Node: DESTDIR139593
-Node: Directory Variables141767
-Node: Standard Targets156389
-Ref: Standard Targets-Footnote-1170161
-Node: Install Command Categories170261
-Node: Releases174794
-Node: References178799
-Node: GNU Free Documentation License184646
-Node: Index209813
+Node: Top816
+Node: Preface2094
+Node: Legal Issues4810
+Node: Reading Non-Free Code5280
+Node: Contributions7010
+Node: Trademarks9248
+Node: Design Advice10883
+Node: Source Language11475
+Node: Compatibility13601
+Node: Using Extensions15229
+Node: Standard C16805
+Node: Conditional Compilation19208
+Node: Program Behavior20606
+Node: Non-GNU Standards21796
+Node: Semantics24077
+Node: Libraries28797
+Node: Errors30042
+Node: User Interfaces32535
+Node: Graphical Interfaces34140
+Node: Command-Line Interfaces35324
+Node: --version37370
+Node: --help43107
+Node: Dynamic Plug-In Interfaces43980
+Node: Option Table45879
+Node: OID Allocations60837
+Node: Memory Usage62671
+Node: File Usage63950
+Node: Writing C64700
+Node: Formatting65672
+Node: Comments69961
+Node: Syntactic Conventions73513
+Node: Names77493
+Node: System Portability79705
+Node: CPU Portability82596
+Node: System Functions86497
+Node: Internationalization91694
+Node: Character Set95688
+Node: Quote Characters96501
+Node: Mmap98021
+Node: Documentation98729
+Node: GNU Manuals99835
+Node: Doc Strings and Manuals105573
+Node: Manual Structure Details107126
+Node: License for Manuals108544
+Node: Manual Credits109518
+Node: Printed Manuals109911
+Node: NEWS File110597
+Node: Change Logs111275
+Node: Change Log Concepts112029
+Node: Style of Change Logs114132
+Node: Simple Changes116632
+Node: Conditional Changes118074
+Node: Indicating the Part Changed119496
+Node: Man Pages120023
+Node: Reading other Manuals122229
+Node: Managing Releases123020
+Node: Configuration123801
+Node: Makefile Conventions132466
+Node: Makefile Basics133465
+Node: Utilities in Makefiles136639
+Node: Command Variables139144
+Node: DESTDIR142390
+Node: Directory Variables144564
+Node: Standard Targets159186
+Node: Install Command Categories173024
+Node: Releases177557
+Node: References181562
+Node: GNU Free Documentation License187412
+Node: Index212579
 
 End Tag Table

@@ -158,7 +158,7 @@ AT_DATA([foo.f],
       end
 ]])
 
-: ${MAKE=make}
+: "${MAKE=make}"
 AT_CHECK([env ACLOCAL=true autoreconf -vi], [], [ignore], [ignore])
 AT_CHECK_CONFIGURE
 AT_CHECK([$MAKE], [], [ignore], [ignore])
@@ -198,7 +198,7 @@ AT_DATA([foo.f],
       end
 ]])
 
-: ${MAKE=make}
+: "${MAKE=make}"
 AT_CHECK([env ACLOCAL=true autoreconf -vi], [], [ignore], [ignore])
 AT_CHECK_CONFIGURE
 AT_CHECK([$MAKE], [], [ignore], [ignore])
@@ -291,7 +291,7 @@ int main(int argc, char *argv[])
 AT_CHECK_AUTOCONF
 AT_CHECK_AUTOHEADER
 AT_CHECK_CONFIGURE
-: ${MAKE=make}
+: "${MAKE=make}"
 AT_CHECK([$MAKE], [], [ignore], [ignore])
 dnl AT_CHECK([./cprogram])
 
@@ -372,7 +372,7 @@ int main (int argc, char *argv[])
 AT_CHECK_AUTOCONF
 AT_CHECK_AUTOHEADER
 AT_CHECK_CONFIGURE
-: ${MAKE=make}
+: "${MAKE=make}"
 AT_CHECK([$MAKE], [], [ignore], [ignore])
 dnl AT_CHECK([./cprogram])
 
@@ -451,7 +451,7 @@ int F77_MAIN (int argc, char *argv[])
 AT_CHECK_AUTOCONF
 AT_CHECK_AUTOHEADER
 AT_CHECK_CONFIGURE
-: ${MAKE=make}
+: "${MAKE=make}"
 AT_CHECK([$MAKE], [], [ignore], [ignore])
 dnl AT_CHECK([./cprogram], [], [output from C main
 dnl  some output from Fortran sources
@@ -533,7 +533,7 @@ int FC_MAIN (int argc, char *argv[])
 AT_CHECK_AUTOCONF
 AT_CHECK_AUTOHEADER
 AT_CHECK_CONFIGURE
-: ${MAKE=make}
+: "${MAKE=make}"
 AT_CHECK([$MAKE], [], [ignore], [ignore])
 dnl AT_CHECK([./cprogram], [], [output from C main
 dnl  some output from Fortran sources
@@ -610,7 +610,7 @@ int main(int argc, char *argv[])
 
 AT_CHECK_AUTOCONF
 AT_CHECK_CONFIGURE
-: ${MAKE=make}
+: "${MAKE=make}"
 AT_CHECK([$MAKE], [], [ignore], [ignore])
 dnl AT_CHECK([./cprogram])
 
@@ -684,7 +684,7 @@ int main(int argc, char *argv[])
 
 AT_CHECK_AUTOCONF
 AT_CHECK_CONFIGURE
-: ${MAKE=make}
+: "${MAKE=make}"
 AT_CHECK([$MAKE], [], [ignore], [ignore])
 dnl AT_CHECK([./cprogram])
 AT_CLEANUP
@@ -769,7 +769,7 @@ end
 
 AT_CHECK_AUTOCONF
 AT_CHECK_CONFIGURE
-: ${MAKE=make}
+: "${MAKE=make}"
 AT_CHECK([$MAKE], [], [ignore], [ignore])
 
 AT_CLEANUP
@@ -805,7 +805,7 @@ end
 
 AT_CHECK_AUTOCONF
 AT_CHECK_CONFIGURE
-: ${MAKE=make}
+: "${MAKE=make}"
 AT_CHECK([$MAKE], [], [ignore], [ignore])
 dnl AT_CHECK([./prog])
 
@@ -820,7 +820,7 @@ AT_SETUP([AC_FC_FREEFORM with AC_FC_SRCEXT])
 
 AT_DATA([configure.ac],
 [[AC_INIT
-AC_FC_SRCEXT([f90])
+AC_FC_SRCEXT([f90], [], [AS_EXIT([77])])
 AC_PROG_FC
 AC_FC_FREEFORM
 AC_CONFIG_FILES([Makefile])
@@ -843,7 +843,7 @@ end
 
 AT_CHECK_AUTOCONF
 AT_CHECK_CONFIGURE
-: ${MAKE=make}
+: "${MAKE=make}"
 AT_CHECK([$MAKE], [], [ignore], [ignore])
 dnl AT_CHECK([./prog])
 
@@ -881,7 +881,7 @@ C      fixed-form style comment
 
 AT_CHECK_AUTOCONF
 AT_CHECK_CONFIGURE
-: ${MAKE=make}
+: "${MAKE=make}"
 AT_CHECK([$MAKE], [], [ignore], [ignore])
 dnl AT_CHECK([./prog])
 
@@ -897,7 +897,7 @@ AT_SETUP([AC_FC_FIXEDFORM with AC_FC_SRCEXT])
 AT_DATA([configure.ac],
 [[AC_INIT
 AC_PROG_FC
-AC_FC_SRCEXT([f90])
+AC_FC_SRCEXT([f90], [], [AS_EXIT([77])])
 AC_FC_FIXEDFORM
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
@@ -920,7 +920,7 @@ C      fixed-form style comment
 
 AT_CHECK_AUTOCONF
 AT_CHECK_CONFIGURE
-: ${MAKE=make}
+: "${MAKE=make}"
 AT_CHECK([$MAKE], [], [ignore], [ignore])
 dnl AT_CHECK([./prog])
 
@@ -984,7 +984,7 @@ EOF
 
     AT_CHECK_AUTOCONF
     AT_CHECK_CONFIGURE
-    : ${MAKE=make}
+    : "${MAKE=make}"
     AT_CHECK([$MAKE], [], [ignore], [ignore])
     dnl AT_CHECK([./prog])
     AT_CHECK([$MAKE clean], [], [ignore], [ignore])

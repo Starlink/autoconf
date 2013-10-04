@@ -29,6 +29,34 @@ AT_CHECK_MACRO([AC_CONFIG_COMMANDS with empty commands],
 ]])
 
 
+## --------------------------------------------- ##
+## AC_CONFIG_COMMANDS with temporary directory.  ##
+## --------------------------------------------- ##
+
+AT_CHECK_MACRO([AC_CONFIG_COMMANDS with temporary directory],
+[[AC_CONFIG_COMMANDS([foo], [
+case $ACTION in
+  use)
+    echo "$tmp" > tmpdir
+    test -d "$tmp" || AC_MSG_ERROR([No $tmp directory])
+    echo garbage-in > "$tmp/garbage-out"
+    ;;
+  corrupt)
+    echo "$tmp" > tmpdir
+    tmp=./nosuch
+    ;;
+  *) ;;
+esac
+])
+]], [
+AT_CHECK([test ! -f tmpdir])
+AT_CHECK([ACTION=use ./config.status], [], [ignore])
+AT_CHECK([test -s tmpdir && test ! -d "`cat tmpdir`"])
+AT_CHECK([ACTION=corrupt ./config.status], [], [ignore])
+AT_CHECK([test -s tmpdir && test ! -d "`cat tmpdir`"])
+])
+
+
 ## -------------------------- ##
 ## Multiple AC_CONFIG_FILES.  ##
 ## -------------------------- ##
@@ -854,6 +882,9 @@ AT_CLEANUP
 AT_SETUP([Substitute and define special characters])
 AT_KEYWORDS([AC@&t@_DEFINE AC@&t@_DEFINE_UNQUOTED])
 
+AT_XFAIL_IF([byte=\\200s; dnl
+test `{ printf $byte; echo; } | sed -n '/^./p' | wc -l` = 0])
+
 AT_DATA([Foo.in], [@foo@
 @bar@@notsubsted@@baz@ stray @ and more@@@baz@
 abc@bar@baz@baz
@@ -909,7 +940,7 @@ AC_DEFINE_UNQUOTED([unq1], [$baz], [unquoted, test 1])
 AC_DEFINE_UNQUOTED([unq2], [\$baz], [unquoted, test 2])
 AC_DEFINE_UNQUOTED([unq3], ["$baz"], [unquoted, test 3])
 AC_DEFINE_UNQUOTED([unq4], [${baz+set}], [unquoted, test 4])
-AC_DEFINE_UNQUOTED([unq5], ["${baz+`echo "a b"`}"], [unquoted, test 5])
+AC_DEFINE_UNQUOTED([unq5], ["${baz+`echo "a "' b'`}"], [unquoted, test 5])
 AC_DEFINE_UNQUOTED([unq6], [`echo hi`], [unquoted, test 6])
 AC_DEFINE_UNQUOTED([unq7], ['\\"'], [unquoted, test 7])
 AC_PROG_AWK
@@ -943,7 +974,7 @@ X@file@
 #define unq2 $baz
 #define unq3 "bla"
 #define unq4 set
-#define unq5 "a b"
+#define unq5 "a  b"
 #define unq6 hi
 #define unq7 '\"'
 ]])
@@ -1213,7 +1244,7 @@ all: f f1 f2
 
 AT_CHECK_AUTOCONF
 
-: ${MAKE=make}
+: "${MAKE=make}"
 
 # In place.
 AT_CHECK([./configure $configure_options], [], [ignore])
@@ -1401,8 +1432,10 @@ AT_KEYWORDS(autoreconf)
 
 # We use aclocal (via autoreconf).
 AT_CHECK([aclocal --version || exit 77], [], [stdout], [ignore])
+AT_CHECK([[grep '[1-9]\.[0-9]' stdout || exit 77]], [], [ignore])
+
 # It should understand configure.ac.
-AT_CHECK([[grep '[^0-9]1.[01234][^0-9]' stdout && exit 77]], [1], [ignore])
+AT_CHECK([[grep '[^0-9]1\.[01234][^0-9]' stdout && exit 77]], [1], [ignore])
 
 # Set CONFIG_SITE to a nonexistent file, so that there are
 # no worries about nonstandard values for 'prefix'.
@@ -1708,9 +1741,6 @@ AT_CLEANUP
 AT_SETUP([Non-literal AC_CONFIG_SUBDIRS])
 AT_KEYWORDS([autoreconf])
 
-# We use aclocal (via autoreconf).
-AT_CHECK([aclocal --version || exit 77], [], [ignore], [ignore])
-
 AT_DATA([install-sh], [])
 AT_DATA([configure.in],
 [[AC_INIT(GNU Outer, 1.0)
@@ -1723,6 +1753,11 @@ fi
 AC_CONFIG_SUBDIRS([$my_subdirs])
 AC_OUTPUT
 ]])
+
+# Hand-written aclocal.m4, so we don't invoke `aclocal -Werror' which
+# could barf over warnings in third-party macro files, or fail over
+# warnings with older aclocal which didn't yet understand -W*.
+AT_DATA([aclocal.m4])
 
 AS_MKDIR_P([foo])
 
@@ -1738,9 +1773,7 @@ AT_CHECK([autoreconf -Werror -v], [1], [ignore], [stderr])
 AT_CHECK([grep 'AC_CONFIG_SUBDIRS:.*literals' stderr], [0], [ignore])
 AT_CHECK([autoreconf -v], [0], [ignore], [stderr])
 AT_CHECK([grep 'AC_CONFIG_SUBDIRS:.*literals' stderr], [0], [ignore])
-# We cannot assume aclocal won't warn (aclocal-1.9 does not understand -W*
-# options), so check autoconf only.
-AT_CHECK([autoconf --force -Wno-syntax], 0, [ignore], [stderr])
+AT_CHECK([autoreconf -v --force -Wno-syntax], 0, [ignore], [stderr])
 AT_CHECK([grep 'AC_CONFIG_SUBDIRS:.*literals' stderr], [1])
 
 AT_CHECK([./configure $configure_options], [0], [ignore])
@@ -1781,7 +1814,8 @@ AT_SETUP([Unusual Automake input files])
 AT_KEYWORDS([autoreconf])
 
 # We use aclocal and automake via autoreconf.
-AT_CHECK([automake --version || exit 77], [], [ignore], [ignore])
+AT_CHECK([automake --version || exit 77], [], [stdout], [ignore])
+AT_CHECK([[grep '[1-9]\.[0-9]' stdout || exit 77]], [], [ignore])
 
 AT_DATA([configure.in],
 [[AC_INIT(GNU foo, 1.0)
