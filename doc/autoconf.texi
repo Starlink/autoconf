@@ -1845,9 +1845,16 @@ distribution tar ball names (e.g., @samp{autoconf}).  It defaults to
 other than alphanumerics and underscores are changed to @samp{-}.  If
 provided, @var{url} should be the home page for the package.
 
-It is preferable that the arguments of @code{AC_INIT} be static, i.e.,
-there should not be any shell computation, but they can be computed by
-M4.
+The arguments of @code{AC_INIT} must be static, i.e., there should not
+be any shell computation, quotes, or newlines, but they can be computed
+by M4.  This is because the package information strings are expanded at
+M4 time into several contexts, and must give the same text at shell time
+whether used in single-quoted strings, double-quoted strings, quoted
+here-documents, or unquoted here-documents.  It is permissible to use
+@code{m4_esyscmd} or @code{m4_esyscmd_s} for computing a version string
+that changes with every commit to a version control system (in fact,
+Autoconf does just that, for all builds of the development tree made
+between releases).
 
 The following M4 macros (e.g., @code{AC_PACKAGE_NAME}), output variables
 (e.g., @code{PACKAGE_NAME}), and preprocessor symbols (e.g.,
@@ -2433,9 +2440,9 @@ when you call @code{AC_PROG_CC} (or empty if you don't).  @command{configure}
 uses this variable when compiling or linking programs to test for C features.
 
 If a compiler option affects only the behavior of the preprocessor
-(e.g., @option{-D @var{name}}), it should be put into @code{CPPFLAGS}
-instead.  If it affects only the linker (e.g., @option{-L
-@var{directory}}), it should be put into @code{LDFLAGS} instead.  If it
+(e.g., @option{-D@var{name}}), it should be put into @code{CPPFLAGS}
+instead.  If it affects only the linker (e.g., @option{-L@var{directory}}),
+it should be put into @code{LDFLAGS} instead.  If it
 affects only the compiler proper, @code{CFLAGS} is the natural home for
 it.  If an option affects multiple phases of the compiler, though,
 matters get tricky.  One approach to put such options directly into
@@ -3618,6 +3625,7 @@ Make @code{AC_OUTPUT} run @command{configure} in each subdirectory
 be a literal, i.e., please do not use:
 
 @example
+@c If you change this example, adjust tests/torture.at:Non-literal AC_CONFIG_SUBDIRS.
 if test "x$package_foo_enabled" = xyes; then
   my_subdirs="$my_subdirs foo"
 fi
@@ -3635,8 +3643,8 @@ if test "x$package_foo_enabled" = xyes; then
 fi
 @end example
 
-If a given @var{dir} is not found, an error is reported: if the
-subdirectory is optional, write:
+If a given @var{dir} is not found at @command{configure} run time, a
+warning is reported; if the subdirectory is optional, write:
 
 @example
 if test -d "$srcdir/foo"; then
@@ -6958,6 +6966,7 @@ argument was used when cross-compiling.
 For example, the call
 
 @example
+@c If you change this example, adjust tests/semantics.at:AC_CHECK_SIZEOF struct.
 AC_CHECK_SIZEOF([int *])
 @end example
 
@@ -7752,10 +7761,10 @@ are for newer programs that can (or must) compile under the newer
 Fortran standards, and have output variables like @code{FC},
 @code{FCFLAGS}, and @code{FCLIBS}.
 
-Except for the macros @code{AC_FC_SRCEXT}, @code{AC_FC_FREEFORM}, and
-@code{AC_FC_FIXEDFORM} (see below), the @code{FC} and @code{F77} macros
-behave almost identically, and so they are documented together in this
-section.
+Except for the macros @code{AC_FC_SRCEXT}, @code{AC_FC_FREEFORM},
+@code{AC_FC_FIXEDFORM}, and @code{AC_FC_LINE_LENGTH} (see below), the
+@code{FC} and @code{F77} macros behave almost identically, and so they
+are documented together in this section.
 
 
 @defmac AC_PROG_F77 (@ovar{compiler-search-list})
@@ -8132,6 +8141,24 @@ calls @var{action-if-success} (defaults to nothing).  If it fails, it
 calls @var{action-if-failure} (defaults to exiting with an error
 message).
 @end defmac
+
+@defmac AC_FC_LINE_LENGTH (@ovar{length}, @ovar{action-if-success}, @
+  @ovar{action-if-failure})
+@acindex{FC_LINE_LENGTH}
+
+The @code{AC_FC_LINE_LENGTH} macro tries to ensure that the Fortran compiler
+(@code{$FC}) accepts long source code lines.  The @var{length} argument
+may be given as 80, 132, or unlimited, and defaults to 132.  Note that
+line lengths above 254 columns are not portable, and some compilers
+do not accept more than 132 columns at least for fixed format source.
+If necessary, it may add some additional flags to @code{FCFLAGS}.
+
+If @code{AC_FC_LINE_LENGTH} succeeds in compiling fixed-form source, it
+calls @var{action-if-success} (defaults to nothing).  If it fails, it
+calls @var{action-if-failure} (defaults to exiting with an error
+message).
+@end defmac
+
 
 @node System Services
 @section System Services
@@ -8719,7 +8746,7 @@ AC_DEFINE([HELLO_WORLD], ["Hello, World\n"],
 AC_LANG([C])
 AC_LANG_CONFTEST(
    [AC_LANG_SOURCE([[const char hw[] = "Hello, World\n";]])])
-gcc -E -dD -o - conftest.c
+gcc -E -dD conftest.c
 @end example
 
 @noindent
@@ -8764,7 +8791,7 @@ AC_DEFINE([HELLO_WORLD], ["Hello, World\n"],
 AC_LANG_CONFTEST(
 [AC_LANG_PROGRAM([[const char hw[] = "Hello, World\n";]],
                  [[fputs (hw, stdout);]])])
-gcc -E -dD -o - conftest.c
+gcc -E -dD conftest.c
 @end example
 
 @noindent
@@ -8882,7 +8909,8 @@ This macro uses @code{CPPFLAGS}, but not @code{CFLAGS}, because
 preprocessors.
 
 It is customary to report unexpected failures with
-@code{AC_MSG_FAILURE}.
+@code{AC_MSG_FAILURE}.  If needed, @var{action-if-true} can further access
+the preprocessed output in the file @file{conftest.i}.
 @end defmac
 
 For instance:
@@ -14980,7 +15008,7 @@ $
 Within the process which runs the @samp{descrips} script, file
 descriptor 5 is closed.
 
-Don't rely on redirection to a closed file descriptor to cause an
+Don't rely on duplicating a closed file descriptor to cause an
 error.  With Solaris @command{/bin/sh}, when the redirection fails, the
 output goes to the original file descriptor.
 
@@ -14992,6 +15020,12 @@ $ @kbd{/bin/sh -c 'echo hi >&3' 3>&-; echo $?}
 hi
 0
 @end example
+
+Fortunately, an attempt to close an already closed file descriptor will
+portably succeed.  Likewise, it is safe to use either style of
+@samp{@var{n}<&-} or @samp{@var{n}>&-} for closing a file descriptor,
+even if it doesn't match the read/write mode that the file descriptor
+was opened with.
 
 DOS variants cannot rename or remove open files, such as in
 @samp{mv foo bar >foo} or @samp{rm foo >foo}, even though this is
@@ -23269,7 +23303,7 @@ The @code{LIBOBJDIR} feature is experimental.
 @acindex{TRY_@var{ACT}}
 Since Autoconf 2.50, internal codes uses @code{AC_PREPROC_IFELSE},
 @code{AC_COMPILE_IFELSE}, @code{AC_LINK_IFELSE}, and
-@code{AC_RUN_IFELSE} on one hand and @code{AC_LANG_SOURCES},
+@code{AC_RUN_IFELSE} on one hand and @code{AC_LANG_SOURCE},
 and @code{AC_LANG_PROGRAM} on the other hand instead of the deprecated
 @code{AC_TRY_CPP}, @code{AC_TRY_COMPILE}, @code{AC_TRY_LINK}, and
 @code{AC_TRY_RUN}.  The motivations where:

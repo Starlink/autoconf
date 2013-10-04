@@ -474,8 +474,8 @@ do
   fi
 
   case $at_option in
-  *=*) at_optarg=`expr "x$at_option" : 'x[[^=]]*=\(.*\)'` ;;
-  *)   at_optarg= ;;
+  *=?*) at_optarg=`expr "X$at_option" : '[[^=]]*=\(.*\)'` ;;
+  *)    at_optarg= ;;
   esac
 
   # Accept the important Cygnus configure options, so we can diagnose typos.
@@ -959,7 +959,10 @@ export PATH
 
 # Setting up the FDs.
 m4_define([AS_MESSAGE_LOG_FD], [5])
-m4_define([AT_JOB_FIFO_FD], [6])
+dnl The parent needs two fds to the same fifo, otherwise, there is a race
+dnl where the parent can read the fifo before a child opens it for writing
+m4_define([AT_JOB_FIFO_IN_FD], [6])
+m4_define([AT_JOB_FIFO_OUT_FD], [7])
 [#] AS_MESSAGE_LOG_FD is the log file.  Not to be overwritten if `-d'.
 if $at_debug_p; then
   at_suite_log=/dev/null
@@ -1105,7 +1108,7 @@ AS_ERROR([testsuite directory setup failed])
 # to avoid hitting zsh 4.x exit status bugs.
 
 AS_FUNCTION_DESCRIBE([at_fn_group_prepare], [],
-[Prepare running a test group.])
+[Prepare for running a test group.])
 at_fn_group_prepare ()
 {
   # The directory for additional per-group helper files.
@@ -1153,6 +1156,24 @@ at_fn_group_prepare ()
   else
     at_tee_pipe='cat >> "$at_group_log"'
   fi
+}
+
+AS_FUNCTION_DESCRIBE([at_fn_group_banner], [[ORDINAL LINE DESC PAD [BANNER]]],
+[Declare the test group ORDINAL, located at LINE with group description
+DESC, and residing under BANNER.  Use PAD to align the status column.])
+at_fn_group_banner ()
+{
+  at_setup_line="$[2]"
+  test -n "$[5]" && at_fn_banner $[5]
+  at_desc="$[3]"
+  case $[1] in
+    [[0-9]])      at_desc_line="  $[1]: ";;
+    [[0-9][0-9]]) at_desc_line=" $[1]: " ;;
+    [*])          at_desc_line="$[1]: "  ;;
+  esac
+  AS_VAR_APPEND([at_desc_line], ["$[3]$[4]"])
+  $at_quiet AS_ECHO_N(["$at_desc_line"])
+  echo "#                             -*- compilation -*-" >> "$at_group_log"
 }
 
 AS_FUNCTION_DESCRIBE([at_fn_group_postprocess], [],
@@ -1376,7 +1397,14 @@ dnl avoid all the status output by the shell.
     (
       # Start one test group.
       $at_job_control_off
-      exec AT_JOB_FIFO_FD>"$at_job_fifo"
+dnl First child must open the fifo to avoid blocking parent; all other
+dnl children inherit it already opened from the parent.
+      if $at_first; then
+	exec AT_JOB_FIFO_OUT_FD>"$at_job_fifo"
+      else
+dnl Children do not need parent's copy of fifo.
+	exec AT_JOB_FIFO_IN_FD<&-
+      fi
 dnl When a child receives PIPE, be sure to write back the token,
 dnl so the master does not hang waiting for it.
 dnl errexit and xtrace should not be set in this shell instance,
@@ -1386,7 +1414,7 @@ dnl optimize away the _AT_CHECK subshell, so normalize here.
 dnl Ignore PIPE signals that stem from writing back the token.
 	    trap "" PIPE
 	    echo stop > "$at_stop_file"
-	    echo token >&AT_JOB_FIFO_FD
+	    echo >&AT_JOB_FIFO_OUT_FD
 dnl Do not reraise the default PIPE handler.
 dnl It wreaks havoc with ksh, see above.
 dnl	    trap - 13
@@ -1395,26 +1423,27 @@ dnl	    kill -13 $$
       at_fn_group_prepare
       if cd "$at_group_dir" &&
 	 at_fn_test $at_group &&
-	 . "$at_test_source" # AT_JOB_FIFO_FD>&-
+	 . "$at_test_source"
       then :; else
 	AS_WARN([unable to parse test group: $at_group])
 	at_failed=:
       fi
       at_fn_group_postprocess
-      echo token >&AT_JOB_FIFO_FD
+      echo >&AT_JOB_FIFO_OUT_FD
     ) &
     $at_job_control_off
     if $at_first; then
       at_first=false
-      exec AT_JOB_FIFO_FD<"$at_job_fifo"
+      exec AT_JOB_FIFO_IN_FD<"$at_job_fifo" AT_JOB_FIFO_OUT_FD>"$at_job_fifo"
     fi
     shift # Consume one token.
     if test $[@%:@] -gt 0; then :; else
-      read at_token <&AT_JOB_FIFO_FD || break
+      read at_token <&AT_JOB_FIFO_IN_FD || break
       set x $[*]
     fi
     test -f "$at_stop_file" && break
   done
+  exec AT_JOB_FIFO_OUT_FD>&-
   # Read back the remaining ($at_jobs - 1) tokens.
   set X $at_joblist
   shift
@@ -1423,9 +1452,9 @@ dnl	    kill -13 $$
     for at_job
     do
       read at_token
-    done <&AT_JOB_FIFO_FD
+    done <&AT_JOB_FIFO_IN_FD
   fi
-  exec AT_JOB_FIFO_FD<&-
+  exec AT_JOB_FIFO_IN_FD<&-
   wait
 else
   # Run serially, avoid forks and other potential surprises.
@@ -1810,14 +1839,10 @@ m4_define([AT_ordinal], m4_incr(AT_ordinal))
 m4_append([AT_groups_all], [ ]m4_defn([AT_ordinal]))
 m4_divert_push([TEST_GROUPS])dnl
 [#AT_START_]AT_ordinal
-@%:@ AT_ordinal. m4_defn([AT_line]): m4_defn([AT_description])
-at_setup_line='m4_defn([AT_line])'
-m4_if(AT_banner_ordinal, [0], [], [at_fn_banner AT_banner_ordinal
-])dnl
-at_desc="AS_ESCAPE(m4_dquote(m4_defn([AT_description])))"
-at_desc_line=m4_format(["%3d: $at_desc%*s"], AT_ordinal,
-  m4_max(0, m4_eval(47 - m4_qlen(m4_defn([AT_description])))), [])
-$at_quiet AS_ECHO_N(["$at_desc_line"])
+at_fn_group_banner AT_ordinal 'm4_defn([AT_line])' \
+  "AS_ESCAPE(m4_dquote(m4_defn([AT_description])))" m4_format(["%*s"],
+  m4_max(0, m4_eval(47 - m4_qlen(m4_defn([AT_description])))), [])m4_if(
+  AT_banner_ordinal, [0], [], [ AT_banner_ordinal])
 m4_divert_push([TEST_SCRIPT])dnl
 ])
 
@@ -1899,14 +1924,13 @@ m4_ifdef([AT_keywords], [m4_defn([AT_keywords])]);
 )dnl
 m4_divert_pop([TEST_SCRIPT])dnl Back to TEST_GROUPS
 AT_xfail
-echo "#                             -*- compilation -*-" >> "$at_group_log"
 (
-  AS_ECHO(["AT_ordinal. m4_defn([AT_line]): testing $at_desc ..."])
+  AS_ECHO(["AT_ordinal. $at_setup_line: testing $at_desc ..."])
   $at_traceon
 m4_undivert([TEST_SCRIPT])dnl Insert the code here
   set +x
   $at_times_p && times >"$at_times_file"
-) AS_MESSAGE_LOG_FD>&1 2>&1 | eval $at_tee_pipe
+) AS_MESSAGE_LOG_FD>&1 2>&1 AT_JOB_FIFO_OUT_FD>&- | eval $at_tee_pipe
 read at_status <"$at_status_file"
 [#AT_STOP_]AT_ordinal
 m4_divert_pop([TEST_GROUPS])dnl Back to KILL.

@@ -51,6 +51,7 @@ endif
 
 PREV_VERSION := $(shell cat $(prev_version_file) 2>/dev/null)
 VERSION_REGEXP = $(subst .,\.,$(VERSION))
+PREV_VERSION_REGEXP = $(subst .,\.,$(PREV_VERSION))
 
 this-vc-tag = v$(VERSION)
 this-vc-tag-regexp = v$(VERSION_REGEXP)
@@ -382,6 +383,14 @@ strftime-check:
 
 check-AUTHORS:
 	test ! -d src || $(MAKE) -C src $@
+
+NEWS_hash =								\
+  $$(sed -n '/^\*.* $(PREV_VERSION_REGEXP) ([0-9-]*)/,$$p'		\
+       $(srcdir)/NEWS							\
+     | perl -0777 -pe							\
+	's/^Copyright.+?Free\sSoftware\sFoundation,\sInc\.\n//ms'	\
+     | md5sum -								\
+     | sed 's/ .*//')
 
 # Ensure that we don't accidentally insert an entry into an old NEWS block.
 sc_immutable_NEWS:

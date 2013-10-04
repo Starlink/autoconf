@@ -276,6 +276,12 @@ if test -w /dev/full && test -c /dev/full; then
 	   [1], [ignore], [ignore])
 fi
 
+# Validate that --file requires an argument
+AT_CHECK([./config.status --file], [1], [ignore], [stderr])
+AT_CHECK([grep 'missing file argument' stderr], [0], [ignore])
+AT_CHECK([./config.status --file=], [1], [ignore], [stderr])
+AT_CHECK([grep 'missing file argument' stderr], [0], [ignore])
+
 # Create a header
 AT_CHECK_CONFIG_CREATION_NOWRITE(header)
 # Create a header on stdout
@@ -684,8 +690,9 @@ AC_OUTPUT
 
 AT_CHECK_AUTOCONF
 AT_CHECK_AUTOHEADER
-# Check both awk and the result of AC_PROG_AWK
-for awk_arg in FOO= AWK=awk; do
+# Check both awk and the result of AC_PROG_AWK.
+# Quote the first word in the for list for Solaris sh.
+for awk_arg in "FOO=" AWK=awk; do
   AT_CHECK_CONFIGURE([$awk_arg])
 
   # Checking that AC_DEFINE worked properly.
@@ -800,7 +807,8 @@ EOF
 
 AT_CHECK_AUTOCONF
 # Check both awk and the result of AC_PROG_AWK
-for awk_arg in Foo= AWK=awk; do
+# Quote the first word in the for list for Solaris sh.
+for awk_arg in "Foo=" AWK=awk; do
   AT_CHECK_CONFIGURE([$awk_arg])
   AT_CHECK([cat Foo], 0, m4_for([n], 1, 100,, ....................)
 )
@@ -910,7 +918,8 @@ AC_CONFIG_FILES([Foo Zardoz])]])
 AT_CHECK_AUTOCONF
 AT_CHECK_AUTOHEADER
 # Check both awk and the result of AC_PROG_AWK
-for awk_arg in FOO= AWK=awk; do
+# Quote the first word in the for list for Solaris sh.
+for awk_arg in "FOO=" AWK=awk; do
   AT_CHECK_CONFIGURE([$awk_arg])
   AT_CHECK([cat Foo], 0, [[X*'[]+ ", & &`\($foo \& \\& \\\& \\\\& \ \\ \\\ !
 @foo@ @baz@@notsubsted@bla stray @ and more@@bla
@@ -975,7 +984,8 @@ x' >expout
 
 AT_CHECK_AUTOCONF
 # Check both awk and the result of AC_PROG_AWK
-for awk_arg in FOO= AWK=awk; do
+# Quote the first word in the for list for Solaris sh.
+for awk_arg in "FOO=" AWK=awk; do
   AT_CHECK_CONFIGURE([$awk_arg])
   AT_CHECK([cat Foo], 0, [expout])
 done
@@ -1563,7 +1573,9 @@ AC_ARG_VAR([INNER2], [an inner2 variable])
 AC_OUTPUT
 ]])
 
-AT_CHECK([autoreconf -Wall -v], [0], [ignore], [ignore])
+AT_CHECK([autoreconf -Wall -v], [0], [ignore], [stderr])
+# We should not warn about nonliteral argument to AC_CONFIG_SUBDIRS here.
+AT_CHECK([grep 'AC_CONFIG_SUBDIRS:.*literals' stderr], [1])
 AT_CHECK([test -f inner/configure])
 AT_CHECK([test -f inner/innermost/configure])
 AT_CHECK([test -f inner/innermost/config.hin])
@@ -1688,6 +1700,56 @@ AT_CHECK([test -f inner/myfile], 0)
 
 AT_CLEANUP
 
+
+## ------------------------------- ##
+## Non-literal AC_CONFIG_SUBDIRS.  ##
+## ------------------------------- ##
+
+AT_SETUP([Non-literal AC_CONFIG_SUBDIRS])
+AT_KEYWORDS([autoreconf])
+
+# We use aclocal (via autoreconf).
+AT_CHECK([aclocal --version || exit 77], [], [ignore], [ignore])
+
+AT_DATA([install-sh], [])
+AT_DATA([configure.in],
+[[AC_INIT(GNU Outer, 1.0)
+
+my_subdirs=
+# Taken from autoconf.texi:Subdirectories.
+if test "x$package_foo_enabled" = xyes; then
+  my_subdirs="$my_subdirs foo"
+fi
+AC_CONFIG_SUBDIRS([$my_subdirs])
+AC_OUTPUT
+]])
+
+AS_MKDIR_P([foo])
+
+AT_DATA([foo/configure],
+[[#! /bin/sh
+touch innerfile
+exit 0
+]])
+chmod +x foo/configure
+
+# autoreconf should warn without -Wno-syntax, but should not fail without -Werror.
+AT_CHECK([autoreconf -Werror -v], [1], [ignore], [stderr])
+AT_CHECK([grep 'AC_CONFIG_SUBDIRS:.*literals' stderr], [0], [ignore])
+AT_CHECK([autoreconf -v], [0], [ignore], [stderr])
+AT_CHECK([grep 'AC_CONFIG_SUBDIRS:.*literals' stderr], [0], [ignore])
+# We cannot assume aclocal won't warn (aclocal-1.9 does not understand -W*
+# options), so check autoconf only.
+AT_CHECK([autoconf --force -Wno-syntax], 0, [ignore], [stderr])
+AT_CHECK([grep 'AC_CONFIG_SUBDIRS:.*literals' stderr], [1])
+
+AT_CHECK([./configure $configure_options], [0], [ignore])
+AT_CHECK([test ! -f foo/innerfile])
+# Running the outer configure should trigger the inner.
+AT_CHECK([./configure $configure_options package_foo_enabled=yes], [0], [ignore])
+AT_CHECK([test -f foo/innerfile])
+
+AT_CLEANUP
 
 
 ## ----------------- ##
