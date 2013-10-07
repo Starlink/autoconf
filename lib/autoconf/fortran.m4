@@ -249,7 +249,7 @@ m4_define([AC_LANG_CALL(Fortran 77)],
 [      call $2])])
 
 
-# AC_LANG_FUNC_LINK_TRY(Fortran)(FUNCTION)
+# AC_LANG_FUNC_LINK_TRY(Fortran 77)(FUNCTION)
 # ----------------------------------------
 # Produce a source which links correctly iff the Fortran FUNCTION exists.
 # Note that the generic AC_LANG_FUNC_LINK_TRY macro is deemed severely
@@ -264,31 +264,7 @@ m4_define([AC_LANG_CALL(Fortran 77)],
 # being somethine weird -- either already declared as a Fortran keyword
 # or something needing quoting -- if the user wants to ask dumb
 # questions, they'll get dumb answers.
-m4_define([AC_LANG_FUNC_LINK_TRY(Fortran)],
-[AC_LANG_SOURCE(
-[      Program Test
-      External $1
-      Call $1
-      End
-])])
-
-
-# AC_LANG_FUNC_LINK_TRY(Fortran 77)(FUNCTION)
-# -------------------------------------------
-# Ditto, for language `Fortran 77'
 m4_define([AC_LANG_FUNC_LINK_TRY(Fortran 77)],
-[AC_LANG_SOURCE(
-[      Program Test
-      External $1
-      Call $1
-      End
-])])
-
-
-# AC_LANG_FUNC_LINK_TRY(Preprocessed Fortran)(FUNCTION)
-# -----------------------------------------------------
-# Ditto, for language `Preprocessed Fortran'
-m4_define([AC_LANG_FUNC_LINK_TRY(Preprocessed Fortran)],
 [AC_LANG_SOURCE(
 [      Program Test
       External $1
