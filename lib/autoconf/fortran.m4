@@ -2745,7 +2745,7 @@ _ACEOF
 ac_fpp_command=$1
 if eval '$ac_fpp_command conftest.$ac_ext > conftest.log 2>/dev/null'; then
   if test -f conftest.f; then
-    if cmp conftest.$ac_ext conftest.f >/dev/null; then
+    if diff conftest.$ac_ext conftest.f >/dev/null; then
       # ooops -- these two are the same file.  Ie, this is a
       # case-insensitive filesystem, so ignore this file
       ac_tmp=
