@@ -355,7 +355,7 @@ AC_DEFUN([AC_LANG_COMPILER(Fortran)],
 # Find the Fortran compiler.  Must be AC_DEFUN'd to be
 # AC_REQUIRE'able.
 AC_DEFUN([AC_LANG_COMPILER(Preprocessed Fortran)],
-[AC_REQUIRE([AC_PROG_FC])])
+[AC_REQUIRE([AC_PROG_FPP])])
 
 
 # ac_cv_prog_g77
