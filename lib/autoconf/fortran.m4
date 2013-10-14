@@ -1845,12 +1845,15 @@ dnl Put specifier on continuation line, in case it's long.
 AC_DEFUN([AC_FC_OPEN_SPECIFIERS],
          [AC_REQUIRE([AC_PROG_FC])dnl
           AC_LANG_PUSH([Fortran])
-          m4_foreach_w([Specifier],[m4_quote(m4_toupper($1))],[m4_define([mungedspec],
-                                m4_bpatsubst(m4_quote(Specifier), [[^a-zA-Z0-9_]], []))
-                      AC_CACHE_CHECK([whether ${FC} supports OPEN specifier ]m4_quote(Specifier),
-                          [ac_cv_fc_spec_]mungedspec,
-                          [AC_COMPILE_IFELSE(AC_LANG_PROGRAM([],
-                                                             [      OPEN(UNIT=99,]m4_if(m4_bregexp(m4_quote(Specifier), [\<STATUS *=]), -1, [STATUS='SCRATCH'[,]], [])
+
+          m4_foreach_w([Specifier],
+                       m4_quote(m4_toupper([$1])),
+                       [m4_define([mungedspec],
+                                  m4_bpatsubst(m4_quote(Specifier), [[^a-zA-Z0-9_]], []))
+                        AC_CACHE_CHECK([whether ${FC} supports OPEN specifier ]m4_quote(Specifier),
+                            [ac_cv_fc_spec_]mungedspec,
+                            [AC_COMPILE_IFELSE(AC_LANG_PROGRAM([],
+                                                               [      OPEN(UNIT=99,]m4_if(m4_bregexp(m4_quote(Specifier), [\<STATUS *=]), -1, [STATUS='SCRATCH'[,]], [])
      :m4_quote(Specifier)[)]),
                                              [ac_cv_fc_spec_]mungedspec=yes,
                                              [ac_cv_fc_spec_]mungedspec=no)])
@@ -2124,10 +2127,12 @@ esac])dnl
 AC_DEFUN([AC_FC_CHECK_INTRINSICS],
   [AC_REQUIRE([AC_PROG_FC])dnl
    AC_LANG_PUSH([Fortran])
-   m4_foreach_w([IntrinsicName],[dnl In case the user is mad],[escape impossible names
-              m4_bpatsubst(m4_toupper($1), [^a-zA-Z0-9_ ], _)],[AC_CACHE_CHECK([whether ${FC} supports intrinsic ]IntrinsicName,
-                              [ac_cv_fc_has_]IntrinsicName,
-                              [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[
+   m4_foreach_w([IntrinsicName],
+                dnl In case the user is mad, escape impossible names in this next section.
+                m4_bpatsubst(m4_toupper([$1]), [[^a-zA-Z0-9_ ]], [_]),
+                [AC_CACHE_CHECK([whether ${FC} supports intrinsic ]IntrinsicName,
+                                [ac_cv_fc_has_]IntrinsicName,
+                                [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[
 dnl All we need do is attempt to declare the thing as an intrinsic,
 dnl since it is an error to thus declare a symbol which is not
 dnl in fact an intrinsic function.
@@ -2252,10 +2257,12 @@ AC_DEFUN([AC_FC_CHECK_HEADERS],
    [AC_REQUIRE([AC_PROG_FC])dnl
     m4_ifval([$1], , [AC_FATAL([$0: missing argument])])dnl
     AC_LANG_PUSH([Fortran])
-    m4_foreach_w([IncludeName],[dnl In case the user is mad],[escape impossible names
-              m4_bpatsubst(m4_toupper($1), [^a-zA-Z0-9_ ], _)],[AC_CACHE_CHECK([whether ${FC} supports include ]IncludeName,
-                              [ac_cv_fc_has_]IncludeName,
-                              [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[
+    m4_foreach_w([IncludeName],
+                 dnl In case the user is mad, escape impossible names
+                 m4_bpatsubst(m4_toupper([$1]), [[^a-zA-Z0-9_ ]], [_]),
+                 [AC_CACHE_CHECK([whether ${FC} supports include ]IncludeName,
+                                 [ac_cv_fc_has_]IncludeName,
+                                 [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[
       include 'IncludeName'
       i=0
 ])],
