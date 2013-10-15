@@ -300,7 +300,7 @@ ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 # generation of a suitable extra build rule.  The language extension
 # is set in macro AC_PROG_FPP, to $FPP_SRC_EXT. Note we base on
 # Fortran 77 which gets some support macros we previously defined.
-AC_LANG_DEFINE([Preprocessed Fortran], [fpp], [FPP], [Fortran 77],
+AC_LANG_DEFINE([Preprocessed Fortran], [fpp], [FPP], [FPP], [Fortran 77],
 [ac_ext=$FPP_SRC_EXT
 # We need to use variables because compilation depends on whether
 # $F77 supports direct compilation of source with cpp directives
@@ -309,6 +309,16 @@ ac_link=$ac_fpp_link
 ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 ])
 
+
+# AC_LANG_PROGRAM(Processed Fortran)([PROLOGUE], [BODY])
+# -----------------------------------------------
+# No, we do not discard the PROLOGUE.
+m4_define([AC_LANG_PROGRAM(Processed Fortran)],
+[dnl
+$1
+      program main
+$2
+      end])
 
 ## -------------------------------------------- ##
 ## 3. Looking for Compilers and Preprocessors.  ##
