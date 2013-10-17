@@ -310,10 +310,10 @@ ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 ])
 
 
-# AC_LANG_PROGRAM(Processed Fortran)([PROLOGUE], [BODY])
+# AC_LANG_PROGRAM(Preprocessed Fortran)([PROLOGUE], [BODY])
 # -----------------------------------------------
 # No, we do not discard the PROLOGUE.
-m4_define([AC_LANG_PROGRAM(Processed Fortran)],
+m4_define([AC_LANG_PROGRAM(Preprocessed Fortran)],
 [dnl
 $1
       program main
@@ -365,7 +365,7 @@ AC_DEFUN([AC_LANG_COMPILER(Fortran)],
 # Find the Fortran compiler.  Must be AC_DEFUN'd to be
 # AC_REQUIRE'able.
 AC_DEFUN([AC_LANG_COMPILER(Preprocessed Fortran)],
-[AC_REQUIRE([AC_PROG_FPP])])
+[AC_REQUIRE([AC_PROG_FC])])
 
 
 # ac_cv_prog_g77
