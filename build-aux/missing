@@ -43,8 +43,8 @@ fi
 
 msg="missing on your system"
 
-case $1 in-
--run)
+case $1 in
+--run)
   if $MISSING_SUPPRESS_RUN; then
     # Merely shift the --run option off the list: do not run the command,
     # and do not set $run to be null.
