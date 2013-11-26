@@ -1,7 +1,7 @@
 This is autoconf.info, produced by makeinfo version 4.13 from
 autoconf.texi.
 
-This manual (24 April 2012) is for GNU Autoconf (version 2.69), a
+This manual (29 October 2013) is for GNU Autoconf (version 2.69), a
 package for creating scripts to configure source code packages using
 templates and an M4 macro package.
 
@@ -45,7 +45,7 @@ File: autoconf.info,  Node: Top,  Next: Introduction,  Up: (dir)
 Autoconf
 ********
 
-This manual (24 April 2012) is for GNU Autoconf (version 2.69), a
+This manual (29 October 2013) is for GNU Autoconf (version 2.69), a
 package for creating scripts to configure source code packages using
 templates and an M4 macro package.
 
@@ -200,6 +200,7 @@ Compilers and Preprocessors
 * Objective C++ Compiler::      Likewise
 * Erlang Compiler and Interpreter::  Likewise
 * Fortran Compiler::            Likewise
+* Preprocessing Fortran::       How to preprocess Fortran
 * Go Compiler::                 Likewise
 
 Writing Tests
@@ -5484,6 +5485,7 @@ support for cross compiling.
 * Objective C++ Compiler::      Likewise
 * Erlang Compiler and Interpreter::  Likewise
 * Fortran Compiler::            Likewise
+* Preprocessing Fortran::       How to preprocess Fortran
 * Go Compiler::                 Likewise
 
 
@@ -6142,7 +6144,7 @@ essential Erlang/OTP programs:
      `erl' program is not found.
 
 
-File: autoconf.info,  Node: Fortran Compiler,  Next: Go Compiler,  Prev: Erlang Compiler and Interpreter,  Up: Compilers and Preprocessors
+File: autoconf.info,  Node: Fortran Compiler,  Next: Preprocessing Fortran,  Prev: Erlang Compiler and Interpreter,  Up: Compilers and Preprocessors
 
 5.10.8 Fortran Compiler Characteristics
 ---------------------------------------
@@ -6663,11 +6665,263 @@ Choice::).
      dummy placeholder empty variable, to avoid losing the significant
      trailing whitespace in a `Makefile'.
 
-
-File: autoconf.info,  Node: Go Compiler,  Prev: Fortran Compiler,  Up: Compilers and Preprocessors
+ -- Macro: AC_FC_CHECK_INTRINSICS (INTRINSIC-FUNCTION...)
+     Like `AC_CHECK_FUNCS', but instead determine the intrinsics
+     available to the Fortran compiler.  For each intrinsic in the
+     (whitespace-separated and case-insensitive) argument list, define
+     `HAVE_INTRINSIC_INTRINSIC-FUNCTION' (uppercased) if it is
+     available.  For example, `AC_FC_CHECK_INTRINSICS(sin)' would define
+     `HAVE_INTRINSIC_SIN' if the `sin' intrinsic function were
+     available (there are probably rather few Fortrans which don't have
+     this function).
 
-5.10.9 Go Compiler Characteristics
-----------------------------------
+     The macro works for both intrinsic functions and intrinsic
+     subroutines.
+
+ -- Macro: AC_FC_HAVE_PERCENTVAL
+     Test whether the Fortran compiler (`$FC') has the `%VAL'
+     extension.  If so, define the preprocessor variable
+     `HAVE_PERCENTVAL' to be 1.
+
+ -- Macro: AC_FC_HAVE_PERCENTLOC
+     Test whether the Fortran compiler (`$FC') has the `%LOC'
+     extension.  If so, define the preprocessor variable
+     `HAVE_PERCENTLOC' to be 1.
+
+ -- Macro: AC_FC_HAVE_BOZ
+     Test whether the Fortran compiler (`$FC') supports BOZ constants in
+     the Fortran 95 style. These are integer constants written in the
+     format `B'xxx'', `O'xxx'' and `Z'xxx''.  If so set the
+     preprocessor variable `HAVE_BOZ' to be 1. This should be true of
+     all Fortran 95, and later, compilers.
+
+ -- Macro: AC_FC_HAVE_TYPELESS_BOZ
+     Test whether the Fortran compiler (`$FC') supports typeless BOZ
+     constants in the Fortran 95 style. These are constants written in
+     the format `X'xxx'' that allow the initialisation of any type of
+     variable to a specific bit pattern. If so set the preprocessor
+     variable `HAVE_TYPELESS_BOZ' to be 1.
+
+ -- Macro: AC_FC_HAVE_OLD_TYPELESS_BOZ
+     Test whether the Fortran compiler (`$FC') supports typeless BOZ
+     constants in the OLD (VMS and g77) Fortran style. These are
+     constants written in the format `'xxx'X', which allow the
+     initialisation of any type to a specific bit pattern. If so set
+     the preprocessor variable `HAVE_OLD_TYPELESS_BOZ' to be 1.
+
+ -- Macro: AC_FC_HAVE_VOLATILE
+     Test whether the Fortran compiler (`$FC') supports the VOLATILE
+     statement. VOLATILE is used to stop the optimisation of a
+     variable, so that it can be modified outside of the program
+     itself. If supported the preprocessor variable HAVE_VOLATILE is
+     set to be 1.
+
+ -- Macro: AC_FC_OPEN_SPECIFIERS (SPECIFIER...)
+     The Fortran OPEN statement is a rich source of portability
+     problems, since there are numerous common extensions which consist
+     of extra specifiers, several of which are useful when they are
+     available.
+
+     For each of the specifiers in the (whitespace-separated) argument
+     list, define `HAVE_FC_OPEN_MUNGEDSPECIFIER' if the specifier may be
+     given as argument to the `OPEN' statement.  The MUNGEDSPECIFIER is
+     the SPECIFIER argument converted to uppercase and with all
+     characters outside `[a-zA-Z0-9_]' deleted.  Note that this may
+     include `specifiers' such as `access='append'' and
+     `[access='sequential',recl=1]' (note quoting of comma) to check
+     combinations of specifiers.  You may not include a space in the
+     `specifier', even quoted.  Each argument must be a maximum of 65
+     characters in length (to abide by Fortran 77 line-length limits).
+
+
+ -- Macro: AC_FC_RECL_UNIT
+     When opening a file for direct access, you must specify the record
+     length with the `OPEN' specifier `RECL'; however in the case of
+     unformatted direct access files, the _units_ of this specifier are
+     processor dependent, and may be words or bytes.  This macro
+     determines the units and defines `FC_RECL_UNIT' to contain the
+     number of bytes (1, 2, 4, 8, ...)  in the processor's unit of
+     measurement.
+
+     Note that unformatted files are not themselves portable, and should
+     only be used as either temporary files, or as data files which will
+     be read by a program or library compiled with the same Fortran
+     processor.  With this macro, however, you can at least code the
+     handling of such files in a portable way.
+
+
+
+File: autoconf.info,  Node: Preprocessing Fortran,  Next: Go Compiler,  Prev: Fortran Compiler,  Up: Compilers and Preprocessors
+
+5.10.9 Preprocessing Fortran
+----------------------------
+
+It is both possible and useful to use Fortran which has cpp-style
+directives within it.  Some Fortran compilers, such as `g77', can
+process these directives internally, and so need no separate
+preprocessing stage; in other cases, the code must be compiled
+indirectly, with a preprocessor producing pure Fortran code which is
+only then passed to the compiler.
+
+   Because of the syntactical differences in the underlying languages,
+it is not always possible to do this using the `cpp' program, and you
+may need help from a separate Fortran-specific preprocessor.
+
+   The `AC_PROG_FPP' macro, combined with the corresponding support in
+Automake (starting with version XXX), will work out how to compile
+Fortran source containing such directives.
+
+ -- Macro: AC_PROG_FPP ([FEATURE-LIST], [FPP-SRC-EXT])
+     [FEATURE-LIST] is a space-separated list of features that the
+     Fortran preprocessor must have for the code to compile.  See below
+     for details.  It is up to the package maintainer to properly set
+     these requirements.
+
+     [FPP-SRC-EXT] is an optional specification of the file extension
+     for preprocessable Fortran source files (without a leading dot).
+     It defaults to `fpp', which is better than `F' in general, since
+     extensions `.F' and `.f' are indistinguishable on case-insensitive
+     filesystems (such as HFS+ on MacOS X).
+
+     You should also call the macro `AC_PROG_FC' before you call this
+     macro.
+
+
+   There is no formal standard for Fortran preprocessor directives, and
+so you introduce an element of non-portability into your code when you
+use them.  However they can (paradoxically) help make your code more
+portable by allowing you to use useful and common extensions (such as
+the `READONLY' qualifier on the `OPEN' statement) without having the
+code break on those few compilers which support nothing beyond the
+formal standard.
+
+   Different preprocessors support different subsets of the range of
+possibilities.  If your code requires only a very basic set of features
+-- such as `#if...#endif' and nothing more -- then you can make use of
+a relatively primitive preprocessor, perhaps even one as simple as a
+script.  It is for this reason that this macro, unusually for Autoconf
+macros, allows you to specify a set of needed features, and the macro
+will find a preprocessor which not only exists and runs, but has at
+least these features available.  (1)
+
+   The macro will fall back on `cpp' if no more specific preprocessor
+can be found.  This will _usually_ work, but because Fortran and C have
+such different syntaxes, there will be a few cases where the `cpp'
+command becomes quite legitimately confused.
+
+   The supported features are as follows:
+
+`include'
+     Correctly process `#include' directives and the command-line option
+     `-I'.
+
+`define'
+     Correctly process option `-D'.
+
+`substitute'
+     Substitute macros in Fortran code (some preprocessors touch only
+     lines starting with `#').
+
+`wrap'
+     Wrap lines that become too long through macro substitution.  `fpp'
+     is probably the only preprocessor that does this.  Without this,
+     you can run into trouble if your macro substitutions cause code
+     lines to move beyond Fortran 77's 72-character limit.
+
+`cstyle'
+     Do not suppress C style comments (`-C' option in `cpp').
+
+`CSTYLE'
+     _Do_ suppress C style comments (for example, the code contains
+     C-style comments, and the compiler may not know how to handle
+     them).
+
+
+   Features can be abbreviated, so that `i', `in', `inc' etc. are
+equivalent to `include'.  Features can be deselected, if the feature is
+not needed, by prepending `no'; for example `nodefine'.
+
+   The default for the feature list is `[include define substitute
+nowrap nocstyle noCSTYLE]', and feature requirements corresponding to
+the defaults may be omitted.
+
+   Note that `wrap' implies `substitute', and `CSTYLE' and `cstyle'
+cannot be requested at the same time. The macro adjusts this
+automatically.
+
+   The macro works out if the Fortran compiler discovered by macro
+`AC_PROG_FC' has the requested set of features.  If so, it arranges for
+the compilation to be done `directly'; if not, it arranges for
+`indirect' compilation, where the preprocessable Fortran code is
+converted to pure Fortran code and only subsequently passed to the
+Fortran compiler.
+
+   This macro sets and substitutes the following variables.
+
+`FPP'
+     The name of the preprocessor which will be used
+
+`FPPFLAGS'
+     The flags which will be given to the compiler (in direct mode) or
+     preprocessor (in indirect mode)
+
+`FPP_MAKE_FLAGS'
+     This is used to pass flags to the `cpp' or `fpp' command if we
+     compile directly, and leave them out otherwise.
+
+`FPP_SRC_EXT'
+     This is the file extension (without a dot) of preprocessable
+     Fortran files; by default this is `fpp', but `F' is also common.
+     It is set by the second argument of the `AC_PROG_FPP' macro.
+
+`FPP_COMPILE_EXT'
+     This contains the file extension which the Fortran compiler will
+     accept.  It is the same as `FPP_SRC_EXT' if the compiler itself
+     can do preprocessing (`direct' compilation), or a dummy value if
+     it cannot, and the file must be preprocessed separately
+     (`indirect').  The dummy value in this latter case is not `.f',
+     since that would conflict with the pre-existing rule for compiling
+     Fortran.
+
+`FPP_PREPROCESS_EXT'
+     The partner of `FPP_COMPILE_EXT'.  This is `FPP_SRC_EXT' for
+     indirect compilation, or a dummy value for direct compilation,
+     when the corresponding preprocessing rule should be ignored.
+
+`FPP_OUTPUT'
+     This is used to redirect `fpp' output to the `.f' file in those
+     cases where the preprocessor writes to `stdout' rather than to a
+     file: it is either blank or something like `>$@'.
+
+
+   These macros are used in the correct way by the `Makefile.in' rules
+generated by Automake.  If, however, you need to run the preprocessor
+`by hand' for some reason, then a suitable stanza in a `Makefile.am' or
+`Makefile.in' would be:
+     file.f: file.$(FPP_SRC_EXT)
+             $(FPP) $(FPPFLAGS) $(CPPFLAGS) file.$(FPP_SRC_EXT) $(FPP_OUTPUT)
+   Here, we have ensured that the input file has the extension
+`$(FPP_SRC_EXT)'.  You can add extra options such as `-I'. if necessary
+(automake puts these in the variable `$(DEFAULT_INCLUDES)').
+
+   The macro depends on both `FC' and `CPP', because we may possibly
+need to fall back on `cpp' for preprocessing.
+
+   ---------- Footnotes ----------
+
+   (1) Sun have produced a Fortran preprocessor `fpp', which is
+described at
+`http://wwws.sun.com/software/sundev/previous/studio7/documentation/mr/READMEs/fpp_readme.html'
+and available for download at `http://www.netlib.org/fortran'; it is
+available for no cost, though it is not Free.  The description on that
+page is, in effect, a useful specification of a Fortran preprocessor
+syntax.
+
+
+File: autoconf.info,  Node: Go Compiler,  Prev: Preprocessing Fortran,  Up: Compilers and Preprocessors
+
+5.10.10 Go Compiler Characteristics
+-----------------------------------
 
 Autoconf provides basic support for the Go programming language when
 using the `gccgo' compiler (there is currently no support for the `6g'
@@ -23597,6 +23851,17 @@ This is an alphabetical list of the Autoconf macros.
  [index ]
 * Menu:
 
+* AC_AC_FC_CHECK_INTRINSICS:             Fortran Compiler.    (line 523)
+* AC_AC_FC_HAVE_BOZ:                     Fortran Compiler.    (line 546)
+* AC_AC_FC_HAVE_OLD_TYPELESS_BOZ:        Fortran Compiler.    (line 560)
+* AC_AC_FC_HAVE_PERCENTLOC:              Fortran Compiler.    (line 541)
+* AC_AC_FC_HAVE_PERCENTVAL:              Fortran Compiler.    (line 536)
+* AC_AC_FC_HAVE_TYPELESS_BOZ:            Fortran Compiler.    (line 553)
+* AC_AC_FC_HAVE_VOLATILE:                Fortran Compiler.    (line 567)
+* AC_AC_FC_OPEN_SPECIFIERS:              Fortran Compiler.    (line 574)
+* AC_AC_FC_RECL_UNIT:                    Fortran Compiler.    (line 592)
+* AC_AC_PROG_FPP:                        Preprocessing Fortran.
+                                                              (line  22)
 * AC_ACT_IFELSE:                         AC_ACT_IFELSE vs AC_TRY_ACT.
                                                               (line   6)
 * AC_AIX:                                Obsolete Macros.     (line  20)
@@ -25313,378 +25578,380 @@ introduced in this document.
 
 
 Tag Table:
-Node: Top1954
-Node: Introduction21371
-Node: The GNU Build System27935
-Node: Automake28914
-Node: Gnulib30863
-Node: Libtool32172
-Node: Pointers33594
-Ref: Pointers-Footnote-134895
-Node: Making configure Scripts35055
-Node: Writing Autoconf Input38404
-Node: Shell Script Compiler39867
-Node: Autoconf Language42228
-Node: Autoconf Input Layout49397
-Node: autoscan Invocation50805
-Node: ifnames Invocation53361
-Node: autoconf Invocation54561
-Node: autoreconf Invocation59846
-Node: Setup64607
-Node: Initializing configure65929
-Ref: AC_INIT66434
-Node: Versioning69318
-Node: Notices71179
-Node: Input72354
-Ref: AC_CONFIG_SRCDIR72495
-Node: Output75442
-Ref: AC_OUTPUT75877
-Ref: AC_PROG_MAKE_SET77495
-Node: Configuration Actions77920
-Node: Configuration Files83208
-Ref: AC_CONFIG_FILES83469
-Node: Makefile Substitutions84688
-Node: Preset Output Variables86431
-Node: Installation Directory Variables95945
-Node: Changed Directory Variables103793
-Node: Build Directories106387
-Node: Automatic Remaking108242
-Node: Configuration Headers110410
-Node: Header Templates113712
-Node: autoheader Invocation116447
-Node: Autoheader Macros120089
-Node: Configuration Commands122354
-Ref: AC_CONFIG_COMMANDS122866
-Node: Configuration Links124151
-Ref: AC_CONFIG_LINKS124602
-Node: Subdirectories125575
-Node: Default Prefix128055
-Ref: AC_PREFIX_PROGRAM128946
-Node: Existing Tests129477
-Node: Common Behavior131279
-Node: Standard Symbols131918
-Node: Default Includes132499
-Node: Alternative Programs134753
-Node: Particular Programs135439
-Ref: AC_PROG_LEX141187
-Ref: AC_PROG_LN_S143798
-Node: Generic Programs145416
-Ref: AC_CHECK_PROG146388
-Ref: AC_CHECK_PROGS147114
-Ref: AC_PATH_PROG151114
-Ref: AC_PATH_PROGS151488
-Node: Files154567
-Node: Libraries155767
-Ref: AC_CHECK_LIB156008
-Ref: AC_SEARCH_LIBS158267
-Node: Library Functions159451
-Node: Function Portability160074
-Node: Particular Functions169586
-Ref: AC_FUNC_ALLOCA169917
-Ref: AC_FUNC_CLOSEDIR_VOID172306
-Ref: AC_FUNC_FORK174296
-Ref: AC_FUNC_GETLOADAVG176338
-Ref: AC_FUNC_GETMNTENT177903
-Ref: AC_FUNC_MMAP182145
-Ref: AC_FUNC_STRCOLL185000
-Ref: AC_FUNC_STRFTIME185975
-Ref: AC_FUNC_UTIME_NULL187257
-Ref: AC_FUNC_VPRINTF187605
-Node: Generic Functions188821
-Ref: AC_CHECK_FUNC189347
-Ref: AC_CHECK_FUNCS189976
-Node: Header Files194602
-Node: Header Portability195235
-Node: Particular Headers198330
-Ref: AC_HEADER_DIRENT199369
-Ref: AC_HEADER_MAJOR200899
-Ref: AC_HEADER_STAT201683
-Ref: AC_HEADER_STDC203189
-Ref: AC_HEADER_TIME207928
-Node: Generic Headers209315
-Ref: AC_CHECK_HEADER209715
-Ref: AC_CHECK_HEADERS211588
-Node: Declarations214153
-Node: Particular Declarations214749
-Node: Generic Declarations214973
-Ref: AC_CHECK_DECLS216358
-Node: Structures218884
-Node: Particular Structures219499
-Ref: AC_STRUCT_ST_BLOCKS220568
-Ref: AC_STRUCT_TIMEZONE221264
-Node: Generic Structures221593
-Ref: AC_CHECK_MEMBERS222584
-Node: Types223417
-Node: Particular Types223937
-Ref: AC_TYPE_GETGROUPS224380
-Ref: AC_TYPE_MODE_T227416
-Ref: AC_TYPE_OFF_T227599
-Ref: AC_TYPE_PID_T227779
-Ref: AC_TYPE_SIZE_T227959
-Ref: AC_TYPE_UID_T228328
-Node: Generic Types229973
-Node: Compilers and Preprocessors232128
-Node: Specific Compiler Characteristics233402
-Node: Generic Compiler Characteristics234507
-Ref: AC_CHECK_SIZEOF234747
-Node: C Compiler239537
-Ref: AC_PROG_CC_C_O243988
-Ref: AC_C_BIGENDIAN247796
-Ref: AC_C_CONST249637
-Ref: AC_C_INLINE252955
-Ref: AC_C_CHAR_UNSIGNED253178
-Ref: AC_PROG_GCC_TRADITIONAL255800
-Node: C++ Compiler256212
-Node: Objective C Compiler258609
-Node: Objective C++ Compiler259983
-Node: Erlang Compiler and Interpreter261433
-Node: Fortran Compiler263478
-Node: Go Compiler288878
-Node: System Services289923
-Ref: AC_PATH_X290168
-Ref: AC_PATH_XTRA291161
-Ref: AC_SYS_INTERPRETER291738
-Ref: AC_SYS_LONG_FILE_NAMES293150
-Node: Posix Variants293527
-Ref: AC_USE_SYSTEM_EXTENSIONS293827
-Node: Erlang Libraries294903
-Node: Writing Tests299841
-Node: Language Choice301865
-Ref: AC_LANG302362
-Ref: AC_LANG_PUSH304161
-Ref: Language Choice-Footnote-1306034
-Node: Writing Test Programs306190
-Node: Guidelines306768
-Node: Test Functions309028
-Node: Generating Sources310426
-Node: Running the Preprocessor316510
-Ref: AC_PREPROC_IFELSE317242
-Ref: AC_EGREP_HEADER319172
-Ref: AC_EGREP_CPP319501
-Node: Running the Compiler319926
-Node: Running the Linker321681
-Ref: AC_LINK_IFELSE322821
-Node: Runtime323697
-Ref: AC_RUN_IFELSE324472
-Node: Systemology329322
-Node: Multiple Cases331671
-Node: Results333372
-Node: Defining Symbols334191
-Node: Setting Output Variables339082
-Node: Special Chars in Variables344973
-Node: Caching Results346233
-Node: Cache Variable Names349951
-Node: Cache Files351602
-Node: Cache Checkpointing353927
-Node: Printing Messages355301
-Ref: AC_MSG_RESULT356815
-Ref: AC_MSG_NOTICE357322
-Ref: AC_MSG_ERROR357686
-Ref: AC_MSG_WARN358519
-Node: Programming in M4358942
-Node: M4 Quotation359747
-Node: Active Characters360716
-Ref: Active Characters-Footnote-1362106
-Ref: Active Characters-Footnote-2362220
-Node: One Macro Call362242
-Node: Quoting and Parameters363798
-Node: Quotation and Nested Macros366134
-Node: Changequote is Evil369144
-Node: Quadrigraphs371674
-Node: Balancing Parentheses374356
-Node: Quotation Rule Of Thumb378450
-Node: Using autom4te381348
-Ref: Using autom4te-Footnote-1381999
-Node: autom4te Invocation382048
-Node: Customizing autom4te390550
-Node: Programming in M4sugar391831
-Node: Redefined M4 Macros393012
-Node: Diagnostic Macros401342
-Ref: m4_fatal402095
-Ref: m4_warn402334
-Node: Diversion support403102
-Node: Conditional constructs410888
-Node: Looping constructs417742
-Ref: m4_foreach_w421354
-Node: Evaluation Macros428706
-Node: Text processing Macros437395
-Node: Number processing Macros447105
-Ref: m4_version_compare449057
-Node: Set manipulation Macros451364
-Node: Forbidden Patterns460480
-Node: Debugging via autom4te461971
-Node: Programming in M4sh463790
-Node: Common Shell Constructs465163
-Node: Polymorphic Variables473136
-Node: Initialization Macros482725
-Node: File Descriptor Macros488314
-Ref: AS_MESSAGE_LOG_FD489466
-Node: Writing Autoconf Macros490968
-Node: Macro Definitions491773
-Node: Macro Names495452
-Node: Reporting Messages499213
-Node: Dependencies Between Macros501057
-Node: Prerequisite Macros501752
-Node: Suggested Ordering507827
-Node: One-Shot Macros509370
-Node: Obsoleting Macros510723
-Ref: AU_DEFUN511477
-Node: Coding Style512506
-Node: Portable Shell520313
-Node: Shellology524621
-Node: Invoking the Shell528792
-Node: Here-Documents529974
-Node: File Descriptors533594
-Node: Signal Handling540032
-Node: File System Conventions545240
-Node: Shell Pattern Matching551052
-Node: Shell Substitutions551616
-Node: Assignments569492
-Node: Parentheses571383
-Node: Slashes572340
-Node: Special Shell Variables573194
-Node: Shell Functions586526
-Node: Limitations of Builtins589933
-Ref: case593955
-Ref: echo599113
-Ref: export606087
-Ref: if609507
-Ref: set613318
-Ref: trap625040
-Ref: unset628851
-Node: Limitations of Usual Tools629946
-Ref: awk630245
-Ref: grep648349
-Ref: mkdir653981
-Ref: sed659801
-Ref: touch670932
-Node: Portable Make674207
-Node: $< in Ordinary Make Rules675869
-Node: Failure in Make Rules676335
-Node: Special Chars in Names677363
-Node: Backslash-Newline-Empty678335
-Node: Backslash-Newline Comments679367
-Node: Long Lines in Makefiles680256
-Node: Macros and Submakes680632
-Node: The Make Macro MAKEFLAGS683319
-Node: The Make Macro SHELL684204
-Node: Parallel Make686703
-Node: Comments in Make Rules690387
-Node: Newlines in Make Rules691557
-Node: Comments in Make Macros692602
-Node: Trailing whitespace in Make Macros693812
-Node: Command-line Macros and whitespace694563
-Node: obj/ and Make695233
-Node: make -k Status695884
-Node: VPATH and Make696506
-Node: Variables listed in VPATH697830
-Node: VPATH and Double-colon698369
-Node: $< in Explicit Rules698775
-Node: Automatic Rule Rewriting699242
-Node: Tru64 Directory Magic705924
-Node: Make Target Lookup706750
-Node: Single Suffix Rules711192
-Node: Timestamps and Make712538
-Node: Portable C and C++714223
-Node: Varieties of Unportability715864
-Node: Integer Overflow717961
-Node: Integer Overflow Basics718974
-Node: Signed Overflow Examples720722
-Node: Optimization and Wraparound724224
-Node: Signed Overflow Advice727186
-Node: Signed Integer Division729860
-Node: Preprocessor Arithmetic730471
-Node: Null Pointers731220
-Node: Buffer Overruns731854
-Node: Volatile Objects734643
-Node: Floating Point Portability740321
-Node: Exiting Portably740828
-Node: Manual Configuration742304
-Node: Specifying Target Triplets743137
-Ref: Specifying Names743310
-Node: Canonicalizing746185
-Node: Using System Type748448
-Node: Site Configuration751252
-Node: Help Formatting752224
-Node: External Software753168
-Ref: AC_ARG_WITH754714
-Node: Package Options759039
-Ref: AC_ARG_ENABLE760494
-Node: Pretty Help Strings761655
-Ref: AS_HELP_STRING762241
-Node: Option Checking764582
-Node: Site Details766310
-Node: Transforming Names767539
-Node: Transformation Options768621
-Node: Transformation Examples769098
-Node: Transformation Rules770819
-Node: Site Defaults772365
-Node: Running configure Scripts777706
-Node: Basic Installation778771
-Node: Compilers and Options782868
-Node: Multiple Architectures783522
-Node: Installation Names785102
-Node: Optional Features787997
-Node: Particular Systems789351
-Node: System Type790775
-Node: Sharing Defaults792103
-Node: Defining Variables792741
-Node: configure Invocation793639
-Node: config.status Invocation795345
-Ref: CONFIG_SHELL799092
-Node: Obsolete Constructs800258
-Node: Obsolete config.status Use801221
-Node: acconfig Header802999
-Node: autoupdate Invocation805021
-Node: Obsolete Macros806887
-Ref: AC_FUNC_SETVBUF_REVERSED814529
-Ref: AC_TYPE_SIGNAL831075
-Node: Autoconf 1834053
-Node: Changed File Names835119
-Node: Changed Makefiles835869
-Node: Changed Macros836957
-Node: Changed Results838211
-Node: Changed Macro Writing840335
-Node: Autoconf 2.13841615
-Node: Changed Quotation842823
-Node: New Macros844741
-Node: Hosts and Cross-Compilation846536
-Node: AC_LIBOBJ vs LIBOBJS850691
-Node: AC_ACT_IFELSE vs AC_TRY_ACT852306
-Ref: AC_FOO_IFELSE vs AC_TRY_FOO852495
-Node: Using Autotest854308
-Node: Using an Autotest Test Suite856712
-Node: testsuite Scripts857003
-Node: Autotest Logs861485
-Node: Writing Testsuites863826
-Node: testsuite Invocation880858
-Node: Making testsuite Scripts886205
-Node: FAQ891343
-Node: Distributing892203
-Node: Why GNU M4893252
-Node: Bootstrapping894121
-Node: Why Not Imake894731
-Node: Defining Directories899482
-Node: Autom4te Cache901640
-Node: Present But Cannot Be Compiled903478
-Node: Expanded Before Required907195
-Node: Debugging912093
-Node: History917116
-Node: Genesis917985
-Node: Exodus919163
-Node: Leviticus922208
-Node: Numbers923736
-Node: Deuteronomy925651
-Node: GNU Free Documentation License928322
-Node: Indices953487
-Node: Environment Variable Index954206
-Node: Output Variable Index965546
-Node: Preprocessor Symbol Index982426
-Node: Cache Variable Index1000695
-Node: Autoconf Macro Index1011383
-Node: M4 Macro Index1045712
-Node: Autotest Macro Index1066462
-Node: Program & Function Index1068865
-Node: Concept Index1089579
+Node: Top1956
+Node: Introduction21433
+Node: The GNU Build System27997
+Node: Automake28976
+Node: Gnulib30925
+Node: Libtool32234
+Node: Pointers33656
+Ref: Pointers-Footnote-134957
+Node: Making configure Scripts35117
+Node: Writing Autoconf Input38466
+Node: Shell Script Compiler39929
+Node: Autoconf Language42290
+Node: Autoconf Input Layout49459
+Node: autoscan Invocation50867
+Node: ifnames Invocation53423
+Node: autoconf Invocation54623
+Node: autoreconf Invocation59908
+Node: Setup64669
+Node: Initializing configure65991
+Ref: AC_INIT66496
+Node: Versioning69380
+Node: Notices71241
+Node: Input72416
+Ref: AC_CONFIG_SRCDIR72557
+Node: Output75504
+Ref: AC_OUTPUT75939
+Ref: AC_PROG_MAKE_SET77557
+Node: Configuration Actions77982
+Node: Configuration Files83270
+Ref: AC_CONFIG_FILES83531
+Node: Makefile Substitutions84750
+Node: Preset Output Variables86493
+Node: Installation Directory Variables96007
+Node: Changed Directory Variables103855
+Node: Build Directories106449
+Node: Automatic Remaking108304
+Node: Configuration Headers110472
+Node: Header Templates113774
+Node: autoheader Invocation116509
+Node: Autoheader Macros120151
+Node: Configuration Commands122416
+Ref: AC_CONFIG_COMMANDS122928
+Node: Configuration Links124213
+Ref: AC_CONFIG_LINKS124664
+Node: Subdirectories125637
+Node: Default Prefix128117
+Ref: AC_PREFIX_PROGRAM129008
+Node: Existing Tests129539
+Node: Common Behavior131341
+Node: Standard Symbols131980
+Node: Default Includes132561
+Node: Alternative Programs134815
+Node: Particular Programs135501
+Ref: AC_PROG_LEX141249
+Ref: AC_PROG_LN_S143860
+Node: Generic Programs145478
+Ref: AC_CHECK_PROG146450
+Ref: AC_CHECK_PROGS147176
+Ref: AC_PATH_PROG151176
+Ref: AC_PATH_PROGS151550
+Node: Files154629
+Node: Libraries155829
+Ref: AC_CHECK_LIB156070
+Ref: AC_SEARCH_LIBS158329
+Node: Library Functions159513
+Node: Function Portability160136
+Node: Particular Functions169648
+Ref: AC_FUNC_ALLOCA169979
+Ref: AC_FUNC_CLOSEDIR_VOID172368
+Ref: AC_FUNC_FORK174358
+Ref: AC_FUNC_GETLOADAVG176400
+Ref: AC_FUNC_GETMNTENT177965
+Ref: AC_FUNC_MMAP182207
+Ref: AC_FUNC_STRCOLL185062
+Ref: AC_FUNC_STRFTIME186037
+Ref: AC_FUNC_UTIME_NULL187319
+Ref: AC_FUNC_VPRINTF187667
+Node: Generic Functions188883
+Ref: AC_CHECK_FUNC189409
+Ref: AC_CHECK_FUNCS190038
+Node: Header Files194664
+Node: Header Portability195297
+Node: Particular Headers198392
+Ref: AC_HEADER_DIRENT199431
+Ref: AC_HEADER_MAJOR200961
+Ref: AC_HEADER_STAT201745
+Ref: AC_HEADER_STDC203251
+Ref: AC_HEADER_TIME207990
+Node: Generic Headers209377
+Ref: AC_CHECK_HEADER209777
+Ref: AC_CHECK_HEADERS211650
+Node: Declarations214215
+Node: Particular Declarations214811
+Node: Generic Declarations215035
+Ref: AC_CHECK_DECLS216420
+Node: Structures218946
+Node: Particular Structures219561
+Ref: AC_STRUCT_ST_BLOCKS220630
+Ref: AC_STRUCT_TIMEZONE221326
+Node: Generic Structures221655
+Ref: AC_CHECK_MEMBERS222646
+Node: Types223479
+Node: Particular Types223999
+Ref: AC_TYPE_GETGROUPS224442
+Ref: AC_TYPE_MODE_T227478
+Ref: AC_TYPE_OFF_T227661
+Ref: AC_TYPE_PID_T227841
+Ref: AC_TYPE_SIZE_T228021
+Ref: AC_TYPE_UID_T228390
+Node: Generic Types230035
+Node: Compilers and Preprocessors232190
+Node: Specific Compiler Characteristics233522
+Node: Generic Compiler Characteristics234627
+Ref: AC_CHECK_SIZEOF234867
+Node: C Compiler239657
+Ref: AC_PROG_CC_C_O244108
+Ref: AC_C_BIGENDIAN247916
+Ref: AC_C_CONST249757
+Ref: AC_C_INLINE253075
+Ref: AC_C_CHAR_UNSIGNED253298
+Ref: AC_PROG_GCC_TRADITIONAL255920
+Node: C++ Compiler256332
+Node: Objective C Compiler258729
+Node: Objective C++ Compiler260103
+Node: Erlang Compiler and Interpreter261553
+Node: Fortran Compiler263598
+Node: Preprocessing Fortran293146
+Ref: Preprocessing Fortran-Footnote-1299838
+Node: Go Compiler300229
+Node: System Services301281
+Ref: AC_PATH_X301526
+Ref: AC_PATH_XTRA302519
+Ref: AC_SYS_INTERPRETER303096
+Ref: AC_SYS_LONG_FILE_NAMES304508
+Node: Posix Variants304885
+Ref: AC_USE_SYSTEM_EXTENSIONS305185
+Node: Erlang Libraries306261
+Node: Writing Tests311199
+Node: Language Choice313223
+Ref: AC_LANG313720
+Ref: AC_LANG_PUSH315519
+Ref: Language Choice-Footnote-1317392
+Node: Writing Test Programs317548
+Node: Guidelines318126
+Node: Test Functions320386
+Node: Generating Sources321784
+Node: Running the Preprocessor327868
+Ref: AC_PREPROC_IFELSE328600
+Ref: AC_EGREP_HEADER330530
+Ref: AC_EGREP_CPP330859
+Node: Running the Compiler331284
+Node: Running the Linker333039
+Ref: AC_LINK_IFELSE334179
+Node: Runtime335055
+Ref: AC_RUN_IFELSE335830
+Node: Systemology340680
+Node: Multiple Cases343029
+Node: Results344730
+Node: Defining Symbols345549
+Node: Setting Output Variables350440
+Node: Special Chars in Variables356331
+Node: Caching Results357591
+Node: Cache Variable Names361309
+Node: Cache Files362960
+Node: Cache Checkpointing365285
+Node: Printing Messages366659
+Ref: AC_MSG_RESULT368173
+Ref: AC_MSG_NOTICE368680
+Ref: AC_MSG_ERROR369044
+Ref: AC_MSG_WARN369877
+Node: Programming in M4370300
+Node: M4 Quotation371105
+Node: Active Characters372074
+Ref: Active Characters-Footnote-1373464
+Ref: Active Characters-Footnote-2373578
+Node: One Macro Call373600
+Node: Quoting and Parameters375156
+Node: Quotation and Nested Macros377492
+Node: Changequote is Evil380502
+Node: Quadrigraphs383032
+Node: Balancing Parentheses385714
+Node: Quotation Rule Of Thumb389808
+Node: Using autom4te392706
+Ref: Using autom4te-Footnote-1393357
+Node: autom4te Invocation393406
+Node: Customizing autom4te401908
+Node: Programming in M4sugar403189
+Node: Redefined M4 Macros404370
+Node: Diagnostic Macros412700
+Ref: m4_fatal413453
+Ref: m4_warn413692
+Node: Diversion support414460
+Node: Conditional constructs422246
+Node: Looping constructs429100
+Ref: m4_foreach_w432712
+Node: Evaluation Macros440064
+Node: Text processing Macros448753
+Node: Number processing Macros458463
+Ref: m4_version_compare460415
+Node: Set manipulation Macros462722
+Node: Forbidden Patterns471838
+Node: Debugging via autom4te473329
+Node: Programming in M4sh475148
+Node: Common Shell Constructs476521
+Node: Polymorphic Variables484494
+Node: Initialization Macros494083
+Node: File Descriptor Macros499672
+Ref: AS_MESSAGE_LOG_FD500824
+Node: Writing Autoconf Macros502326
+Node: Macro Definitions503131
+Node: Macro Names506810
+Node: Reporting Messages510571
+Node: Dependencies Between Macros512415
+Node: Prerequisite Macros513110
+Node: Suggested Ordering519185
+Node: One-Shot Macros520728
+Node: Obsoleting Macros522081
+Ref: AU_DEFUN522835
+Node: Coding Style523864
+Node: Portable Shell531671
+Node: Shellology535979
+Node: Invoking the Shell540150
+Node: Here-Documents541332
+Node: File Descriptors544952
+Node: Signal Handling551390
+Node: File System Conventions556598
+Node: Shell Pattern Matching562410
+Node: Shell Substitutions562974
+Node: Assignments580850
+Node: Parentheses582741
+Node: Slashes583698
+Node: Special Shell Variables584552
+Node: Shell Functions597884
+Node: Limitations of Builtins601291
+Ref: case605313
+Ref: echo610471
+Ref: export617445
+Ref: if620865
+Ref: set624676
+Ref: trap636398
+Ref: unset640209
+Node: Limitations of Usual Tools641304
+Ref: awk641603
+Ref: grep659707
+Ref: mkdir665339
+Ref: sed671159
+Ref: touch682290
+Node: Portable Make685565
+Node: $< in Ordinary Make Rules687227
+Node: Failure in Make Rules687693
+Node: Special Chars in Names688721
+Node: Backslash-Newline-Empty689693
+Node: Backslash-Newline Comments690725
+Node: Long Lines in Makefiles691614
+Node: Macros and Submakes691990
+Node: The Make Macro MAKEFLAGS694677
+Node: The Make Macro SHELL695562
+Node: Parallel Make698061
+Node: Comments in Make Rules701745
+Node: Newlines in Make Rules702915
+Node: Comments in Make Macros703960
+Node: Trailing whitespace in Make Macros705170
+Node: Command-line Macros and whitespace705921
+Node: obj/ and Make706591
+Node: make -k Status707242
+Node: VPATH and Make707864
+Node: Variables listed in VPATH709188
+Node: VPATH and Double-colon709727
+Node: $< in Explicit Rules710133
+Node: Automatic Rule Rewriting710600
+Node: Tru64 Directory Magic717282
+Node: Make Target Lookup718108
+Node: Single Suffix Rules722550
+Node: Timestamps and Make723896
+Node: Portable C and C++725581
+Node: Varieties of Unportability727222
+Node: Integer Overflow729319
+Node: Integer Overflow Basics730332
+Node: Signed Overflow Examples732080
+Node: Optimization and Wraparound735582
+Node: Signed Overflow Advice738544
+Node: Signed Integer Division741218
+Node: Preprocessor Arithmetic741829
+Node: Null Pointers742578
+Node: Buffer Overruns743212
+Node: Volatile Objects746001
+Node: Floating Point Portability751679
+Node: Exiting Portably752186
+Node: Manual Configuration753662
+Node: Specifying Target Triplets754495
+Ref: Specifying Names754668
+Node: Canonicalizing757543
+Node: Using System Type759806
+Node: Site Configuration762610
+Node: Help Formatting763582
+Node: External Software764526
+Ref: AC_ARG_WITH766072
+Node: Package Options770397
+Ref: AC_ARG_ENABLE771852
+Node: Pretty Help Strings773013
+Ref: AS_HELP_STRING773599
+Node: Option Checking775940
+Node: Site Details777668
+Node: Transforming Names778897
+Node: Transformation Options779979
+Node: Transformation Examples780456
+Node: Transformation Rules782177
+Node: Site Defaults783723
+Node: Running configure Scripts789064
+Node: Basic Installation790129
+Node: Compilers and Options794226
+Node: Multiple Architectures794880
+Node: Installation Names796460
+Node: Optional Features799355
+Node: Particular Systems800709
+Node: System Type802133
+Node: Sharing Defaults803461
+Node: Defining Variables804099
+Node: configure Invocation804997
+Node: config.status Invocation806703
+Ref: CONFIG_SHELL810450
+Node: Obsolete Constructs811616
+Node: Obsolete config.status Use812579
+Node: acconfig Header814357
+Node: autoupdate Invocation816379
+Node: Obsolete Macros818245
+Ref: AC_FUNC_SETVBUF_REVERSED825887
+Ref: AC_TYPE_SIGNAL842433
+Node: Autoconf 1845411
+Node: Changed File Names846477
+Node: Changed Makefiles847227
+Node: Changed Macros848315
+Node: Changed Results849569
+Node: Changed Macro Writing851693
+Node: Autoconf 2.13852973
+Node: Changed Quotation854181
+Node: New Macros856099
+Node: Hosts and Cross-Compilation857894
+Node: AC_LIBOBJ vs LIBOBJS862049
+Node: AC_ACT_IFELSE vs AC_TRY_ACT863664
+Ref: AC_FOO_IFELSE vs AC_TRY_FOO863853
+Node: Using Autotest865666
+Node: Using an Autotest Test Suite868070
+Node: testsuite Scripts868361
+Node: Autotest Logs872843
+Node: Writing Testsuites875184
+Node: testsuite Invocation892216
+Node: Making testsuite Scripts897563
+Node: FAQ902701
+Node: Distributing903561
+Node: Why GNU M4904610
+Node: Bootstrapping905479
+Node: Why Not Imake906089
+Node: Defining Directories910840
+Node: Autom4te Cache912998
+Node: Present But Cannot Be Compiled914836
+Node: Expanded Before Required918553
+Node: Debugging923451
+Node: History928474
+Node: Genesis929343
+Node: Exodus930521
+Node: Leviticus933566
+Node: Numbers935094
+Node: Deuteronomy937009
+Node: GNU Free Documentation License939680
+Node: Indices964845
+Node: Environment Variable Index965564
+Node: Output Variable Index976904
+Node: Preprocessor Symbol Index993784
+Node: Cache Variable Index1012053
+Node: Autoconf Macro Index1022741
+Node: M4 Macro Index1057864
+Node: Autotest Macro Index1078614
+Node: Program & Function Index1081017
+Node: Concept Index1101731
 
 End Tag Table
