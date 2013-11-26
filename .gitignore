@@ -4,6 +4,7 @@
 Makefile
 autom4te
 bin/autoconf
+bin/autoconf.in
 bin/autoheader
 bin/autoreconf
 bin/autoscan
@@ -30,3 +31,4 @@ tests/autoreconf
 tests/autoscan
 tests/autoupdate
 tests/ifnames
+tests/wrapper.in
