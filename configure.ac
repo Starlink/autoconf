@@ -23,21 +23,17 @@ dnl  Since this is a Starlink-customised version of autoconf, change the
 dnl  package name and bug-reporting address.  It would be good to change
 dnl  the version number, too, but that would require surgery on macro
 dnl  lib/m4sugar/m4sugar.m4:m4_version_prereq.
-dnl
-dnl  Include the TARNAME field, not because we want to distribute
-dnl  this package, but so that autoconf uses this when building some
-dnl  installation locations rather than the "starlink-autoconf" it
-dnl  would otherwise construct.
-AC_INIT([Starlink Autoconf], [2.69-starlink], [starlink@jiscmail.ac.uk], autoconf)
-dnl AC_INIT([GNU Autoconf],
-dnl 	m4_esyscmd([build-aux/git-version-gen .tarball-version]),
-dnl 	[bug-autoconf@gnu.org])
-AC_CONFIG_SRCDIR([lib/autoconf/autoconf.m4])
+AC_INIT([Starlink Autoconf],
+ 	m4_esyscmd([build-aux/git-version-gen .tarball-version]),
+        [starlink@jiscmail.ac.uk], [autoconf])
 
-# Set the STAR_MANIFEST_DIR variable, defaulting it from the environment.
-# This causes the `install-manifest' target to be included in Makefile.in
-: ${STAR_MANIFEST_DIR='$(prefix)/manifests'}
-AC_SUBST(STAR_MANIFEST_DIR)
+dnl  Just eat this section without modification for easy merges.
+ifelse([
+AC_INIT([GNU Autoconf],
+ 	m4_esyscmd([build-aux/git-version-gen .tarball-version]),
+	[bug-autoconf@gnu.org])
+])dnl
+AC_CONFIG_SRCDIR([lib/autoconf/autoconf.m4])
 
 AC_CONFIG_AUX_DIR([build-aux])
 
@@ -239,9 +235,6 @@ AC_CONFIG_FILES([Makefile doc/Makefile
 		 lib/m4sugar/Makefile
 		 lib/autoconf/Makefile lib/autotest/Makefile
 		 bin/Makefile])
-
-dnl  Starlink-specific bookkeeping
-AC_CONFIG_FILES([component.xml])
 
 AC_OUTPUT
 # Report the state of this version of Autoconf if this is a beta.
