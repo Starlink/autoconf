@@ -2345,9 +2345,9 @@ AC_DEFUN([AC_FC_HAVE_BOZ],
                          [AC_LANG_PUSH([Fortran])
                           AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[
       INTEGER I, J, K, L
-      PARAMETER ( J = B'1111111111111111' )
-      PARAMETER ( K = O'7777' )
-      PARAMETER ( L = Z'FF' )
+      DATA J / B'1111111111111111' /,
+     :     K / O'7777' /,
+     :     L / Z'FF' /
 ])],
                           ac_cv_fc_have_boz=yes,
                           ac_cv_fc_have_boz=no)
@@ -2379,11 +2379,11 @@ AC_DEFUN([AC_FC_HAVE_TYPELESS_BOZ],
                           AC_RUN_IFELSE([AC_LANG_SOURCE([
       PROGRAM TMP
       INTEGER I
-      PARAMETER ( I = X'FF7FFFFF' )
       REAL D
-      PARAMETER ( D = X'FF7FFFFF' )
       LOGICAL L
-      PARAMETER ( L = X'A55A5AA5' )
+      DATA I / X'FF7FFFFF' /,
+     :     D / X'FF7FFFFF' /,
+     :     L / X'A55A5AA5' /
       IF ( D .EQ. I ) THEN
          CALL EXIT( 1 )
       END IF
@@ -2418,11 +2418,11 @@ AC_DEFUN([AC_FC_HAVE_OLD_TYPELESS_BOZ],
                           AC_RUN_IFELSE([AC_LANG_SOURCE([
       PROGRAM TMP
       INTEGER I
-      PARAMETER ( I = 'FF7FFFFF'X )
       REAL D
-      PARAMETER ( D = 'FF7FFFFF'X )
       LOGICAL L
-      PARAMETER ( L = 'A55A5AA5'X )
+      DATA I / 'FF7FFFFF'X /,
+     :     D / 'FF7FFFFF'X /,
+     :     L / 'A55A5AA5'X /
       IF ( D .EQ. I ) THEN
          CALL EXIT( 1 )
       END IF
